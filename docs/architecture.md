@@ -2,14 +2,15 @@
 
 `apps/backend/app/` holds one folder per **module**: a bounded context that owns its vocabulary, its tables, and its routes. A module may hold several models; modules are not 1:1 with tables. Code outside `app/` (`start/`, `config/`, `database/`, `providers/`, `tests/`) is application wiring, not a module.
 
-| Module        | Owns                                                                                                     |
-| ------------- | -------------------------------------------------------------------------------------------------------- |
-| `core`        | Infrastructure every module builds on: exception handler, global middleware, `apiRoutes`, health checks. |
-| `users`       | The `User` identity: model, transformer, access tokens, the profile endpoint.                            |
-| `auth`        | Behavior over that identity: sign-up, login, logout, the auth middleware.                                |
-| `attachments` | Stored files: upload, signed URLs, the claim service consumers call, pruning.                            |
-| `tenancy`     | Tenants and their members, the tenant scope on models, the `tenant` middleware.                          |
-| `access`      | Roles and grants per tenant, platform admins, and the Bouncer ability every check goes through.          |
+| Module        | Owns                                                                                                                         |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `core`        | Infrastructure every module builds on: exception handler, global middleware, `apiRoutes`, health checks, the audit recorder. |
+| `users`       | The `User` identity: model, transformer, access tokens, the profile endpoint.                                                |
+| `auth`        | Behavior over that identity: sign-up, login, logout, the auth middleware.                                                    |
+| `attachments` | Stored files: upload, signed URLs, the claim service consumers call, pruning.                                                |
+| `tenancy`     | Tenants and their members, the tenant scope on models, the `tenant` middleware.                                              |
+| `access`      | Roles and grants per tenant, platform admins, and the Bouncer ability every check goes through.                              |
+| `audit`       | Reading the audit trail: the tenant's events endpoint and which permission opens which subject's history.                    |
 
 ## Starting a new module or feature
 
@@ -42,6 +43,7 @@ app/<module>/
   models/, transformers/, validators/, middleware/, exceptions/, enums/
   database/factories/
   types/events.ts     # EventsList declaration merge, when the module emits events
+  types/audit.ts      # AuditEvents declaration merge, when the module records audit events
   start/events.ts     # its listeners, preloaded
   tests/{unit,functional}/
 ```
@@ -214,6 +216,40 @@ await import('#access/actions/seed_tenant_owner').then(({ default: SeedTenantOwn
   new SeedTenantOwner().handle({ tenantId, creatorId, locale: 'en-US' }),
 )
 ```
+
+## Audit trail
+
+Every successful write records one **audit event** in `audit_events`: what happened in business terms (`member.role_changed`), its subject, the display values of that moment, and who did it from which session. The app never updates or deletes an event.
+
+### Record an event
+
+1. **Declare the type** in the module's `types/audit.ts`, merging into `AuditEvents` from `#core/audit/types`. `TenantEvent<'role', { name: string }>` is listed on a tenant's trail; `AccountEvent<…>` belongs to no tenant (login, avatar). The data is a type alias of JSON values that holds display values (names, emails), so the event still reads after its subject changes or is deleted.
+2. **Record it in the write's transaction**: `await audit.record(trx, 'role.deleted', { tenantId, subject: { type: 'role', id: role.id }, data: { name: role.name } })`, with `audit` from `#core/audit/main`. A rollback drops the event with the write. `audit.note(type, entry)` inserts on its own: use it only for an event with no row to share a transaction with (login, failed login, logout).
+3. **Import the declarations** in that file: `import type {} from '#<module>/types/audit'`. The frontend compiles backend files through the API registry and sees only the declarations they import.
+
+For an update, call `dirtyChanges(row, ['name', 'permissions'])` from `#core/audit/main` before `save()`: it returns `{ name: { from, to } }` for the named keys that changed. Keys named `password`, `token`, `tokenHash`, `token_hash`, `hash` or `secret` are stored as `'[redacted]'` at any depth.
+
+The origin comes from the request. `audit_scope_middleware` (router stack, after `silent_auth`) runs the request in an AsyncLocalStorage scope, and each event reads its actor (`ctx.auth.user`), session (the access token's id), request id, IP and user agent when it is recorded. Login and sign-up pass `actorId`, and login `sessionId`, because the user appears during the request. Outside a request (repl, seeds, jobs) an event has no origin, and the trail shows it as the system.
+
+### The guard
+
+The same middleware fails a `POST`, `PUT`, `PATCH` or `DELETE` that answers 2xx without recording an event. Outside production it answers 500 `E_UNAUDITED_WRITE`, so the endpoint's first functional test names the missing call. In production, where the write is already committed, it logs an error. A refused write (4xx) needs no event; the functional test owns any event it does record, such as the failed login.
+
+### Why not a mixin or a trigger
+
+Lucid hooks run only inside an instance's `save()` and `delete()`, so a mixin misses the bulk `query().delete()` that `AssignRole` and `ReplaceGrants` use, and records row diffs instead of intent. A Postgres trigger has no actor, session or request unless every transaction sets them, and it records rows, not intent.
+
+### Read a trail
+
+`GET /api/v1/audit/events` (`auth`, `tenant`) lists the tenant's events newest first, paginated (`page`, `perPage` up to 100) and filtered by `type[]`, `actorId`, `subjectType`, `subjectId`, `from` and `to` (ISO 8601). Each row holds `actor` (the user, or `null` for the system), `session` (`id`, `ip`, `userAgent`, `requestId`), `createdAt`, and `event: { type, subject, data }`, a union the frontend narrows on `event.type`. It is nested because the inferred response type keeps a union inside a field, not at the top level of a row.
+
+The whole trail needs `audit.view`. The Owner role of a new tenant holds it; an Owner role created before it existed doesn't (see [Tenant owner](#tenant-owner)). Account events are recorded, but no endpoint lists them yet.
+
+A feature shows the history of its own records through the same endpoint, filtered by `subjectType` and `subjectId`. `SUBJECT_PERMISSIONS` in `app/audit/subject_permissions.ts` maps a subject type to the feature permission that may read its trail without `audit.view` (`role` to `roles.manage`). A new feature adds its subject type there.
+
+### Jobs
+
+No job records an event today. A job that writes on behalf of a request will carry the request's origin in its payload: add to `#core/audit/scope` a function that snapshots the current origin as plain values for the dispatch, and a scope the job runs its work in, built from that snapshot. A scheduled job records as the system.
 
 ## Translations
 
