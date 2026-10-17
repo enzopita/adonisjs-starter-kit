@@ -75,6 +75,7 @@ export default defineConfig({
   preloads: [
     () => import('#start/kernel'),
     () => import('#start/validator'),
+    () => import('#start/mail'),
     { file: () => import('#start/scheduler'), environment: ['web'] },
 
     // core

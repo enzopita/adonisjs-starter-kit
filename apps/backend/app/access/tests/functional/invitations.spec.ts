@@ -15,18 +15,18 @@ async function setup() {
   return { acme, owner }
 }
 
-/** Pulls the raw token out of the invitation link in the most recently sent mail. */
+/** Pulls the raw token out of the invitation link in the most recently queued mail. */
 function lastToken(fake: ReturnType<typeof mail.fake>) {
-  const sent = fake.mails.sent()
-  const html = sent[sent.length - 1]?.message.toJSON().message.html
+  const queued = fake.mails.queued()
+  const html = queued[queued.length - 1]?.message.toJSON().message.html
 
-  if (!html) throw new Error('The sent mail has no HTML body')
+  if (!html) throw new Error('The queued mail has no HTML body')
 
   // SAFETY: InvitationMail only ever calls message.htmlView(), which always renders to a string.
   const match = (html as string).match(/href="[^"]*\/invitations\/([a-f0-9]+)"/)
   const token = match?.[1]
 
-  if (!token) throw new Error('No invitation link found in the sent mail')
+  if (!token) throw new Error('No invitation link found in the queued mail')
 
   return token
 }
@@ -90,8 +90,11 @@ test.group('Access | invitations', group => {
       .headers(acme.headers)
       .loginAs(owner)
 
-    const sent = fake.mails.sent()
-    assert.equal(sent[sent.length - 1]?.message.toJSON().message.subject, 'Você recebeu um convite')
+    const queued = fake.mails.queued()
+    assert.equal(
+      queued[queued.length - 1]?.message.toJSON().message.subject,
+      'Você recebeu um convite',
+    )
   })
 
   test('invites, lists, and revokes', async ({ client, assert }) => {
@@ -107,7 +110,7 @@ test.group('Access | invitations', group => {
 
     created.assertStatus(200)
     created.assertBodyContains({ data: { email: 'guest@example.com', roleId: editor.id } })
-    fake.mails.assertSent(InvitationMail, ({ message }) => message.hasTo('guest@example.com'))
+    fake.mails.assertQueued(InvitationMail, ({ message }) => message.hasTo('guest@example.com'))
 
     const listed = await client
       .visit('access.invitations.index')

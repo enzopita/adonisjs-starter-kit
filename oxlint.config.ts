@@ -171,5 +171,23 @@ export default defineConfig({
     'anti-slop/require-safety-comment-for-type-assertion': 'error',
   },
 
-  overrides: [...moduleBoundaries, ...featureBoundaries, ...designSystem],
+  overrides: [
+    ...moduleBoundaries,
+    ...featureBoundaries,
+    ...designSystem,
+    {
+      files: ['apps/backend/**'],
+      rules: {
+        'no-restricted-properties': [
+          'error',
+          {
+            object: 'mail',
+            property: 'send',
+            message:
+              'Queue mail with mail.sendLater(): the worker delivers it with retries (start/mail.ts).',
+          },
+        ],
+      },
+    },
+  ],
 })
