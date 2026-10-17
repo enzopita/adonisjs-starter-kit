@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
 import User from '#users/models/user'
+import AuditEvent from '#core/models/audit_event'
 import drive from '@adonisjs/drive/services/main'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { AttachmentFactory } from '#attachments/database/factories/attachment_factory'
@@ -74,5 +75,21 @@ test.group('Users | avatar', group => {
     assert.isNull(response.body().data.avatar)
     await user.refresh()
     assert.isNull(user.avatarAttachmentId)
+  })
+
+  test('records the change with the avatar before and after', async ({ client, assert }) => {
+    const user = await User.create({ email: 'audit@example.com', password: 'password123' })
+    const attachment = await AttachmentFactory.merge({ uploaderId: user.id }).create()
+    user.avatarAttachmentId = attachment.id
+    await user.save()
+
+    await client.put('/api/v1/account/avatar').json({ attachmentId: null }).loginAs(user)
+
+    const event = await AuditEvent.findByOrFail('type', 'user.avatar_changed')
+    assert.deepInclude(event.toJSON(), {
+      actorId: user.id,
+      subjectId: user.id,
+      data: { changes: { avatarAttachmentId: { from: attachment.id, to: null } } },
+    })
   })
 })

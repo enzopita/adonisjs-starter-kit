@@ -1,5 +1,7 @@
 import type User from '#users/models/user'
 import db from '@adonisjs/lucid/services/db'
+import { audit, dirtyChanges } from '#core/audit/main'
+import type {} from '#users/types/audit'
 import { defineAttachmentRule } from '#attachments/rules'
 import { ClaimAttachments } from '#attachments/services/claim_attachments'
 
@@ -28,7 +30,15 @@ export default class UpdateAvatar {
       }
 
       user.avatarAttachmentId = attachmentId
+      const changes = dirtyChanges(user, ['avatarAttachmentId'])
       await user.save()
+
+      await audit.record(trx, 'user.avatar_changed', {
+        tenantId: null,
+        subject: { type: 'user', id: user.id },
+        data: { changes },
+      })
+
       await user.load('avatar')
 
       return user
