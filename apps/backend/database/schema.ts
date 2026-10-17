@@ -40,6 +40,7 @@ export class AuditEventSchema extends BaseModel {
     'createdAt',
     'data',
     'id',
+    'impersonatorId',
     'ip',
     'requestId',
     'sessionId',
@@ -58,6 +59,8 @@ export class AuditEventSchema extends BaseModel {
   declare data: any
   @column({ isPrimary: true })
   declare id: string
+  @column()
+  declare impersonatorId: string | null
   @column()
   declare ip: string | null
   @column()
@@ -83,6 +86,7 @@ export class AuthAccessTokenSchema extends BaseModel {
     'expiresAt',
     'hash',
     'id',
+    'impersonatorId',
     'lastUsedAt',
     'name',
     'tokenableId',
@@ -100,6 +104,8 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare hash: string
   @column({ isPrimary: true })
   declare id: string
+  @column()
+  declare impersonatorId: string | null
   @column.dateTime()
   declare lastUsedAt: DateTime | null
   @column()
@@ -217,7 +223,7 @@ export class TenantMembershipSchema extends BaseModel {
 }
 
 export class TenantSchema extends BaseModel {
-  static $columns = ['createdAt', 'id', 'name', 'updatedAt'] as const
+  static $columns = ['createdAt', 'id', 'name', 'suspendedAt', 'updatedAt'] as const
   $columns = TenantSchema.$columns
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
@@ -225,6 +231,8 @@ export class TenantSchema extends BaseModel {
   declare id: string
   @column()
   declare name: string
+  @column.dateTime()
+  declare suspendedAt: DateTime | null
   @column.dateTime({ autoCreate: true, autoUpdate: true })
   declare updatedAt: DateTime | null
 }
@@ -233,6 +241,7 @@ export class UserSchema extends BaseModel {
   static $columns = [
     'avatarAttachmentId',
     'createdAt',
+    'disabledAt',
     'email',
     'fullName',
     'id',
@@ -244,6 +253,8 @@ export class UserSchema extends BaseModel {
   declare avatarAttachmentId: string | null
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
+  @column.dateTime()
+  declare disabledAt: DateTime | null
   @column()
   declare email: string
   @column()
