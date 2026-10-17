@@ -17,7 +17,7 @@ export default class SetUserDisabled {
    * can still be enabled.
    */
   async handle({ id, disabled }: SetUserDisabledInput) {
-    return db.transaction(async trx => {
+    const user = await db.transaction(async trx => {
       const user = await User.findOrFail(id, { client: trx })
 
       if (disabled) {
@@ -36,5 +36,11 @@ export default class SetUserDisabled {
 
       return user
     })
+
+    // A login that re-checked `disabledAt` before the commit inserted its token after the delete
+    // above took its snapshot; it has committed by now, so this delete sees it.
+    if (disabled) await db.from('auth_access_tokens').where('tokenable_id', user.id).delete()
+
+    return user
   }
 }

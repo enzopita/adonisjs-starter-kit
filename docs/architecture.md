@@ -270,7 +270,7 @@ The `admin` module is the platform admins' area. Every route needs `auth` and ru
 The states are nullable timestamps, and each holds an invariant at its write rather than a check on every request:
 
 - **A suspended tenant (`tenants.suspended_at`) lets nobody in.** The `tenant` middleware answers its members 403 `E_TENANT_SUSPENDED`, after the membership check, so a non-member still gets `E_TENANT_ACCESS_DENIED`. `GET /api/v1/tenants` keeps listing it with its `suspendedAt`, for the frontend to say why.
-- **A disabled user (`users.disabled_at`) holds no access token.** Disabling deletes every token of theirs in the same transaction, login answers 403 `E_ACCOUNT_DISABLED` once the password is right, and impersonating them answers 409 `E_USER_DISABLED`.
+- **A disabled user (`users.disabled_at`) holds no access token.** Disabling deletes every token of theirs in the same transaction, and again after the commit; login answers 403 `E_ACCOUNT_DISABLED` once the password is right, and re-reads `disabled_at` after creating its token, deleting it if set. Without row locks, a login racing the disable either sees the committed `disabled_at` or inserted its token before the commit, where the second delete finds it. and impersonating them answers 409 `E_USER_DISABLED`.
 - **A platform admin is never disabled or impersonated through the API**, the caller included: 409 `E_PLATFORM_ADMIN_PROTECTED`. Enabling isn't protected, so someone disabled before `admin:grant` can still be enabled.
 
 Suspending, disabling and their reverses are idempotent: a repeat keeps the first date and answers 200, and records its event again, since every successful write records one (see [The guard](#the-guard)).

@@ -31,6 +31,14 @@ export default class AccessTokensController {
 
     const token = await User.accessTokens.create(user)
 
+    // A disable committing since the check above may have deleted the tokens before this one existed.
+    await user.refresh()
+
+    if (user.disabledAt) {
+      await User.accessTokens.delete(user, token.identifier)
+      throw new AccountDisabledException()
+    }
+
     await audit.note('auth.logged_in', {
       tenantId: null,
       subject: { type: 'user', id: user.id },
