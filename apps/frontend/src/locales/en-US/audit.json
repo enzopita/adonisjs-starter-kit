@@ -3,7 +3,8 @@
     "tenant": "Workspace",
     "role": "Roles",
     "member": "Members",
-    "invitation": "Invitations"
+    "invitation": "Invitations",
+    "access": "Access"
   },
   "types": {
     "tenantCreated": "Workspace created",
@@ -15,7 +16,9 @@
     "memberPermissionsChanged": "Member’s permissions changed",
     "invitationSent": "Invitation sent",
     "invitationRevoked": "Invitation revoked",
-    "invitationAccepted": "Invitation accepted"
+    "invitationAccepted": "Invitation accepted",
+    "accessDenied": "Access denied",
+    "tenantAccessDenied": "Workspace access denied"
   },
   "events": {
     "tenantCreated": "created the workspace “{name}”",
@@ -41,6 +44,8 @@
     "avatarChanged": "changed their photo",
     "avatarRemoved": "removed their photo",
     "fileUploaded": "uploaded “{name}”",
+    "accessDenied": "was denied access to {method} {route}, which needs “{permission}”",
+    "tenantAccessDenied": "tried to open this workspace without being a member",
     "unknown": "recorded an event of type “{type}”"
   },
   "timeline": {

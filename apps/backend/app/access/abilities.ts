@@ -1,5 +1,6 @@
 import type User from '#users/models/user'
 import { Bouncer } from '@adonisjs/bouncer'
+import { PermissionDenial } from '#access/permission_denial'
 import { currentTenantId } from '#tenancy/tenant_context'
 import GetPermissions from '#access/queries/get_permissions'
 import type { Permission } from '#access/permissions'
@@ -29,6 +30,11 @@ function permissionsOf(user: User, tenantId: string | null) {
 }
 
 /** The one authorization decision: `await bouncer.authorize(can, PERMISSIONS.rolesManage)`. */
-export const can = Bouncer.ability(async (user: User, permission: Permission) =>
-  (await permissionsOf(user, currentTenantId())).has(permission),
-)
+export const can = Bouncer.ability(async (user: User, permission: Permission) => {
+  const tenantId = currentTenantId()
+
+  return (
+    (await permissionsOf(user, tenantId)).has(permission) ||
+    new PermissionDenial(permission, tenantId)
+  )
+})

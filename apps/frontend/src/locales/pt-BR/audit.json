@@ -3,7 +3,8 @@
     "tenant": "Espaço de trabalho",
     "role": "Papéis",
     "member": "Membros",
-    "invitation": "Convites"
+    "invitation": "Convites",
+    "access": "Acesso"
   },
   "types": {
     "tenantCreated": "Espaço de trabalho criado",
@@ -15,7 +16,9 @@
     "memberPermissionsChanged": "Permissões de membro alteradas",
     "invitationSent": "Convite enviado",
     "invitationRevoked": "Convite revogado",
-    "invitationAccepted": "Convite aceito"
+    "invitationAccepted": "Convite aceito",
+    "accessDenied": "Acesso negado",
+    "tenantAccessDenied": "Acesso ao espaço de trabalho negado"
   },
   "events": {
     "tenantCreated": "criou o espaço de trabalho “{name}”",
@@ -41,6 +44,8 @@
     "avatarChanged": "trocou a foto",
     "avatarRemoved": "removeu a foto",
     "fileUploaded": "enviou “{name}”",
+    "accessDenied": "teve o acesso a {method} {route} negado, pois exige “{permission}”",
+    "tenantAccessDenied": "tentou abrir este espaço de trabalho sem ser membro",
     "unknown": "registrou um evento do tipo “{type}”"
   },
   "timeline": {

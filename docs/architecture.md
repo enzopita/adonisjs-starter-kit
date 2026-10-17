@@ -128,11 +128,11 @@ A preload with `groupLimit()` on a tenant-scoped model fails with a SQL error.
 
 A route that touches tenant data uses `middleware.tenant()` after `middleware.auth()`, and the client sends the tenant id in the `X-Tenant-Id` header:
 
-| Header                                     | Response                                                                        |
-| ------------------------------------------ | ------------------------------------------------------------------------------- |
-| Missing or not a UUID                      | 400, `key: 'E_INVALID_TENANT_HEADER'`                                           |
-| Unknown tenant, or the user isn't a member | 403, `key: 'E_TENANT_ACCESS_DENIED'`, the same body for both                    |
-| A tenant of the user                       | `ctx.tenant` is the `Tenant`, and the rest of the request runs in `runInTenant` |
+| Header                                     | Response                                                                                                                                 |
+| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Missing or not a UUID                      | 400, `key: 'E_INVALID_TENANT_HEADER'`                                                                                                    |
+| Unknown tenant, or the user isn't a member | 403, `key: 'E_TENANT_ACCESS_DENIED'`, the same body for both; a non-member's attempt is recorded as `access.tenant_denied` on the tenant |
+| A tenant of the user                       | `ctx.tenant` is the `Tenant`, and the rest of the request runs in `runInTenant`                                                          |
 
 `GET /api/v1/tenants` lists the user's tenants. `POST /api/v1/tenants` creates one with the user as its first member, then emits `tenancy:tenant_created` (`{ tenantId, creatorId }`). Both need only `auth`.
 
@@ -159,7 +159,7 @@ async destroy({ bouncer, request, serialize }: HttpContext) {
 }
 ```
 
-A denial answers 403 with `{ errors: [{ message }] }`, the `errors.E_AUTHORIZATION_FAILURE` translation.
+A denial answers 403 with `{ errors: [{ message }] }`, the `errors.E_AUTHORIZATION_FAILURE` translation. Inside a tenant, it also records `access.denied` on that tenant's trail, with the permission, the route pattern and the method: the bouncer middleware wraps `authorize()`, since the exception handler answers before any middleware sees the error. `bouncer.allows()` records nothing, so a screen can ask what to show. Outside a tenant nothing is recorded: only platform admins pass there, and no screen would list it.
 
 A check reads the tenant context: inside `middleware.tenant()` it uses that tenant's role and grants. Outside any tenant (no context, or `runAsSystem()`) only a platform admin passes, so a route that forgets `middleware.tenant()` denies everyone else.
 

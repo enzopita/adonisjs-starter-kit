@@ -2,7 +2,7 @@ import { Avatar, AvatarFallback } from '@monorepo/ui/components/avatar'
 import { Badge } from '@monorepo/ui/components/badge'
 import { CogIcon, ShieldAlertIcon } from 'lucide-react'
 import { describeEvent } from '@/features/audit/event-text'
-import type { AuditEventRow } from '@/features/audit/event-text'
+import type { AuditEventRow, PermissionLabel } from '@/features/audit/event-text'
 import { locale, t } from '@/features/core/i18n'
 import { UserAvatar } from '@/features/users/components/user-avatar'
 
@@ -32,9 +32,6 @@ function relativeTime(date: Date) {
 }
 
 const actorName = (actor: Actor) => actor.fullName ?? actor.email
-
-/** Permission names belong to the access feature, which depends on this one: callers pass them in. */
-export type PermissionLabel = (permission: string) => string
 
 const rawPermission: PermissionLabel = permission => permission
 
@@ -81,7 +78,7 @@ function AuditTimelineItem({
   showSession: boolean
 }) {
   const { actor, session } = row
-  const { sentence, standalone, permissions } = describeEvent(row.event)
+  const { sentence, standalone, permissions } = describeEvent(row.event, permissionLabel)
   const createdAt = row.createdAt ? new Date(row.createdAt) : null
 
   return (

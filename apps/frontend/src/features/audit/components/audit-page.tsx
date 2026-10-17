@@ -23,7 +23,6 @@ import { HistoryIcon, XIcon } from 'lucide-react'
 import { useId } from 'react'
 import { AuditPagination } from '@/features/audit/components/audit-pagination'
 import { AuditTimeline } from '@/features/audit/components/audit-timeline'
-import type { PermissionLabel } from '@/features/audit/components/audit-timeline'
 import {
   AUDIT_AREAS,
   AUDIT_EVENT_TYPES,
@@ -31,7 +30,7 @@ import {
   areaOf,
   eventTypeLabel,
 } from '@/features/audit/event-text'
-import type { AuditArea } from '@/features/audit/event-text'
+import type { AuditArea, PermissionLabel } from '@/features/audit/event-text'
 import { auditEventsQuery, auditSearchSchema } from '@/features/audit/queries'
 import type { AuditSearch } from '@/features/audit/queries'
 import { PageHeader } from '@/features/core/components/page-header'

@@ -2,6 +2,7 @@ import { test } from '@japa/runner'
 import User from '#users/models/user'
 import { middleware } from '#start/kernel'
 import Tenant from '#tenancy/models/tenant'
+import AuditEvent from '#core/models/audit_event'
 import router from '@adonisjs/core/services/router'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { currentTenantContext } from '#tenancy/tenant_context'
@@ -64,6 +65,26 @@ test.group('Tenancy | tenant middleware', group => {
     foreign.assertStatus(403)
     unknown.assertStatus(403)
     assert.deepEqual(foreign.body(), unknown.body())
+  })
+
+  // Regression: an outsider sending a tenant's id leaves no trace on its trail, or an unknown id
+  // tries to record one (and fails on the foreign key).
+  test('records a non-member’s attempt on the tenant, and nothing for an unknown one', async ({
+    client,
+    assert,
+  }) => {
+    const acme = await Tenant.create({ name: 'Acme' })
+    const outsider = await User.create({ email: 'outsider@example.com', password: 'password123' })
+
+    for (const tenantId of [acme.id, '01900000-0000-7000-8000-000000000000']) {
+      await client.get('/__tests/tenant-context').header('X-Tenant-Id', tenantId).loginAs(outsider)
+    }
+
+    const events = await AuditEvent.query().where('type', 'access.tenant_denied')
+    assert.deepEqual(
+      events.map(event => [event.tenantId, event.actorId, event.data]),
+      [[acme.id, outsider.id, { route: '/__tests/tenant-context', method: 'GET' }]],
+    )
   })
 
   test('runs the request inside the tenant of a member', async ({ client }) => {

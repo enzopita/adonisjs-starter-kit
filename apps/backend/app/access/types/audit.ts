@@ -1,4 +1,5 @@
 import type Role from '#access/models/role'
+import type { Permission } from '#access/permissions'
 import type { Changes, TenantEvent } from '#core/audit/types'
 
 export type MemberSnapshot = { email: string; fullName: string | null }
@@ -27,5 +28,9 @@ declare module '#core/audit/types' {
     'invitation.sent': TenantEvent<'invitation', InvitationData>
     'invitation.revoked': TenantEvent<'invitation', InvitationData>
     'invitation.accepted': TenantEvent<'invitation', InvitationData>
+    'access.denied': TenantEvent<
+      null,
+      { permission: Permission; route: string | null; method: string }
+    >
   }
 }

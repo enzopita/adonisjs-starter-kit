@@ -30,8 +30,11 @@ export type EventDescription = {
   permissions?: { added: string[]; removed: string[] }
 }
 
+/** Permission names belong to the access feature, which depends on this one: callers pass them in. */
+export type PermissionLabel = (permission: string) => string
+
 type EventText<T extends AuditEventType> = {
-  describe: (event: EventMap[T]) => EventDescription
+  describe: (event: EventMap[T], permissionLabel: PermissionLabel) => EventDescription
 }
 
 /** A workspace event also names its type in the trail's filter. */
@@ -126,6 +129,20 @@ const TENANT_EVENTS: TenantEventTexts = {
       sentence: t('audit.events.invitationAccepted', { email: data.email }),
     }),
   },
+  'access.denied': {
+    label: t('audit.types.accessDenied'),
+    describe: ({ data }, permissionLabel) => ({
+      sentence: t('audit.events.accessDenied', {
+        permission: permissionLabel(data.permission),
+        method: data.method,
+        route: data.route ?? '',
+      }),
+    }),
+  },
+  'access.tenant_denied': {
+    label: t('audit.types.tenantAccessDenied'),
+    describe: () => ({ sentence: t('audit.events.tenantAccessDenied') }),
+  },
 }
 
 const ACCOUNT_EVENTS: EventTexts<Exclude<AuditEventType, TenantEventType>> = {
@@ -175,6 +192,7 @@ const AREA_LABELS: Record<AuditArea, string> = {
   role: t('audit.areas.role'),
   member: t('audit.areas.member'),
   invitation: t('audit.areas.invitation'),
+  access: t('audit.areas.access'),
 }
 
 export const areaLabel = (area: AuditArea) => AREA_LABELS[area]
@@ -185,16 +203,23 @@ function isKnown(type: string): type is AuditEventType {
   return Object.hasOwn(EVENTS, type)
 }
 
-function describeKnown<T extends AuditEventType>(type: T, event: EventMap[T]) {
-  return EVENTS[type].describe(event)
+function describeKnown<T extends AuditEventType>(
+  type: T,
+  event: EventMap[T],
+  permissionLabel: PermissionLabel,
+) {
+  return EVENTS[type].describe(event, permissionLabel)
 }
 
 /**
  * A row's text. Events of a type this build doesn't know (recorded by a newer backend, or by one
  * that has since dropped the type) still read, by their raw type.
  */
-export function describeEvent(event: AuditEvent): EventDescription {
+export function describeEvent(
+  event: AuditEvent,
+  permissionLabel: PermissionLabel,
+): EventDescription {
   if (!isKnown(event.type)) return { sentence: t('audit.events.unknown', { type: event.type }) }
 
-  return describeKnown(event.type, event)
+  return describeKnown(event.type, event, permissionLabel)
 }
