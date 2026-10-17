@@ -16,5 +16,9 @@
     "newWorkspace": "New workspace",
     "newWorkspaceDescription": "You’ll be its owner, with every permission. You can invite people next.",
     "close": "Close"
+  },
+  "suspendedPage": {
+    "title": "“{name}” is suspended",
+    "description": "A platform admin suspended this workspace, so nobody can open it for now. Contact support to get access back, or switch to another workspace."
   }
 }

@@ -14,6 +14,8 @@ export const Route = createFileRoute('/_app/_workspace')({
 
     if (!tenant) throw redirect({ to: '/onboarding' })
 
+    if (tenant.suspendedAt) throw redirect({ to: '/workspace-suspended' })
+
     await queryClient.query(myPermissionsQuery(tenant.id))
 
     return { tenant }

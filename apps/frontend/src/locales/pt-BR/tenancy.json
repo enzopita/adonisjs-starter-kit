@@ -16,5 +16,9 @@
     "newWorkspace": "Novo espaço de trabalho",
     "newWorkspaceDescription": "Você será o proprietário, com todas as permissões. Você pode convidar pessoas depois.",
     "close": "Fechar"
+  },
+  "suspendedPage": {
+    "title": "“{name}” está suspenso",
+    "description": "Um administrador da plataforma suspendeu este espaço de trabalho, então ninguém consegue abri-lo por enquanto. Fale com o suporte para recuperar o acesso, ou troque para outro espaço de trabalho."
   }
 }
