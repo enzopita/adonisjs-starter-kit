@@ -37,6 +37,13 @@ export function UserMenu({ user, children }: { user: Data.Users.User; children?:
   const logOut = async () => {
     // The token is dropped even if the call fails: the user asked to be signed out of this browser.
     await api.profile.accessTokens.destroy({}).safe()
+
+    // Logging out while impersonating ends the admin's session as well, not only the impersonation.
+    if (session.isImpersonating()) {
+      session.stopImpersonating()
+      await api.profile.accessTokens.destroy({}).safe()
+    }
+
     session.signOut()
     await router.navigate({ to: '/login' })
   }

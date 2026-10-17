@@ -19,6 +19,7 @@ export const sessionStore = createPersistedStore(
 export const session = {
   token: () => sessionStore.getState().token,
   isAuthenticated: () => sessionStore.getState().token !== null,
+  isImpersonating: () => sessionStore.getState().impersonation !== null,
   signIn: (token: string) => sessionStore.setState({ token, impersonation: null }),
   signOut: () => sessionStore.setState({ token: null, impersonation: null }),
   impersonate: (token: string) => {

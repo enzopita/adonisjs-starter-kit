@@ -128,4 +128,17 @@ test('an admin impersonates a member and comes back as themself', async ({
   // The impersonation token was revoked, not just dropped: the browser is the admin's again.
   await browser.reload()
   await expect(screen.getByRole('heading', 'Users', { level: 1 })).toBeVisible()
+
+  await app.open(`/admin?${searchFor(tenant.name)}`)
+  await screen.getByRole('link', tenant.name).tap()
+  await screen.getByRole('button', `Impersonate ${member.fullName}`).tap()
+  await expect(banner()).toBeVisible()
+  await screen.getByRole('button', 'Account menu').tap()
+  await screen.getByRole('menuitem', 'Log out').tap()
+  await expect(browser).toHaveURL(/\/login/)
+
+  // Logging out while impersonating revoked the admin's token too.
+  await switchAccount(browser, admin)
+  await app.open('/admin/users')
+  await expect(browser).toHaveURL(/\/login/)
 })
