@@ -283,6 +283,114 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/audit/controllers/account_activity_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'admin.me.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/me'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/me_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/me_controller').default['show']>>>
+    }
+  }
+  'admin.tenants.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/tenants'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#admin/validators/tenant').listTenantsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/tenants_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/tenants_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.tenants.show': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/tenants/:id'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQueryForGet<InferInput<(typeof import('#admin/validators/tenant').tenantParamsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/tenants_controller').default['show']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/tenants_controller').default['show']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.tenants.update': {
+    methods: ["PUT"]
+    pattern: '/api/v1/admin/tenants/:id'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#admin/validators/tenant').renameTenantValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#admin/validators/tenant').renameTenantValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/tenants_controller').default['update']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/tenants_controller').default['update']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.tenant_suspensions.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/tenants/:id/suspension'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/tenant_suspensions_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/tenant_suspensions_controller').default['store']>>>
+    }
+  }
+  'admin.tenant_suspensions.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/admin/tenants/:id/suspension'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/tenant_suspensions_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/tenant_suspensions_controller').default['destroy']>>>
+    }
+  }
+  'admin.users.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/admin/users'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#admin/validators/user').listUsersValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/users_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/users_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
+  'admin.user_suspensions.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/users/:id/suspension'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/user_suspensions_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/user_suspensions_controller').default['store']>>>
+    }
+  }
+  'admin.user_suspensions.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/admin/users/:id/suspension'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/user_suspensions_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/user_suspensions_controller').default['destroy']>>>
+    }
+  }
   'health_checks.live': {
     methods: ["GET","HEAD"]
     pattern: '/health/live'

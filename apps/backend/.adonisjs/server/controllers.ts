@@ -14,6 +14,13 @@ export const controllers = {
     PermissionCatalog: () => import('#app/access/controllers/permission_catalog_controller'),
     Roles: () => import('#app/access/controllers/roles_controller'),
   },
+  admin: {
+    Me: () => import('#app/admin/controllers/me_controller'),
+    TenantSuspensions: () => import('#app/admin/controllers/tenant_suspensions_controller'),
+    Tenants: () => import('#app/admin/controllers/tenants_controller'),
+    UserSuspensions: () => import('#app/admin/controllers/user_suspensions_controller'),
+    Users: () => import('#app/admin/controllers/users_controller'),
+  },
   attachments: {
     Attachments: () => import('#app/attachments/controllers/attachments_controller'),
   },

@@ -99,6 +99,9 @@ export default defineConfig({
 
     // audit
     () => import('#audit/routes'),
+
+    // admin
+    () => import('#admin/routes'),
   ],
 
   /*

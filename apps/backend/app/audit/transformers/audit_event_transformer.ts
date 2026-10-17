@@ -1,6 +1,7 @@
 import { BaseTransformer } from '@adonisjs/core/transformers'
 import type { AuditEventRow } from '#audit/queries/list_audit_events'
 import type {} from '#access/types/audit'
+import type {} from '#admin/types/audit'
 import type {} from '#attachments/types/audit'
 import type {} from '#auth/types/audit'
 import type {} from '#tenancy/types/audit'

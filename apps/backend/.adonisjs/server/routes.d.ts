@@ -27,6 +27,15 @@ export type ScannedRoutes = {
     'invitation_accept.store': { paramsTuple?: []; params?: {} }
     'audit.audit_events.index': { paramsTuple?: []; params?: {} }
     'audit.account_activity.index': { paramsTuple?: []; params?: {} }
+    'admin.me.show': { paramsTuple?: []; params?: {} }
+    'admin.tenants.index': { paramsTuple?: []; params?: {} }
+    'admin.tenants.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.tenants.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.tenant_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.tenant_suspensions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.users.index': { paramsTuple?: []; params?: {} }
+    'admin.user_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.user_suspensions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'health_checks.live': { paramsTuple?: []; params?: {} }
     'health_checks.ready': { paramsTuple?: []; params?: {} }
   }
@@ -40,6 +49,10 @@ export type ScannedRoutes = {
     'access.invitations.index': { paramsTuple?: []; params?: {} }
     'audit.audit_events.index': { paramsTuple?: []; params?: {} }
     'audit.account_activity.index': { paramsTuple?: []; params?: {} }
+    'admin.me.show': { paramsTuple?: []; params?: {} }
+    'admin.tenants.index': { paramsTuple?: []; params?: {} }
+    'admin.tenants.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.users.index': { paramsTuple?: []; params?: {} }
     'health_checks.live': { paramsTuple?: []; params?: {} }
     'health_checks.ready': { paramsTuple?: []; params?: {} }
   }
@@ -53,6 +66,10 @@ export type ScannedRoutes = {
     'access.invitations.index': { paramsTuple?: []; params?: {} }
     'audit.audit_events.index': { paramsTuple?: []; params?: {} }
     'audit.account_activity.index': { paramsTuple?: []; params?: {} }
+    'admin.me.show': { paramsTuple?: []; params?: {} }
+    'admin.tenants.index': { paramsTuple?: []; params?: {} }
+    'admin.tenants.show': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.users.index': { paramsTuple?: []; params?: {} }
     'health_checks.live': { paramsTuple?: []; params?: {} }
     'health_checks.ready': { paramsTuple?: []; params?: {} }
   }
@@ -61,6 +78,7 @@ export type ScannedRoutes = {
     'access.roles.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'access.member_roles.update': { paramsTuple: [ParamValue]; params: {'userId': ParamValue} }
     'access.member_permissions.update': { paramsTuple: [ParamValue]; params: {'userId': ParamValue} }
+    'admin.tenants.update': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
@@ -71,10 +89,14 @@ export type ScannedRoutes = {
     'access.roles.store': { paramsTuple?: []; params?: {} }
     'access.invitations.store': { paramsTuple?: []; params?: {} }
     'invitation_accept.store': { paramsTuple?: []; params?: {} }
+    'admin.tenant_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.user_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'access.roles.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'access.invitations.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.tenant_suspensions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.user_suspensions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

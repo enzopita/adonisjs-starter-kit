@@ -149,6 +149,22 @@ const TENANT_EVENTS: TenantEventTexts = {
     label: t('audit.types.tenantAccessDenied'),
     describe: () => ({ sentence: t('audit.events.tenantAccessDenied') }),
   },
+  'admin.tenant_renamed': {
+    label: t('audit.types.tenantRenamed'),
+    describe: ({ data }) => ({
+      sentence: t('audit.events.tenantRenamed', { from: data.from, to: data.to }),
+    }),
+  },
+  'admin.tenant_suspended': {
+    label: t('audit.types.tenantSuspended'),
+    describe: ({ data }) => ({ sentence: t('audit.events.tenantSuspended', { name: data.name }) }),
+  },
+  'admin.tenant_reactivated': {
+    label: t('audit.types.tenantReactivated'),
+    describe: ({ data }) => ({
+      sentence: t('audit.events.tenantReactivated', { name: data.name }),
+    }),
+  },
 }
 
 const ACCOUNT_EVENTS: EventTexts<Exclude<AuditEventType, TenantEventType>> = {
@@ -179,6 +195,12 @@ const ACCOUNT_EVENTS: EventTexts<Exclude<AuditEventType, TenantEventType>> = {
   'attachment.uploaded': {
     describe: ({ data }) => ({ sentence: t('audit.events.fileUploaded', { name: data.name }) }),
   },
+  'admin.user_disabled': {
+    describe: ({ data }) => ({ sentence: t('audit.events.userDisabled', { email: data.email }) }),
+  },
+  'admin.user_enabled': {
+    describe: ({ data }) => ({ sentence: t('audit.events.userEnabled', { email: data.email }) }),
+  },
 }
 
 const EVENTS: EventTexts<AuditEventType> = { ...TENANT_EVENTS, ...ACCOUNT_EVENTS }
@@ -199,6 +221,7 @@ const AREA_LABELS: Record<AuditArea, string> = {
   member: t('audit.areas.member'),
   invitation: t('audit.areas.invitation'),
   access: t('audit.areas.access'),
+  admin: t('audit.areas.admin'),
 }
 
 export const areaLabel = (area: AuditArea) => AREA_LABELS[area]

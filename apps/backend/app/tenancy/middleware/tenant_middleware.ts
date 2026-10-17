@@ -46,6 +46,14 @@ export default class TenantMiddleware {
       })
     }
 
+    // Only a member learns the tenant is suspended: everyone else got the 403 above.
+    if (tenant.suspendedAt) {
+      return ctx.response.forbidden({
+        message: ctx.i18n.t('errors.E_TENANT_SUSPENDED'),
+        key: 'E_TENANT_SUSPENDED',
+      })
+    }
+
     ctx.tenant = tenant
 
     return runInTenant(tenant.id, () => next())

@@ -71,6 +71,27 @@ export interface ApiDefinition {
       index: typeof routes['audit.account_activity.index']
     }
   }
+  admin: {
+    me: {
+      show: typeof routes['admin.me.show']
+    }
+    tenants: {
+      index: typeof routes['admin.tenants.index']
+      show: typeof routes['admin.tenants.show']
+      update: typeof routes['admin.tenants.update']
+    }
+    tenantSuspensions: {
+      store: typeof routes['admin.tenant_suspensions.store']
+      destroy: typeof routes['admin.tenant_suspensions.destroy']
+    }
+    users: {
+      index: typeof routes['admin.users.index']
+    }
+    userSuspensions: {
+      store: typeof routes['admin.user_suspensions.store']
+      destroy: typeof routes['admin.user_suspensions.destroy']
+    }
+  }
   healthChecks: {
     live: typeof routes['health_checks.live']
     ready: typeof routes['health_checks.ready']

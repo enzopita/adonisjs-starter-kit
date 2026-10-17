@@ -4,6 +4,7 @@ import type {} from '#auth/types/audit'
 import { loginValidator } from '#auth/validators/auth'
 import type { HttpContext } from '@adonisjs/core/http'
 import UserTransformer from '#users/transformers/user_transformer'
+import AccountDisabledException from '#auth/exceptions/account_disabled_exception'
 
 export default class AccessTokensController {
   async store({ request, serialize }: HttpContext) {
@@ -24,6 +25,9 @@ export default class AccessTokensController {
 
       throw error
     }
+
+    // After the password check, so the answer doesn't tell whether an email is disabled.
+    if (user.disabledAt) throw new AccountDisabledException()
 
     const token = await User.accessTokens.create(user)
 

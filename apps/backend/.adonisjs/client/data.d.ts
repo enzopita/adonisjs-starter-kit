@@ -8,6 +8,9 @@ import type { InferData, InferVariants } from '@adonisjs/core/types/transformers
 import type AccessInvitationTransformer from '#app/access/transformers/invitation_transformer'
 import type AccessMemberTransformer from '#app/access/transformers/member_transformer'
 import type AccessRoleTransformer from '#app/access/transformers/role_transformer'
+import type AdminAdminMemberTransformer from '#app/admin/transformers/admin_member_transformer'
+import type AdminAdminTenantTransformer from '#app/admin/transformers/admin_tenant_transformer'
+import type AdminAdminUserTransformer from '#app/admin/transformers/admin_user_transformer'
 import type AttachmentsAttachmentTransformer from '#app/attachments/transformers/attachment_transformer'
 import type AuditAuditEventTransformer from '#app/audit/transformers/audit_event_transformer'
 import type TenancyTenantTransformer from '#app/tenancy/transformers/tenant_transformer'
@@ -26,6 +29,20 @@ export namespace Data {
     export type Role = InferData<AccessRoleTransformer>
     export namespace Role {
       export type Variants = InferVariants<AccessRoleTransformer>
+    }
+  }
+  export namespace Admin {
+    export type AdminMember = InferData<AdminAdminMemberTransformer>
+    export namespace AdminMember {
+      export type Variants = InferVariants<AdminAdminMemberTransformer>
+    }
+    export type AdminTenant = InferData<AdminAdminTenantTransformer>
+    export namespace AdminTenant {
+      export type Variants = InferVariants<AdminAdminTenantTransformer>
+    }
+    export type AdminUser = InferData<AdminAdminUserTransformer>
+    export namespace AdminUser {
+      export type Variants = InferVariants<AdminAdminUserTransformer>
     }
   }
   export namespace Attachments {

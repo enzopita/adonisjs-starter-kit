@@ -13,6 +13,7 @@
     "#tenancy/*": "./app/tenancy/*.js",
     "#access/*": "./app/access/*.js",
     "#audit/*": "./app/audit/*.js",
+    "#admin/*": "./app/admin/*.js",
     "#generated/*": "./.adonisjs/server/*.js",
     "#providers/*": "./providers/*.js",
     "#database/*": "./database/*.js",

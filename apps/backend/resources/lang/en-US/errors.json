@@ -1,4 +1,5 @@
 {
+  "E_ACCOUNT_DISABLED": "This account is disabled. Contact support to get access back.",
   "E_ALREADY_MEMBER": "This person is already a member of the workspace.",
   "E_AUTHORIZATION_FAILURE": "You don’t have permission to do this.",
   "E_BAD_CSRF_TOKEN": "This page has expired. Reload it and try again.",
@@ -9,9 +10,11 @@
   "E_INVITATION_NOT_FOUND": "This invitation doesn’t exist or has expired.",
   "E_LAST_MANAGER": "Someone must still be able to manage members. Give that permission to another member first.",
   "E_MEMBER_NOT_FOUND": "This person is no longer a member of the workspace.",
+  "E_PLATFORM_ADMIN_PROTECTED": "Platform admins can’t be disabled or impersonated.",
   "E_ROLE_IN_USE": "Move this role’s members to another role before deleting it.",
   "E_ROW_NOT_FOUND": "This item doesn’t exist.",
   "E_TENANT_ACCESS_DENIED": "You’re not a member of this workspace.",
+  "E_TENANT_SUSPENDED": "This workspace is suspended. Contact support to get access back.",
   "E_UNAUDITED_WRITE": "This change was saved without an audit record. Report it to the team.",
   "E_UNAUTHORIZED_ACCESS": "Sign in to continue."
 }

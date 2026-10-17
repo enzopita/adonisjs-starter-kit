@@ -4,7 +4,8 @@
     "role": "Roles",
     "member": "Members",
     "invitation": "Invitations",
-    "access": "Access"
+    "access": "Access",
+    "admin": "Platform admin"
   },
   "types": {
     "tenantCreated": "Workspace created",
@@ -18,7 +19,10 @@
     "invitationRevoked": "Invitation revoked",
     "invitationAccepted": "Invitation accepted",
     "accessDenied": "Access denied",
-    "tenantAccessDenied": "Workspace access denied"
+    "tenantAccessDenied": "Workspace access denied",
+    "tenantRenamed": "Workspace renamed",
+    "tenantSuspended": "Workspace suspended",
+    "tenantReactivated": "Workspace reactivated"
   },
   "events": {
     "tenantCreated": "created the workspace “{name}”",
@@ -47,6 +51,11 @@
     "fileUploaded": "uploaded “{name}”",
     "accessDenied": "was denied access to {method} {route}, which needs “{permission}”",
     "tenantAccessDenied": "tried to open this workspace without being a member",
+    "tenantRenamed": "renamed the workspace “{from}” to “{to}”",
+    "tenantSuspended": "suspended the workspace “{name}”",
+    "tenantReactivated": "reactivated the workspace “{name}”",
+    "userDisabled": "disabled the account {email}",
+    "userEnabled": "enabled the account {email}",
     "unknown": "recorded an event of type “{type}”"
   },
   "timeline": {
