@@ -76,6 +76,16 @@
     "disabledToast": "{name} disabled",
     "enable": "Enable",
     "enableFor": "Enable {name}",
-    "enabled": "{name} enabled"
+    "enabled": "{name} enabled",
+    "makeAdmin": "Make platform admin",
+    "makeAdminFor": "Make {name} a platform admin",
+    "makeAdminTitle": "Make {name} a platform admin?",
+    "makeAdminDescription": "They can see and manage every workspace and user, act as any member, and grant or remove platform admin.",
+    "madeAdmin": "{name} is now a platform admin",
+    "removeAdmin": "Remove platform admin",
+    "removeAdminFor": "Remove platform admin from {name}",
+    "removeAdminTitle": "Remove {name} as a platform admin?",
+    "removeAdminDescription": "They lose the platform admin area and keep their own workspaces.",
+    "removedAdmin": "{name} is no longer a platform admin"
   }
 }

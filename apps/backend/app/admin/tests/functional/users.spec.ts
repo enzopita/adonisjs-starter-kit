@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import User from '#users/models/user'
 import AuditEvent from '#core/models/audit_event'
+import PlatformAdmin from '#access/models/platform_admin'
 import testUtils from '@adonisjs/core/services/test_utils'
 import { createUser, makePlatformAdmin, workspace } from '#access/tests/seed'
 
@@ -130,5 +131,60 @@ test.group('Admin | users', group => {
     }
 
     assert.isNull((await User.findOrFail(peer.id)).disabledAt)
+  })
+
+  // Regression: granting twice fails or adds a second row, revoking leaves the admin in place, or
+  // either change is missing from the user's account activity.
+  test('grants platform admin idempotently and revokes it, both in the user’s activity', async ({
+    client,
+    assert,
+  }) => {
+    const viewer = await admin()
+    const ada = await createUser()
+    const isAdmin = async () => (await PlatformAdmin.findBy('userId', ada.id)) !== null
+
+    const granted = await client
+      .visit('admin.platform_admins.store', { id: ada.id })
+      .loginAs(viewer)
+
+    const again = await client.visit('admin.platform_admins.store', { id: ada.id }).loginAs(viewer)
+
+    granted.assertBody({ data: { id: ada.id, platformAdmin: true } })
+    again.assertStatus(200)
+    assert.lengthOf(await PlatformAdmin.query().where('user_id', ada.id), 1)
+
+    const revoked = await client
+      .visit('admin.platform_admins.destroy', { id: ada.id })
+      .loginAs(viewer)
+
+    revoked.assertBody({ data: { id: ada.id, platformAdmin: false } })
+    assert.isFalse(await isAdmin())
+
+    const events = await AuditEvent.query()
+      .where('subject_id', ada.id)
+      .whereLike('type', 'admin.%')
+      .orderBy('id')
+
+    assert.deepEqual(
+      events.map(event => [event.type, event.tenantId, event.actorId, event.data]),
+      [
+        ['admin.platform_admin_granted', null, viewer.id, { email: ada.email }],
+        ['admin.platform_admin_granted', null, viewer.id, { email: ada.email }],
+        ['admin.platform_admin_revoked', null, viewer.id, { email: ada.email }],
+      ],
+    )
+  })
+
+  // Regression: an admin revokes themself, which could leave the platform with no admin.
+  test('refuses to revoke the caller’s own platform admin', async ({ client, assert }) => {
+    const viewer = await admin()
+
+    const response = await client
+      .visit('admin.platform_admins.destroy', { id: viewer.id })
+      .loginAs(viewer)
+
+    response.assertStatus(409)
+    response.assertBodyContains({ code: 'E_CANNOT_REVOKE_SELF' })
+    assert.isNotNull(await PlatformAdmin.findBy('userId', viewer.id))
   })
 })

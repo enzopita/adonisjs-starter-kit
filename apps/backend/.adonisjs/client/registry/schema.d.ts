@@ -403,6 +403,30 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/impersonations_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'admin.platform_admins.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/users/:id/platform-admin'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/platform_admins_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/platform_admins_controller').default['store']>>>
+    }
+  }
+  'admin.platform_admins.destroy': {
+    methods: ["DELETE"]
+    pattern: '/api/v1/admin/users/:id/platform-admin'
+    types: {
+      body: {}
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/platform_admins_controller').default['destroy']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/platform_admins_controller').default['destroy']>>>
+    }
+  }
   'health_checks.live': {
     methods: ["GET","HEAD"]
     pattern: '/health/live'

@@ -8,6 +8,8 @@ declare module '#core/audit/types' {
     'admin.user_disabled': AccountEvent<'user', { email: string }>
     'admin.user_enabled': AccountEvent<'user', { email: string }>
     'admin.impersonation_started': AccountEvent<'user', { email: string }>
+    'admin.platform_admin_granted': AccountEvent<'user', { email: string }>
+    'admin.platform_admin_revoked': AccountEvent<'user', { email: string }>
     'admin.granted': SystemEvent<{ email: string }>
   }
 }

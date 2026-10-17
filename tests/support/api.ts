@@ -84,7 +84,7 @@ export function createTenant(account: Account, name = unique('Workspace')) {
 
 const BACKEND_DIR = new URL('../../apps/backend/', import.meta.url)
 
-/** Makes `account` a platform admin the way an operator does, from the command line: no API grants it. */
+/** Makes `account` a platform admin the way an operator makes the first one, from the command line. */
 export async function grantPlatformAdmin(account: Account) {
   await promisify(execFile)('node', ['ace', 'admin:grant', account.email], { cwd: BACKEND_DIR })
 }

@@ -37,6 +37,8 @@ export type ScannedRoutes = {
     'admin.user_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.user_suspensions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.impersonations.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.platform_admins.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.platform_admins.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'health_checks.live': { paramsTuple?: []; params?: {} }
     'health_checks.ready': { paramsTuple?: []; params?: {} }
   }
@@ -93,12 +95,14 @@ export type ScannedRoutes = {
     'admin.tenant_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.user_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.impersonations.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.platform_admins.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'access.roles.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'access.invitations.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.tenant_suspensions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.user_suspensions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.platform_admins.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
 }
 declare module '@adonisjs/core/types/http' {

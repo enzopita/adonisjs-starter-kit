@@ -199,7 +199,7 @@ Send every mail with `mail.sendLater(...)`; the lint rejects `mail.send()`. `sta
 
 ### Platform admins
 
-A user with a row in `platform_admins` passes every check in every tenant, and outside any tenant. `GET /api/v1/access/me` lists every permission for them, `platform.admin` included. No role or grant can hold `platform.admin`, and no endpoint creates a platform admin. Make one with `node ace admin:grant <email>`: it is safe to run again, and records an `admin.granted` system event the first time.
+A user with a row in `platform_admins` passes every check in every tenant, and outside any tenant. `GET /api/v1/access/me` lists every permission for them, `platform.admin` included. No role or grant can hold `platform.admin`. Make the first one with `node ace admin:grant <email>`: it is safe to run again, and records an `admin.granted` system event the first time. Platform admins grant and revoke it from then on (see [Admin](#admin)).
 
 ### Tenant owner
 
@@ -266,14 +266,16 @@ The `admin` module is the platform admins' area. Every route needs `auth` and ru
 | `GET /api/v1/admin/users` (`search`, `page`, `perPage`)   | Every user by email, searched by email or name, with `disabledAt`, `platformAdmin` and `tenantCount`.                  |
 | `POST`, `DELETE /api/v1/admin/users/:id/suspension`       | Disables and enables the account: `admin.user_disabled`, `admin.user_enabled`, in the user's account activity.         |
 | `POST /api/v1/admin/users/:id/impersonation`              | `{ user, token }` like login: a one-hour token that acts as the user. `admin.impersonation_started` in their activity. |
+| `POST`, `DELETE /api/v1/admin/users/:id/platform-admin`   | Grants and revokes platform admin: `admin.platform_admin_granted`, `admin.platform_admin_revoked`, in their activity.  |
 
 The states are nullable timestamps, and each holds an invariant at its write rather than a check on every request:
 
 - **A suspended tenant (`tenants.suspended_at`) lets nobody in.** The `tenant` middleware answers its members 403 `E_TENANT_SUSPENDED`, after the membership check, so a non-member still gets `E_TENANT_ACCESS_DENIED`. `GET /api/v1/tenants` keeps listing it with its `suspendedAt`, for the frontend to say why.
 - **A disabled user (`users.disabled_at`) holds no access token.** Disabling deletes every token of theirs in the same transaction, and again after the commit; login answers 403 `E_ACCOUNT_DISABLED` once the password is right, and re-reads `disabled_at` after creating its token, deleting it if set. Without row locks, a login racing the disable either sees the committed `disabled_at` or inserted its token before the commit, where the second delete finds it. and impersonating them answers 409 `E_USER_DISABLED`.
-- **A platform admin is never disabled or impersonated through the API**, the caller included: 409 `E_PLATFORM_ADMIN_PROTECTED`. Enabling isn't protected, so someone disabled before `admin:grant` can still be enabled.
+- **A platform admin is never disabled or impersonated through the API**, the caller included: 409 `E_PLATFORM_ADMIN_PROTECTED`. Revoke their platform admin first. Enabling isn't protected, so someone disabled before being granted can still be enabled.
+- **An admin can't revoke their own platform admin**: 409 `E_CANNOT_REVOKE_SELF`. Since the caller is an admin, a revoke never removes the last one; only two admins revoking each other at the same moment can, and `node ace admin:grant` recovers. `node ace admin:grant` and the grant endpoint share `grantPlatformAdmin` (`services/grant_platform_admin.ts`), which keeps an existing grant.
 
-Suspending, disabling and their reverses are idempotent: a repeat keeps the first date and answers 200, and records its event again, since every successful write records one (see [The guard](#the-guard)).
+Suspending, disabling, granting and their reverses are idempotent: a repeat keeps the first date and answers 200, and records its event again, since every successful write records one (see [The guard](#the-guard)).
 
 An impersonation token is an ordinary access token whose `impersonator_id` names the admin: `User.currentAccessToken.impersonatorId` carries it, and every event recorded with it stores it in `audit_events.impersonator_id`. The session ends with `POST /api/v1/account/logout` from that token, and the frontend restores the admin's own token. It never reaches the admin area, since its user is never a platform admin.
 

@@ -17,6 +17,7 @@ export const controllers = {
   admin: {
     Impersonations: () => import('#app/admin/controllers/impersonations_controller'),
     Me: () => import('#app/admin/controllers/me_controller'),
+    PlatformAdmins: () => import('#app/admin/controllers/platform_admins_controller'),
     TenantSuspensions: () => import('#app/admin/controllers/tenant_suspensions_controller'),
     Tenants: () => import('#app/admin/controllers/tenants_controller'),
     UserSuspensions: () => import('#app/admin/controllers/user_suspensions_controller'),

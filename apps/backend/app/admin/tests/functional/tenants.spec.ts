@@ -38,6 +38,8 @@ test.group('Admin | tenants', group => {
       client.visit('admin.user_suspensions.store', user),
       client.visit('admin.user_suspensions.destroy', user),
       client.visit('admin.impersonations.store', user),
+      client.visit('admin.platform_admins.store', user),
+      client.visit('admin.platform_admins.destroy', user),
     ]
 
     const statuses = []

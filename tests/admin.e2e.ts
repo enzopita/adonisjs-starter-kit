@@ -108,6 +108,34 @@ test('a disabled user is signed out and refused at login until enabled again', a
   await expect(browser).toHaveURL('/onboarding')
 })
 
+test('an admin makes a user a platform admin and removes them again, never themself', async ({
+  app,
+  screen,
+  browser,
+}) => {
+  const admin = await signUpAdmin()
+  const user = await signUp('Pat Promoted')
+  const row = () => screen.getByRole('row').filter({ hasText: user.email })
+
+  await signInAs(browser, admin)
+  await app.open(`/admin/users?${searchFor(user.email)}`)
+  await screen.getByRole('button', `Make ${user.fullName} a platform admin`).tap()
+  await screen.getByRole('alertdialog').getByRole('button', 'Make platform admin').tap()
+  await expect(row().getByText('Platform admin')).toBeVisible()
+
+  await screen.getByRole('button', `Remove platform admin from ${user.fullName}`).tap()
+  await screen.getByRole('alertdialog').getByRole('button', 'Remove platform admin').tap()
+  await expect(row().getByText('Active')).toBeVisible()
+
+  await app.open(`/admin/users?${searchFor(admin.email)}`)
+  await expect(
+    screen.getByRole('row').filter({ hasText: admin.email }).getByText('Platform admin'),
+  ).toBeVisible()
+  await expect(
+    screen.getByRole('button', `Remove platform admin from ${admin.fullName}`),
+  ).toBeHidden()
+})
+
 test('an admin impersonates a member and comes back as themself', async ({
   app,
   screen,

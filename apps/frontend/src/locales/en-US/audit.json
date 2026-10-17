@@ -57,6 +57,8 @@
     "userDisabled": "disabled the account {email}",
     "userEnabled": "enabled the account {email}",
     "impersonationStarted": "started acting as {email}",
+    "platformAdminGranted": "made {email} a platform admin",
+    "platformAdminRevoked": "removed {email} as a platform admin",
     "unknown": "recorded an event of type “{type}”"
   },
   "timeline": {

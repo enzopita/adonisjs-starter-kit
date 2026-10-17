@@ -3,7 +3,8 @@ import { middleware } from '#start/kernel'
 import { apiRoutes } from '#core/api_routes'
 import { controllers } from '#generated/controllers'
 
-const { Me, Tenants, TenantSuspensions, Users, UserSuspensions, Impersonations } = controllers.admin
+const { Me, Tenants, TenantSuspensions, Users, UserSuspensions, Impersonations, PlatformAdmins } =
+  controllers.admin
 
 apiRoutes(() => {
   router
@@ -29,6 +30,12 @@ apiRoutes(() => {
         .where('id', router.matchers.uuid())
       router
         .post('users/:id/impersonation', [Impersonations, 'store'])
+        .where('id', router.matchers.uuid())
+      router
+        .post('users/:id/platform-admin', [PlatformAdmins, 'store'])
+        .where('id', router.matchers.uuid())
+      router
+        .delete('users/:id/platform-admin', [PlatformAdmins, 'destroy'])
         .where('id', router.matchers.uuid())
     })
     .prefix('admin')

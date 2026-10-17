@@ -1,6 +1,6 @@
 import { Badge } from '@monorepo/ui/components/badge'
 import { Button } from '@monorepo/ui/components/button'
-import { useMutation } from '@tanstack/react-query'
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
@@ -10,6 +10,7 @@ import { PendingButton } from '@/features/core/components/pending-button'
 import { errorMessage } from '@/features/core/errors'
 import { t } from '@/features/core/i18n'
 import { session } from '@/features/core/session'
+import { profileQuery } from '@/features/users/profile'
 
 export type AdminUserRow = {
   user: { id: string; email: string; fullName: string | null }
@@ -27,11 +28,18 @@ export function UserStatus({ row }: { row: AdminUserRow }) {
   return <Badge variant="outline">{t('admin.userActions.active')}</Badge>
 }
 
-/** Platform admins are managed from the command line: the API refuses these actions on them. */
+type Confirming = 'disable' | 'grant' | 'revoke' | null
+
+/** A platform admin can only lose the role, and never from themself: the API refuses the rest. */
 export function UserActions({ row }: { row: AdminUserRow }) {
   const name = displayName(row)
   const navigate = useNavigate()
-  const [disabling, setDisabling] = useState(false)
+  const { data: me } = useSuspenseQuery(profileQuery())
+  const [confirming, setConfirming] = useState<Confirming>(null)
+
+  const closeDialog = (open: boolean) => {
+    if (!open) setConfirming(null)
+  }
 
   const impersonate = useMutation(
     queries.admin.impersonations.store.mutationOptions({
@@ -53,16 +61,60 @@ export function UserActions({ row }: { row: AdminUserRow }) {
   const disable = useMutation(
     queries.admin.userSuspensions.store.mutationOptions({
       onSuccess: () => {
-        setDisabling(false)
+        setConfirming(null)
         toast.success(t('admin.userActions.disabledToast', { name }))
       },
       onError: error => toast.error(errorMessage(error)),
     }),
   )
 
-  if (row.platformAdmin) return null
+  const grant = useMutation(
+    queries.admin.platformAdmins.store.mutationOptions({
+      onSuccess: () => {
+        setConfirming(null)
+        toast.success(t('admin.userActions.madeAdmin', { name }))
+      },
+      onError: error => toast.error(errorMessage(error)),
+    }),
+  )
+
+  const revoke = useMutation(
+    queries.admin.platformAdmins.destroy.mutationOptions({
+      onSuccess: () => {
+        setConfirming(null)
+        toast.success(t('admin.userActions.removedAdmin', { name }))
+      },
+      onError: error => toast.error(errorMessage(error)),
+    }),
+  )
 
   const params = { params: { id: row.user.id } }
+
+  if (row.platformAdmin) {
+    if (row.user.id === me.data.id) return null
+
+    return (
+      <div className="flex justify-end gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={t('admin.userActions.removeAdminFor', { name })}
+          onClick={() => setConfirming('revoke')}
+        >
+          {t('admin.userActions.removeAdmin')}
+        </Button>
+        <ConfirmDialog
+          open={confirming === 'revoke'}
+          onOpenChange={closeDialog}
+          title={t('admin.userActions.removeAdminTitle', { name })}
+          description={t('admin.userActions.removeAdminDescription')}
+          confirmLabel={t('admin.userActions.removeAdmin')}
+          pending={revoke.isPending}
+          onConfirm={() => revoke.mutate(params)}
+        />
+      </div>
+    )
+  }
 
   return (
     <div className="flex justify-end gap-1">
@@ -90,8 +142,16 @@ export function UserActions({ row }: { row: AdminUserRow }) {
           <Button
             variant="ghost"
             size="sm"
+            aria-label={t('admin.userActions.makeAdminFor', { name })}
+            onClick={() => setConfirming('grant')}
+          >
+            {t('admin.userActions.makeAdmin')}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             aria-label={t('admin.userActions.disableFor', { name })}
-            onClick={() => setDisabling(true)}
+            onClick={() => setConfirming('disable')}
           >
             {t('admin.userActions.disable')}
           </Button>
@@ -99,8 +159,17 @@ export function UserActions({ row }: { row: AdminUserRow }) {
       )}
 
       <ConfirmDialog
-        open={disabling}
-        onOpenChange={setDisabling}
+        open={confirming === 'grant'}
+        onOpenChange={closeDialog}
+        title={t('admin.userActions.makeAdminTitle', { name })}
+        description={t('admin.userActions.makeAdminDescription')}
+        confirmLabel={t('admin.userActions.makeAdmin')}
+        pending={grant.isPending}
+        onConfirm={() => grant.mutate(params)}
+      />
+      <ConfirmDialog
+        open={confirming === 'disable'}
+        onOpenChange={closeDialog}
         title={t('admin.userActions.disableTitle', { name })}
         description={t('admin.userActions.disableDescription')}
         confirmLabel={t('admin.userActions.disable')}

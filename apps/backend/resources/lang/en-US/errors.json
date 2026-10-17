@@ -3,6 +3,7 @@
   "E_ALREADY_MEMBER": "This person is already a member of the workspace.",
   "E_AUTHORIZATION_FAILURE": "You don’t have permission to do this.",
   "E_BAD_CSRF_TOKEN": "This page has expired. Reload it and try again.",
+  "E_CANNOT_REVOKE_SELF": "You can’t remove your own platform admin access. Ask another platform admin.",
   "E_INVALID_ATTACHMENT": "This file can’t be used here.",
   "E_INVALID_CREDENTIALS": "Invalid email or password.",
   "E_INVALID_TENANT_HEADER": "This workspace isn’t valid. Pick another one from the workspace menu.",

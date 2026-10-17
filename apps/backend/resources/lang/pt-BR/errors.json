@@ -3,6 +3,7 @@
   "E_ALREADY_MEMBER": "Esta pessoa já é membro do espaço de trabalho.",
   "E_AUTHORIZATION_FAILURE": "Você não tem permissão para fazer isso.",
   "E_BAD_CSRF_TOKEN": "Esta página expirou. Recarregue-a e tente novamente.",
+  "E_CANNOT_REVOKE_SELF": "Você não pode remover seu próprio acesso de administrador da plataforma. Peça a outro administrador.",
   "E_INVALID_ATTACHMENT": "Este arquivo não pode ser usado aqui.",
   "E_INVALID_CREDENTIALS": "E-mail ou senha inválidos.",
   "E_INVALID_TENANT_HEADER": "Este espaço de trabalho não é válido. Escolha outro no menu de espaços de trabalho.",

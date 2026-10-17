@@ -94,6 +94,10 @@ export interface ApiDefinition {
     impersonations: {
       store: typeof routes['admin.impersonations.store']
     }
+    platformAdmins: {
+      store: typeof routes['admin.platform_admins.store']
+      destroy: typeof routes['admin.platform_admins.destroy']
+    }
   }
   healthChecks: {
     live: typeof routes['health_checks.live']

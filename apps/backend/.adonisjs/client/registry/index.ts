@@ -204,6 +204,18 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"api","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"users","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":1,"val":"id","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"impersonation","end":""}],
     types: placeholder as Registry['admin.impersonations.store']['types'],
   },
+  'admin.platform_admins.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/users/:id/platform-admin',
+    tokens: [{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"api","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"users","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":1,"val":"id","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"platform-admin","end":""}],
+    types: placeholder as Registry['admin.platform_admins.store']['types'],
+  },
+  'admin.platform_admins.destroy': {
+    methods: ["DELETE"],
+    pattern: '/api/v1/admin/users/:id/platform-admin',
+    tokens: [{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"api","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"users","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":1,"val":"id","end":""},{"old":"/api/v1/admin/users/:id/platform-admin","type":0,"val":"platform-admin","end":""}],
+    types: placeholder as Registry['admin.platform_admins.destroy']['types'],
+  },
   'health_checks.live': {
     methods: ["GET","HEAD"],
     pattern: '/health/live',
