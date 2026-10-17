@@ -34,7 +34,7 @@ API reads and writes go through TanStack Query, with `queries` from `@/features/
 - **Reads**: a feature exports a query factory per endpoint (`membersQuery(tenantId)`), used by both the route loader and the component, so they share one cache entry.
 - **Workspace requests** pass `tenantHeaders(tenantId)`. Tuyau keys a query by its whole request, header included, so each workspace caches apart.
 - **Loaders and guards** load with `queryClient.query(options)`. It answers from the cache while the data is fresh, and fetches when a write has marked it stale, so a guard never decides on outdated data. `ensureQueryData`, `fetchQuery` and `prefetchQuery` are deprecated.
-- **Writes** use `useMutation(queries.x.y.mutationOptions())`. Every successful write invalidates every query (`core/query-client.ts`), and the mutation stays pending until the screens on display have refetched. A 401 anywhere signs the session out.
+- **Writes** use `useMutation(queries.x.y.mutationOptions())`. Every successful write invalidates every query (`core/query-client.ts`), and the mutation stays pending until the screens on display have refetched. A 401 anywhere signs the session out. A 403 `E_TENANT_SUSPENDED` anywhere reruns the route guards (`router.tsx`) on a fresh tenant list, and the workspace guard sends the member to `/workspace-suspended`.
 
 ## Redirects
 

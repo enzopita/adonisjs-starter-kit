@@ -1,6 +1,7 @@
 import { test } from '@e2e-dev/web'
 import { expect } from 'e2e'
 import {
+  api,
   createTenant,
   grantPlatformAdmin,
   signInAs,
@@ -59,6 +60,11 @@ test('a suspended workspace locks its members out until it is reactivated', asyn
   await app.open('/workspace-suspended')
   await expect(browser).toHaveURL('/')
   await expect(screen.getByRole('heading', tenant.name, { level: 1 })).toBeVisible()
+
+  // Suspended while the member has it open: their next request's 403 sends them away too.
+  await api(`/admin/tenants/${tenant.id}/suspension`, { method: 'POST', token: admin.token })
+  await screen.getByRole('navigation', 'Workspace').getByRole('link', 'Members').tap()
+  await expect(browser).toHaveURL('/workspace-suspended')
 })
 
 test('a disabled user is signed out and refused at login until enabled again', async ({
