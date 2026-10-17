@@ -3,6 +3,7 @@ import { PNG_BYTES } from '#tests/files'
 import drive from '@adonisjs/drive/services/main'
 import type { ApiClient } from '@japa/api-client'
 import testUtils from '@adonisjs/core/services/test_utils'
+import AuditEvent from '#core/models/audit_event'
 import Attachment from '#attachments/models/attachment'
 
 /** Through the API: attachments may not import the users module. */
@@ -61,5 +62,22 @@ test.group('Attachments | upload', group => {
     assert.equal(data.mimeType, 'image/png')
     assert.isString(data.url)
     fakeDisk.assertExists(`attachments/${data.id}`)
+  })
+
+  test('records the upload, attributed to the uploader', async ({ client, assert }) => {
+    using _fakeDisk = drive.fake()
+    const user = await signUp(client, 'audit@example.com')
+
+    const response = await client
+      .post('/api/v1/attachments')
+      .file('file', PNG_BYTES, { filename: 'avatar.png' })
+      .header('authorization', user.authorization)
+
+    const event = await AuditEvent.findByOrFail('type', 'attachment.uploaded')
+    assert.deepInclude(event.toJSON(), {
+      actorId: user.id,
+      subjectId: response.body().data.id,
+      data: { name: 'avatar.png', size: PNG_BYTES.length },
+    })
   })
 })

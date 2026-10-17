@@ -1,3 +1,6 @@
+import db from '@adonisjs/lucid/services/db'
+import { audit } from '#core/audit/main'
+import type {} from '#attachments/types/audit'
 import type { MultipartFile } from '@adonisjs/core/bodyparser'
 import Attachment from '#attachments/models/attachment'
 import { ATTACHMENT_MIME_TYPES, type AttachmentExtname } from '#attachments/rules'
@@ -17,12 +20,25 @@ export default class UploadAttachment {
     const extname = file.extname as AttachmentExtname
     const mimeType = ATTACHMENT_MIME_TYPES[extname]
 
-    const attachment = await Attachment.create({
-      uploaderId,
-      name: displayName(file.clientName, extname),
-      extname,
-      mimeType,
-      size: file.size,
+    const attachment = await db.transaction(async trx => {
+      const created = await Attachment.create(
+        {
+          uploaderId,
+          name: displayName(file.clientName, extname),
+          extname,
+          mimeType,
+          size: file.size,
+        },
+        { client: trx },
+      )
+
+      await audit.record(trx, 'attachment.uploaded', {
+        tenantId: null,
+        subject: { type: 'attachment', id: created.id },
+        data: { name: created.name, size: created.size },
+      })
+
+      return created
     })
 
     await file.moveToDisk(attachment.key, { contentType: mimeType })
