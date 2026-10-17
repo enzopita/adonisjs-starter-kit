@@ -6,6 +6,9 @@
     "manageRolesDescription": "Create, rename and delete roles, and choose what each role can do.",
     "manageMembers": "Manage members",
     "manageMembersDescription": "Invite people, change their role, and grant them extra permissions.",
+    "audit": "Audit",
+    "viewAudit": "View audit trail",
+    "viewAuditDescription": "See who changed what in this workspace, and when.",
     "platformAdmin": "Platform admin",
     "platformAdminDescription": "Every permission in every workspace."
   },

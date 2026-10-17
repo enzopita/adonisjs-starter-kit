@@ -6,6 +6,9 @@
     "manageRolesDescription": "Crie, renomeie e exclua papéis, e escolha o que cada um pode fazer.",
     "manageMembers": "Gerenciar membros",
     "manageMembersDescription": "Convide pessoas, altere seu papel e conceda permissões extras.",
+    "audit": "Auditoria",
+    "viewAudit": "Ver trilha de auditoria",
+    "viewAuditDescription": "Veja quem alterou o quê neste espaço de trabalho, e quando.",
     "platformAdmin": "Administrador da plataforma",
     "platformAdminDescription": "Todas as permissões em todos os espaços de trabalho."
   },

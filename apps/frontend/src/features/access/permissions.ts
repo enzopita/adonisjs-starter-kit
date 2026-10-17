@@ -39,6 +39,7 @@ type Label = { label: string; description?: string }
 const LABELS: Record<Permission | PermissionGroupKey, Label> = {
   'roles': { label: t('access.permissions.roles') },
   'members': { label: t('access.permissions.members') },
+  'audit': { label: t('access.permissions.audit') },
   'roles.manage': {
     label: t('access.permissions.manageRoles'),
     description: t('access.permissions.manageRolesDescription'),
@@ -46,6 +47,10 @@ const LABELS: Record<Permission | PermissionGroupKey, Label> = {
   'members.manage': {
     label: t('access.permissions.manageMembers'),
     description: t('access.permissions.manageMembersDescription'),
+  },
+  'audit.view': {
+    label: t('access.permissions.viewAudit'),
+    description: t('access.permissions.viewAuditDescription'),
   },
   'platform.admin': {
     label: t('access.permissions.platformAdmin'),
