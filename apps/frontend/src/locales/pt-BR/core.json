@@ -6,5 +6,12 @@
   "confirmDialog": {
     "cancel": "Cancelar",
     "delete": "Excluir"
+  },
+  "pagination": {
+    "label": "Paginação",
+    "range": "Mostrando {from}–{to} de {total}",
+    "page": "Página {page} de {pages}",
+    "previous": "Anterior",
+    "next": "Próxima"
   }
 }

@@ -21,7 +21,6 @@ import {
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { HistoryIcon, XIcon } from 'lucide-react'
 import { useEffect, useId, useState } from 'react'
-import { AuditPagination } from '@/features/audit/components/audit-pagination'
 import { AuditTimeline } from '@/features/audit/components/audit-timeline'
 import {
   AUDIT_AREAS,
@@ -34,6 +33,7 @@ import type { AuditArea, PermissionLabel } from '@/features/audit/event-text'
 import { auditEventsQuery, auditSearchSchema } from '@/features/audit/queries'
 import type { AuditSearch } from '@/features/audit/queries'
 import { PageHeader } from '@/features/core/components/page-header'
+import { Pagination } from '@/features/core/components/pagination'
 import { t } from '@/features/core/i18n'
 import { useActiveTenant } from '@/features/tenancy/workspace'
 
@@ -192,7 +192,7 @@ export function AuditPage({
         </div>
       )}
 
-      <AuditPagination
+      <Pagination
         metadata={events.metadata}
         onPageChange={page => onSearchChange({ ...search, page })}
       />

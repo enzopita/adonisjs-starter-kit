@@ -10,9 +10,9 @@ import { Skeleton } from '@monorepo/ui/components/skeleton'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { CircleAlertIcon } from 'lucide-react'
 import { useState } from 'react'
-import { AuditPagination } from '@/features/audit/components/audit-pagination'
 import { AuditTimeline } from '@/features/audit/components/audit-timeline'
 import { accountActivityQuery } from '@/features/audit/queries'
+import { Pagination } from '@/features/core/components/pagination'
 import { errorMessage } from '@/features/core/errors'
 import { t } from '@/features/core/i18n'
 
@@ -53,7 +53,7 @@ export function AccountActivity() {
             ) : (
               <AuditTimeline events={activity.data.data} showSession />
             )}
-            <AuditPagination metadata={activity.data.metadata} onPageChange={setPage} />
+            <Pagination metadata={activity.data.metadata} onPageChange={setPage} />
           </div>
         )}
       </CardContent>

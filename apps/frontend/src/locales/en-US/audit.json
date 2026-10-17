@@ -73,13 +73,6 @@
     "none": "—",
     "from": "From {ip} · {browser}"
   },
-  "pagination": {
-    "label": "Pagination",
-    "range": "Showing {from}–{to} of {total}",
-    "page": "Page {page} of {pages}",
-    "previous": "Previous",
-    "next": "Next"
-  },
   "auditPage": {
     "title": "Audit trail",
     "description": "Who changed what in this workspace, newest first.",

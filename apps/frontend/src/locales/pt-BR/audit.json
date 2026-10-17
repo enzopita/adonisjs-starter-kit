@@ -73,13 +73,6 @@
     "none": "—",
     "from": "De {ip} · {browser}"
   },
-  "pagination": {
-    "label": "Paginação",
-    "range": "Mostrando {from}–{to} de {total}",
-    "page": "Página {page} de {pages}",
-    "previous": "Anterior",
-    "next": "Próxima"
-  },
   "auditPage": {
     "title": "Trilha de auditoria",
     "description": "Quem alterou o quê neste espaço de trabalho, do mais recente ao mais antigo.",

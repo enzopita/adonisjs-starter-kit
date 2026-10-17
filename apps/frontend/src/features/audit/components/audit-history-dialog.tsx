@@ -10,10 +10,10 @@ import { Skeleton } from '@monorepo/ui/components/skeleton'
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { CircleAlertIcon } from 'lucide-react'
 import { useState } from 'react'
-import { AuditPagination } from '@/features/audit/components/audit-pagination'
 import { AuditTimeline } from '@/features/audit/components/audit-timeline'
 import type { AuditSubject, PermissionLabel } from '@/features/audit/event-text'
 import { EMBEDDED_PER_PAGE, auditEventsQuery } from '@/features/audit/queries'
+import { Pagination } from '@/features/core/components/pagination'
 import { errorMessage } from '@/features/core/errors'
 import { t } from '@/features/core/i18n'
 
@@ -72,7 +72,7 @@ export function AuditHistoryDialog({
             ) : (
               <AuditTimeline events={history.data.data} permissionLabel={permissionLabel} />
             )}
-            <AuditPagination metadata={history.data.metadata} onPageChange={setPage} />
+            <Pagination metadata={history.data.metadata} onPageChange={setPage} />
           </div>
         )}
       </DialogContent>
