@@ -1,4 +1,6 @@
 import db from '@adonisjs/lucid/services/db'
+import { audit } from '#core/audit/main'
+import type {} from '#tenancy/types/audit'
 import Tenant from '#tenancy/models/tenant'
 import emitter from '@adonisjs/core/services/emitter'
 import type { TenantCreated } from '#tenancy/types/events'
@@ -15,6 +17,12 @@ export default class CreateTenant {
     const tenant = await db.transaction(async trx => {
       const created = await Tenant.create({ name }, { client: trx })
       await created.related('memberships').create({ userId: creatorId })
+
+      await audit.record(trx, 'tenant.created', {
+        tenantId: created.id,
+        subject: { type: 'tenant', id: created.id },
+        data: { name },
+      })
 
       return created
     })
