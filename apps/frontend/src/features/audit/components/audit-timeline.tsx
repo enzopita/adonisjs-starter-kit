@@ -78,7 +78,7 @@ function AuditTimelineItem({
   showSession: boolean
 }) {
   const { actor, session } = row
-  const { sentence, standalone, permissions } = describeEvent(row.event, permissionLabel)
+  const { sentence, standalone, permissions } = describeEvent(row, permissionLabel)
   const createdAt = row.createdAt ? new Date(row.createdAt) : null
 
   return (

@@ -28,6 +28,7 @@
     "roleDeleted": "excluiu o papel “{name}”",
     "memberJoined": "entrou no espaço de trabalho",
     "memberJoinedAs": "entrou no espaço de trabalho como “{role}”",
+    "memberRoleTaken": "assumiu o papel “{to}”",
     "memberRoleAssigned": "atribuiu o papel “{to}” a {member}",
     "memberRoleRemoved": "removeu o papel “{from}” de {member}",
     "memberRoleChanged": "alterou o papel de {member} de “{from}” para “{to}”",

@@ -28,6 +28,7 @@
     "roleDeleted": "deleted the role “{name}”",
     "memberJoined": "joined the workspace",
     "memberJoinedAs": "joined the workspace as “{role}”",
+    "memberRoleTaken": "took the role “{to}”",
     "memberRoleAssigned": "gave {member} the role “{to}”",
     "memberRoleRemoved": "removed the role “{from}” from {member}",
     "memberRoleChanged": "changed {member}’s role from “{from}” to “{to}”",

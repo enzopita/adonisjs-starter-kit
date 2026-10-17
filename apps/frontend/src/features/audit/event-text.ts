@@ -33,8 +33,11 @@ export type EventDescription = {
 /** Permission names belong to the access feature, which depends on this one: callers pass them in. */
 export type PermissionLabel = (permission: string) => string
 
+/** What a description may read besides its event: who did it, and how to name a permission. */
+type DescribeContext = { actorId: string | null; permissionLabel: PermissionLabel }
+
 type EventText<T extends AuditEventType> = {
-  describe: (event: EventMap[T], permissionLabel: PermissionLabel) => EventDescription
+  describe: (event: EventMap[T], context: DescribeContext) => EventDescription
 }
 
 /** A workspace event also names its type in the trail's filter. */
@@ -92,8 +95,11 @@ const TENANT_EVENTS: TenantEventTexts = {
   },
   'member.role_changed': {
     label: t('audit.types.memberRoleChanged'),
-    describe: ({ data: { member, from, to } }) => {
+    describe: ({ subject, data: { member, from, to } }, { actorId }) => {
       const values = { member: displayName(member), from: from?.name ?? '', to: to?.name ?? '' }
+
+      if (to && subject.id === actorId)
+        return { sentence: t('audit.events.memberRoleTaken', values) }
 
       if (!from) return { sentence: t('audit.events.memberRoleAssigned', values) }
 
@@ -131,7 +137,7 @@ const TENANT_EVENTS: TenantEventTexts = {
   },
   'access.denied': {
     label: t('audit.types.accessDenied'),
-    describe: ({ data }, permissionLabel) => ({
+    describe: ({ data }, { permissionLabel }) => ({
       sentence: t('audit.events.accessDenied', {
         permission: permissionLabel(data.permission),
         method: data.method,
@@ -206,9 +212,9 @@ function isKnown(type: string): type is AuditEventType {
 function describeKnown<T extends AuditEventType>(
   type: T,
   event: EventMap[T],
-  permissionLabel: PermissionLabel,
+  context: DescribeContext,
 ) {
-  return EVENTS[type].describe(event, permissionLabel)
+  return EVENTS[type].describe(event, context)
 }
 
 /**
@@ -216,10 +222,10 @@ function describeKnown<T extends AuditEventType>(
  * that has since dropped the type) still read, by their raw type.
  */
 export function describeEvent(
-  event: AuditEvent,
+  { event, actor }: AuditEventRow,
   permissionLabel: PermissionLabel,
 ): EventDescription {
   if (!isKnown(event.type)) return { sentence: t('audit.events.unknown', { type: event.type }) }
 
-  return describeKnown(event.type, event, permissionLabel)
+  return describeKnown(event.type, event, { actorId: actor?.id ?? null, permissionLabel })
 }

@@ -20,7 +20,7 @@ import {
 } from '@monorepo/ui/components/select'
 import { useSuspenseQuery } from '@tanstack/react-query'
 import { HistoryIcon, XIcon } from 'lucide-react'
-import { useId } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { AuditPagination } from '@/features/audit/components/audit-pagination'
 import { AuditTimeline } from '@/features/audit/components/audit-timeline'
 import {
@@ -40,6 +40,9 @@ import { useActiveTenant } from '@/features/tenancy/workspace'
 const ALL_EVENTS = 'all'
 
 const typesIn = (area: AuditArea) => AUDIT_EVENT_TYPES.filter(type => areaOf(type) === area)
+
+/** An area with one event type lists just that type: "All in" it would be the same filter. */
+const hasAllEntry = (area: AuditArea) => typesIn(area).length > 1
 
 const EVENT_ITEMS = [
   { value: ALL_EVENTS, label: t('audit.auditPage.allEvents') },
@@ -94,9 +97,11 @@ export function AuditPage({
               {AUDIT_AREAS.map(area => (
                 <SelectGroup key={area}>
                   <SelectLabel>{areaLabel(area)}</SelectLabel>
-                  <SelectItem value={area}>
-                    {t('audit.auditPage.allInArea', { area: areaLabel(area) })}
-                  </SelectItem>
+                  {hasAllEntry(area) && (
+                    <SelectItem value={area}>
+                      {t('audit.auditPage.allInArea', { area: areaLabel(area) })}
+                    </SelectItem>
+                  )}
                   {typesIn(area).map(type => (
                     <SelectItem key={type} value={type}>
                       {eventTypeLabel(type)}
@@ -110,23 +115,23 @@ export function AuditPage({
 
         <Field className="w-auto">
           <FieldLabel htmlFor={fromId}>{t('audit.auditPage.from')}</FieldLabel>
-          <Input
+          <DateFilter
+            key={search.from}
             id={fromId}
-            type="date"
-            value={search.from ?? ''}
+            value={search.from}
             max={search.to}
-            onChange={event => filter({ from: event.target.value || undefined })}
+            onApply={from => filter({ from })}
           />
         </Field>
 
         <Field className="w-auto">
           <FieldLabel htmlFor={toId}>{t('audit.auditPage.to')}</FieldLabel>
-          <Input
+          <DateFilter
+            key={search.to}
             id={toId}
-            type="date"
-            value={search.to ?? ''}
+            value={search.to}
             min={search.from}
-            onChange={event => filter({ to: event.target.value || undefined })}
+            onApply={to => filter({ to })}
           />
         </Field>
 
@@ -192,5 +197,47 @@ export function AuditPage({
         onPageChange={page => onSearchChange({ ...search, page })}
       />
     </>
+  )
+}
+
+const DATE_FILTER_DELAY_MS = 400
+
+/**
+ * A day filter that applies once typing pauses: a date input reports a full date at every
+ * keystroke of its year, and each one would refetch the trail. Remounted (`key`) when the URL's
+ * value changes, so it starts from the applied value.
+ */
+function DateFilter({
+  id,
+  value,
+  min,
+  max,
+  onApply,
+}: {
+  id: string
+  value: string | undefined
+  min?: string
+  max?: string
+  onApply: (day: string | undefined) => void
+}) {
+  const [draft, setDraft] = useState(value)
+
+  useEffect(() => {
+    if (draft === value) return
+
+    const timer = setTimeout(() => onApply(draft), DATE_FILTER_DELAY_MS)
+
+    return () => clearTimeout(timer)
+  }, [draft, value, onApply])
+
+  return (
+    <Input
+      id={id}
+      type="date"
+      value={draft ?? ''}
+      min={min}
+      max={max}
+      onChange={event => setDraft(event.target.value || undefined)}
+    />
   )
 }
