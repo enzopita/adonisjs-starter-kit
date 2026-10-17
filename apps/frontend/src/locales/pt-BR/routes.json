@@ -6,5 +6,8 @@
   },
   "workspace": {
     "nav": "Espaço de trabalho"
+  },
+  "admin": {
+    "nav": "Administração da plataforma"
   }
 }

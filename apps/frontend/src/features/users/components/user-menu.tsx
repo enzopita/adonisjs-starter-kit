@@ -17,6 +17,7 @@ import type { Data } from '@monorepo/backend/data'
 import { Link, useRouter } from '@tanstack/react-router'
 import { LogOutIcon, SunMoonIcon, UserIcon } from 'lucide-react'
 import { useTheme } from 'next-themes'
+import type { ReactNode } from 'react'
 import { api } from '@/features/core/api'
 import { t } from '@/features/core/i18n'
 import { session } from '@/features/core/session'
@@ -28,7 +29,8 @@ const THEMES = [
   { value: 'system', label: t('users.userMenu.system') },
 ]
 
-export function UserMenu({ user }: { user: Data.Users.User }) {
+/** `children` are extra menu items other features add, composed by the route. */
+export function UserMenu({ user, children }: { user: Data.Users.User; children?: ReactNode }) {
   const router = useRouter()
   const { theme, setTheme } = useTheme()
 
@@ -62,6 +64,7 @@ export function UserMenu({ user }: { user: Data.Users.User }) {
           <UserIcon />
           {t('users.userMenu.profile')}
         </DropdownMenuItem>
+        {children}
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>
             <SunMoonIcon />

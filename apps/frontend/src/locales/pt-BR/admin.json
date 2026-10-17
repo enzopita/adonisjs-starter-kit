@@ -1,0 +1,81 @@
+{
+  "nav": {
+    "workspaces": "Espaços de trabalho",
+    "users": "Usuários"
+  },
+  "menu": {
+    "admin": "Administração da plataforma"
+  },
+  "accessDenied": {
+    "title": "Você não tem acesso",
+    "description": "Só administradores da plataforma podem abrir esta área."
+  },
+  "impersonationBanner": {
+    "signedInAs": "Você está conectado como {name} ({email}).",
+    "stop": "Parar de acessar como"
+  },
+  "tenantsPage": {
+    "title": "Espaços de trabalho",
+    "description": "Todos os espaços de trabalho da plataforma.",
+    "search": "Buscar espaços de trabalho",
+    "empty": "Nenhum espaço de trabalho encontrado.",
+    "workspace": "Espaço de trabalho",
+    "members": "Membros",
+    "created": "Criado em",
+    "status": "Situação",
+    "actions": "Ações",
+    "active": "Ativo",
+    "suspended": "Suspenso",
+    "renameFor": "Renomear {name}",
+    "suspend": "Suspender",
+    "suspendFor": "Suspender {name}",
+    "suspendTitle": "Suspender “{name}”?",
+    "suspendDescription": "Os membros perdem o acesso até você reativá-lo. Nada nele é excluído.",
+    "suspendedToast": "“{name}” suspenso",
+    "reactivate": "Reativar",
+    "reactivateFor": "Reativar {name}",
+    "reactivated": "“{name}” reativado"
+  },
+  "renameTenantDialog": {
+    "title": "Renomear espaço de trabalho",
+    "description": "Nome atual: “{name}”. Os membros veem o novo nome na hora.",
+    "name": "Nome do espaço de trabalho",
+    "save": "Salvar",
+    "close": "Fechar",
+    "renamed": "Renomeado para “{name}”"
+  },
+  "tenantPage": {
+    "back": "Todos os espaços de trabalho",
+    "description": "As pessoas deste espaço de trabalho.",
+    "member": "Membro",
+    "role": "Papel",
+    "noRole": "Sem papel",
+    "status": "Situação",
+    "actions": "Ações"
+  },
+  "usersPage": {
+    "title": "Usuários",
+    "description": "Todas as contas da plataforma.",
+    "search": "Buscar por nome ou email",
+    "empty": "Nenhum usuário encontrado.",
+    "user": "Usuário",
+    "workspaces": "Espaços de trabalho",
+    "status": "Situação",
+    "actions": "Ações"
+  },
+  "userActions": {
+    "admin": "Administrador da plataforma",
+    "active": "Ativo",
+    "disabled": "Desativado",
+    "impersonate": "Acessar como",
+    "impersonateFor": "Acessar como {name}",
+    "disable": "Desativar",
+    "disableFor": "Desativar {name}",
+    "disableTitle": "Desativar {name}?",
+    "disableDescription": "A pessoa é desconectada de todos os lugares e não consegue entrar até você ativar a conta de novo.",
+    "disabledToast": "{name} desativado",
+    "enable": "Ativar",
+    "enableFor": "Ativar {name}",
+    "enabled": "{name} ativado"
+  }
+}

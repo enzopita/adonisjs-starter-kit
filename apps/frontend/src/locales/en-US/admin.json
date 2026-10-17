@@ -1,0 +1,81 @@
+{
+  "nav": {
+    "workspaces": "Workspaces",
+    "users": "Users"
+  },
+  "menu": {
+    "admin": "Platform admin"
+  },
+  "accessDenied": {
+    "title": "You don’t have access",
+    "description": "Only platform admins can open this area."
+  },
+  "impersonationBanner": {
+    "signedInAs": "You’re signed in as {name} ({email}).",
+    "stop": "Stop impersonating"
+  },
+  "tenantsPage": {
+    "title": "Workspaces",
+    "description": "Every workspace on the platform.",
+    "search": "Search workspaces",
+    "empty": "No workspaces match.",
+    "workspace": "Workspace",
+    "members": "Members",
+    "created": "Created",
+    "status": "Status",
+    "actions": "Actions",
+    "active": "Active",
+    "suspended": "Suspended",
+    "renameFor": "Rename {name}",
+    "suspend": "Suspend",
+    "suspendFor": "Suspend {name}",
+    "suspendTitle": "Suspend “{name}”?",
+    "suspendDescription": "Its members lose access until you reactivate it. Nothing in it is deleted.",
+    "suspendedToast": "“{name}” suspended",
+    "reactivate": "Reactivate",
+    "reactivateFor": "Reactivate {name}",
+    "reactivated": "“{name}” reactivated"
+  },
+  "renameTenantDialog": {
+    "title": "Rename workspace",
+    "description": "Currently “{name}”. Its members see the new name right away.",
+    "name": "Workspace name",
+    "save": "Save",
+    "close": "Close",
+    "renamed": "Renamed to “{name}”"
+  },
+  "tenantPage": {
+    "back": "All workspaces",
+    "description": "The people in this workspace.",
+    "member": "Member",
+    "role": "Role",
+    "noRole": "No role",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "usersPage": {
+    "title": "Users",
+    "description": "Every account on the platform.",
+    "search": "Search by name or email",
+    "empty": "No users match.",
+    "user": "User",
+    "workspaces": "Workspaces",
+    "status": "Status",
+    "actions": "Actions"
+  },
+  "userActions": {
+    "admin": "Platform admin",
+    "active": "Active",
+    "disabled": "Disabled",
+    "impersonate": "Impersonate",
+    "impersonateFor": "Impersonate {name}",
+    "disable": "Disable",
+    "disableFor": "Disable {name}",
+    "disableTitle": "Disable {name}?",
+    "disableDescription": "They’re signed out everywhere and can’t sign in until you enable the account again.",
+    "disabledToast": "{name} disabled",
+    "enable": "Enable",
+    "enableFor": "Enable {name}",
+    "enabled": "{name} enabled"
+  }
+}
