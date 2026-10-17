@@ -2,6 +2,7 @@ import crypto from 'node:crypto'
 import { test } from '@japa/runner'
 import { DateTime } from 'luxon'
 import mail from '@adonisjs/mail/services/main'
+import AuditEvent from '#core/models/audit_event'
 import Invitation from '#access/models/invitation'
 import InvitationMail from '#access/mails/invitation_mail'
 import testUtils from '@adonisjs/core/services/test_utils'
@@ -300,5 +301,52 @@ test.group('Access | invitations', group => {
       .loginAs(globexOwner)
 
     revoke.assertStatus(404)
+  })
+
+  test('records sending, revoking and accepting, with the email and role at the time', async ({
+    client,
+    assert,
+  }) => {
+    using fake = mail.fake()
+    const { acme, owner } = await setup()
+    const editor = await acme.role('Editor', ['roles.manage'])
+    const guest = await createUser()
+    await guest.merge({ email: 'guest@example.com' }).save()
+
+    const invite = () =>
+      client
+        .visit('access.invitations.store')
+        .json({ email: 'guest@example.com', roleId: editor.id })
+        .headers(acme.headers)
+        .loginAs(owner)
+
+    const first = await invite()
+    await client
+      .visit('access.invitations.destroy', { id: first.body().data.id })
+      .headers(acme.headers)
+      .loginAs(owner)
+    await invite()
+    await client
+      .visit('invitation_accept.store')
+      .json({ token: lastToken(fake) })
+      .loginAs(guest)
+
+    const events = await AuditEvent.query().where('tenant_id', acme.tenant.id).orderBy('id')
+    const invitation = { email: 'guest@example.com', role: { id: editor.id, name: 'Editor' } }
+
+    assert.deepEqual(
+      events.map(event => [event.type, event.actorId, event.data]),
+      [
+        ['invitation.sent', owner.id, invitation],
+        ['invitation.revoked', owner.id, invitation],
+        ['invitation.sent', owner.id, invitation],
+        [
+          'member.joined',
+          guest.id,
+          { member: { email: 'guest@example.com', fullName: null }, role: invitation.role },
+        ],
+        ['invitation.accepted', guest.id, invitation],
+      ],
+    )
   })
 })

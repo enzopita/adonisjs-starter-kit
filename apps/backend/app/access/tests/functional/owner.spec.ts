@@ -2,6 +2,7 @@ import { test } from '@japa/runner'
 import Role from '#access/models/role'
 import { createUser, workspace } from '#access/tests/seed'
 import emitter from '@adonisjs/core/services/emitter'
+import AuditEvent from '#core/models/audit_event'
 import RoleAssignment from '#access/models/role_assignment'
 import testUtils from '@adonisjs/core/services/test_utils'
 
@@ -61,6 +62,27 @@ test.group('Access | tenant owner', group => {
     assert.deepEqual(
       roles.body().data.map((role: { name: string }) => role.name),
       ['Proprietário'],
+    )
+  })
+
+  test('records the Owner role and its assignment only when it creates them', async ({
+    assert,
+  }) => {
+    const acme = await workspace()
+    const founder = await acme.member()
+    const event = { tenantId: acme.tenant.id, creatorId: founder.id, locale: 'en-US' }
+
+    await emitter.emit('tenancy:tenant_created', event)
+    await emitter.emit('tenancy:tenant_created', event)
+
+    const events = await AuditEvent.query().where('tenant_id', acme.tenant.id).orderBy('id')
+
+    assert.deepEqual(
+      events.map(row => [row.type, row.actorId, row.subjectType]),
+      [
+        ['role.created', null, 'role'],
+        ['member.role_changed', null, 'member'],
+      ],
     )
   })
 })

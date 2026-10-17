@@ -26,11 +26,11 @@ export default class RolesController {
     return serialize(RoleTransformer.transform(roles))
   }
 
-  async store({ bouncer, request, serialize }: HttpContext) {
+  async store({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.rolesManage)
     const { name, permissions } = await request.validateUsing(createRoleValidator)
 
-    const role = await new CreateRole().handle({ name, permissions })
+    const role = await new CreateRole().handle({ tenantId: tenant.id, name, permissions })
 
     return serialize(RoleTransformer.transform(role))
   }
@@ -49,11 +49,11 @@ export default class RolesController {
     return serialize(RoleTransformer.transform(role))
   }
 
-  async destroy({ bouncer, request, serialize }: HttpContext) {
+  async destroy({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.rolesManage)
     const { params } = await request.validateUsing(roleParamsValidator)
 
-    await new DeleteRole().handle({ id: params.id })
+    await new DeleteRole().handle({ tenantId: tenant.id, id: params.id })
 
     return serialize({ id: params.id })
   }

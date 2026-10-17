@@ -31,11 +31,11 @@ export default class InvitationsController {
     return serialize(InvitationTransformer.transform(invitation))
   }
 
-  async destroy({ bouncer, request, serialize }: HttpContext) {
+  async destroy({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.membersManage)
     const { params } = await request.validateUsing(invitationParamsValidator)
 
-    await new RevokeInvitation().handle({ id: params.id })
+    await new RevokeInvitation().handle({ tenantId: tenant.id, id: params.id })
 
     return serialize({ id: params.id })
   }

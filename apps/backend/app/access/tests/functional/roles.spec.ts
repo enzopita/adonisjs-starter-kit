@@ -1,6 +1,7 @@
 import { test } from '@japa/runner'
 import Role from '#access/models/role'
 import { workspace } from '#access/tests/seed'
+import AuditEvent from '#core/models/audit_event'
 import testUtils from '@adonisjs/core/services/test_utils'
 
 async function setup() {
@@ -145,9 +146,56 @@ test.group('Access | roles', group => {
     refused.assertBodyContains({ code: 'E_LAST_MANAGER' })
     const kept = await acme.inside(() => Role.findOrFail(ownerRole.id))
     assert.deepEqual(kept.permissions, ['roles.manage', 'members.manage'])
+    // Regression: the event is written before the check that refuses, and must roll back with it.
+    assert.lengthOf(await AuditEvent.query().where('type', 'role.updated'), 0)
 
     await acme.grant(await acme.member(), 'members.manage')
     const handedOver = await update()
     handedOver.assertStatus(200)
+  })
+
+  test('records creating, updating and deleting a role, with its names at the time', async ({
+    client,
+    assert,
+  }) => {
+    const { acme, owner } = await setup()
+
+    const created = await client
+      .visit('access.roles.store')
+      .json({ name: 'Editor', permissions: [] })
+      .headers(acme.headers)
+      .loginAs(owner)
+
+    const id = created.body().data.id
+
+    await client
+      .visit('access.roles.update', { id })
+      .json({ name: 'Writer', permissions: ['roles.manage'] })
+      .headers(acme.headers)
+      .loginAs(owner)
+
+    await client.visit('access.roles.destroy', { id }).headers(acme.headers).loginAs(owner)
+
+    const events = await AuditEvent.query().where('tenant_id', acme.tenant.id).orderBy('id')
+
+    assert.deepEqual(
+      events.map(event => [event.type, event.actorId, event.subjectId, event.data]),
+      [
+        ['role.created', owner.id, id, { name: 'Editor', permissions: [] }],
+        [
+          'role.updated',
+          owner.id,
+          id,
+          {
+            name: 'Writer',
+            changes: {
+              name: { from: 'Editor', to: 'Writer' },
+              permissions: { from: [], to: ['roles.manage'] },
+            },
+          },
+        ],
+        ['role.deleted', owner.id, id, { name: 'Writer', permissions: ['roles.manage'] }],
+      ],
+    )
   })
 })

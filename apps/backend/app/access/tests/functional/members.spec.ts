@@ -2,6 +2,7 @@ import { test } from '@japa/runner'
 import type User from '#users/models/user'
 import type { ApiClient } from '@japa/api-client'
 import { workspace } from '#access/tests/seed'
+import AuditEvent from '#core/models/audit_event'
 import testUtils from '@adonisjs/core/services/test_utils'
 
 type Workspace = Awaited<ReturnType<typeof workspace>>
@@ -132,5 +133,45 @@ test.group('Access | members', group => {
     assert.equal(row?.roleId, editor.id)
     assert.deepEqual(row?.permissions, ['members.manage'])
     assert.equal(row?.user.email, member.email)
+  })
+
+  test('records role and permission changes, with the member and roles at the time', async ({
+    client,
+    assert,
+  }) => {
+    const { acme, owner } = await setup()
+    const target = await acme.member()
+    const editor = await acme.role('Editor', [])
+
+    await setRole(client, acme, owner, target.id, editor.id)
+    await setRole(client, acme, owner, target.id, null)
+    await setGrants(client, acme, owner, target.id, ['roles.manage'])
+
+    const events = await AuditEvent.query().where('tenant_id', acme.tenant.id).orderBy('id')
+    const member = { email: target.email, fullName: null }
+
+    assert.deepEqual(
+      events.map(event => [event.type, event.actorId, event.subjectId, event.data]),
+      [
+        [
+          'member.role_changed',
+          owner.id,
+          target.id,
+          { member, from: null, to: { id: editor.id, name: 'Editor' } },
+        ],
+        [
+          'member.role_changed',
+          owner.id,
+          target.id,
+          { member, from: { id: editor.id, name: 'Editor' }, to: null },
+        ],
+        [
+          'member.permissions_changed',
+          owner.id,
+          target.id,
+          { member, from: [], to: ['roles.manage'] },
+        ],
+      ],
+    )
   })
 })

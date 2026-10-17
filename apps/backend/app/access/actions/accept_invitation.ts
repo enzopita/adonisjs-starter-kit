@@ -1,6 +1,10 @@
 import crypto from 'node:crypto'
 import { DateTime } from 'luxon'
+import Role from '#access/models/role'
 import db from '@adonisjs/lucid/services/db'
+import { audit } from '#core/audit/main'
+import type {} from '#access/types/audit'
+import GetMember from '#access/queries/get_member'
 import Invitation from '#access/models/invitation'
 import RoleAssignment from '#access/models/role_assignment'
 import TenantMembership from '#tenancy/models/tenant_membership'
@@ -40,13 +44,28 @@ export default class AcceptInvitation {
 
         // Already a member: the invitation is spent and nothing else changes. Makes a retry
         // after a crash between the membership write and this delete safe to repeat.
+        const found = roleId ? await Role.findOrFail(roleId, { client: trx }) : null
+        const role = found && { id: found.id, name: found.name }
+
         if (!membership) {
           await TenantMembership.create({ tenantId, userId }, { client: trx })
 
           if (roleId) await RoleAssignment.create({ tenantId, userId, roleId }, { client: trx })
+
+          await audit.record(trx, 'member.joined', {
+            tenantId,
+            subject: { type: 'member', id: userId },
+            data: { member: await new GetMember().handle(trx, { tenantId, userId }), role },
+          })
         }
 
         await invitation.useTransaction(trx).delete()
+
+        await audit.record(trx, 'invitation.accepted', {
+          tenantId,
+          subject: { type: 'invitation', id: invitation.id },
+          data: { email: invitation.email, role },
+        })
       }),
     )
 
