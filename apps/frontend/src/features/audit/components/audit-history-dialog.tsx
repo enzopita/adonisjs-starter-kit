@@ -13,7 +13,7 @@ import { useState } from 'react'
 import { AuditPagination } from '@/features/audit/components/audit-pagination'
 import { AuditTimeline } from '@/features/audit/components/audit-timeline'
 import type { AuditSubject, PermissionLabel } from '@/features/audit/event-text'
-import { auditEventsQuery } from '@/features/audit/queries'
+import { EMBEDDED_PER_PAGE, auditEventsQuery } from '@/features/audit/queries'
 import { errorMessage } from '@/features/core/errors'
 import { t } from '@/features/core/i18n'
 
@@ -36,7 +36,7 @@ export function AuditHistoryDialog({
   const [page, setPage] = useState(1)
 
   const history = useQuery({
-    ...auditEventsQuery(tenantId, { subject, page }),
+    ...auditEventsQuery(tenantId, { subject, page, perPage: EMBEDDED_PER_PAGE }),
     placeholderData: keepPreviousData,
   })
 

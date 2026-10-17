@@ -12,33 +12,45 @@ export function AuditPagination({
   metadata: Metadata
   onPageChange: (page: number) => void
 }) {
-  const { currentPage, lastPage } = metadata
+  const { currentPage, lastPage, perPage, total } = metadata
 
   if (lastPage <= 1) return null
 
   return (
-    <nav aria-label={t('audit.pagination.label')} className="flex items-center justify-end gap-2">
+    <nav
+      aria-label={t('audit.pagination.label')}
+      className="flex flex-wrap items-center justify-between gap-3 border-t pt-3"
+    >
       <span className="text-xs text-muted-foreground">
-        {t('audit.pagination.page', { page: currentPage, pages: lastPage })}
+        {t('audit.pagination.range', {
+          from: (currentPage - 1) * perPage + 1,
+          to: Math.min(currentPage * perPage, total),
+          total,
+        })}
       </span>
-      <Button
-        variant="outline"
-        size="icon-sm"
-        aria-label={t('audit.pagination.previous')}
-        disabled={currentPage <= 1}
-        onClick={() => onPageChange(currentPage - 1)}
-      >
-        <ChevronLeftIcon />
-      </Button>
-      <Button
-        variant="outline"
-        size="icon-sm"
-        aria-label={t('audit.pagination.next')}
-        disabled={currentPage >= lastPage}
-        onClick={() => onPageChange(currentPage + 1)}
-      >
-        <ChevronRightIcon />
-      </Button>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={currentPage <= 1}
+          onClick={() => onPageChange(currentPage - 1)}
+        >
+          <ChevronLeftIcon data-icon="inline-start" />
+          {t('audit.pagination.previous')}
+        </Button>
+        <span className="text-xs text-muted-foreground">
+          {t('audit.pagination.page', { page: currentPage, pages: lastPage })}
+        </span>
+        <Button
+          variant="outline"
+          size="sm"
+          disabled={currentPage >= lastPage}
+          onClick={() => onPageChange(currentPage + 1)}
+        >
+          {t('audit.pagination.next')}
+          <ChevronRightIcon data-icon="inline-end" />
+        </Button>
+      </div>
     </nav>
   )
 }

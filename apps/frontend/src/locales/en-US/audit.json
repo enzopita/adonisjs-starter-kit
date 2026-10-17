@@ -65,9 +65,10 @@
   },
   "pagination": {
     "label": "Pagination",
+    "range": "Showing {from}–{to} of {total}",
     "page": "Page {page} of {pages}",
-    "previous": "Previous page",
-    "next": "Next page"
+    "previous": "Previous",
+    "next": "Next"
   },
   "auditPage": {
     "title": "Audit trail",
