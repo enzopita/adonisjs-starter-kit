@@ -1,6 +1,21 @@
 import { HttpContext } from '@adonisjs/core/http'
 import { BaseSerializer } from '@adonisjs/core/transformers'
-import { type SimplePaginatorMetaKeys } from '@adonisjs/lucid/types/querybuilder'
+
+/**
+ * What Lucid's paginator getMeta() returns. The serializer's own type guard declares every field a
+ * string, but the counts are numbers and the neighbouring page URLs are null at either end.
+ */
+type PaginationMetaData = {
+  total: number
+  perPage: number
+  currentPage: number
+  lastPage: number
+  firstPage: number
+  firstPageUrl: string
+  lastPageUrl: string
+  nextPageUrl: string | null
+  previousPageUrl: string | null
+}
 
 /**
  * Custom serializer for API responses that ensures consistent JSON structure
@@ -9,7 +24,7 @@ import { type SimplePaginatorMetaKeys } from '@adonisjs/lucid/types/querybuilder
  */
 class ApiSerializer extends BaseSerializer<{
   Wrap: 'data'
-  PaginationMetaData: SimplePaginatorMetaKeys
+  PaginationMetaData: PaginationMetaData
 }> {
   /**
    * Wraps all serialized data under this key in the response object.
@@ -24,14 +39,24 @@ class ApiSerializer extends BaseSerializer<{
    * @throws Error if metadata doesn't match Lucid's pagination structure
    */
   // oxlint-disable-next-line anti-slop/no-unknown-parameters -- BaseSerializer passes the metadata as unknown; the guard below parses it.
-  definePaginationMetaData(metaData: unknown): SimplePaginatorMetaKeys {
+  definePaginationMetaData(metaData: unknown): PaginationMetaData {
     if (!this.isLucidPaginatorMetaData(metaData)) {
       throw new Error(
         'Invalid pagination metadata. Expected metadata to contain Lucid pagination keys',
       )
     }
 
-    return metaData
+    return {
+      total: Number(metaData.total),
+      perPage: Number(metaData.perPage),
+      currentPage: Number(metaData.currentPage),
+      lastPage: Number(metaData.lastPage),
+      firstPage: Number(metaData.firstPage),
+      firstPageUrl: metaData.firstPageUrl,
+      lastPageUrl: metaData.lastPageUrl,
+      nextPageUrl: metaData.nextPageUrl || null,
+      previousPageUrl: metaData.previousPageUrl || null,
+    }
   }
 }
 
