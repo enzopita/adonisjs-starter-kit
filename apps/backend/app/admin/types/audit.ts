@@ -7,6 +7,7 @@ declare module '#core/audit/types' {
     'admin.tenant_reactivated': TenantEvent<'tenant', { name: string }>
     'admin.user_disabled': AccountEvent<'user', { email: string }>
     'admin.user_enabled': AccountEvent<'user', { email: string }>
+    'admin.impersonation_started': AccountEvent<'user', { email: string }>
     'admin.granted': SystemEvent<{ email: string }>
   }
 }

@@ -16,5 +16,6 @@
   "E_TENANT_ACCESS_DENIED": "Você não é membro deste espaço de trabalho.",
   "E_TENANT_SUSPENDED": "Este espaço de trabalho está suspenso. Fale com o suporte para recuperar o acesso.",
   "E_UNAUDITED_WRITE": "Esta alteração foi salva sem registro de auditoria. Avise a equipe.",
-  "E_UNAUTHORIZED_ACCESS": "Entre para continuar."
+  "E_UNAUTHORIZED_ACCESS": "Entre para continuar.",
+  "E_USER_DISABLED": "Esta conta está desativada. Ative-a antes de personificá-la."
 }

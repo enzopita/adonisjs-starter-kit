@@ -391,6 +391,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/user_suspensions_controller').default['destroy']>>>
     }
   }
+  'admin.impersonations.store': {
+    methods: ["POST"]
+    pattern: '/api/v1/admin/users/:id/impersonation'
+    types: {
+      body: ExtractBody<InferInput<(typeof import('#admin/validators/user').userParamsValidator)>>
+      paramsTuple: [ParamValue]
+      params: { id: ParamValue }
+      query: ExtractQuery<InferInput<(typeof import('#admin/validators/user').userParamsValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#app/admin/controllers/impersonations_controller').default['store']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/admin/controllers/impersonations_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'health_checks.live': {
     methods: ["GET","HEAD"]
     pattern: '/health/live'

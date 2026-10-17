@@ -16,5 +16,6 @@
   "E_TENANT_ACCESS_DENIED": "You’re not a member of this workspace.",
   "E_TENANT_SUSPENDED": "This workspace is suspended. Contact support to get access back.",
   "E_UNAUDITED_WRITE": "This change was saved without an audit record. Report it to the team.",
-  "E_UNAUTHORIZED_ACCESS": "Sign in to continue."
+  "E_UNAUTHORIZED_ACCESS": "Sign in to continue.",
+  "E_USER_DISABLED": "This account is disabled. Enable it before impersonating it."
 }

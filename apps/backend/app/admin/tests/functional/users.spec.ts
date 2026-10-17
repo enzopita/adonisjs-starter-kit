@@ -121,7 +121,7 @@ test.group('Admin | users', group => {
     const peer = await admin()
 
     for (const target of [viewer, peer]) {
-      for (const route of ['admin.user_suspensions.store'] as const) {
+      for (const route of ['admin.user_suspensions.store', 'admin.impersonations.store'] as const) {
         const response = await client.visit(route, { id: target.id }).loginAs(viewer)
 
         response.assertStatus(409)

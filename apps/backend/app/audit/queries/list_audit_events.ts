@@ -21,6 +21,8 @@ export interface AuditEventRow {
   event: AuditEvent
   /** Null for an event with no signed-in actor (a seed, the repl) or whose user is gone. */
   actor: User | null
+  /** The platform admin who acted as `actor`, when the event happened while impersonating. */
+  impersonator: User | null
 }
 
 function queryTrail(trail: AuditTrail) {
@@ -57,13 +59,21 @@ export default class ListAuditEvents {
 
     const events = await query.orderBy('id', 'desc').paginate(input.page, input.perPage)
 
-    const actorIds = [...new Set(events.all().flatMap(event => event.actorId ?? []))]
-    const actors = await User.query().whereIn('id', actorIds).preload('avatar')
-    const actorById = new Map(actors.map(actor => [actor.id, actor]))
+    const userIds = events
+      .all()
+      .flatMap(event => [event.actorId, event.impersonatorId])
+      .filter(id => id !== null)
+
+    const users = await User.query()
+      .whereIn('id', [...new Set(userIds)])
+      .preload('avatar')
+
+    const userById = new Map(users.map(user => [user.id, user]))
 
     const rows: AuditEventRow[] = events.all().map(event => ({
       event,
-      actor: (event.actorId && actorById.get(event.actorId)) || null,
+      actor: (event.actorId && userById.get(event.actorId)) || null,
+      impersonator: (event.impersonatorId && userById.get(event.impersonatorId)) || null,
     }))
 
     return { rows, meta: events.getMeta() }

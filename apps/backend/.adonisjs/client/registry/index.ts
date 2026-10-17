@@ -198,6 +198,12 @@ const routes = {
     tokens: [{"old":"/api/v1/admin/users/:id/suspension","type":0,"val":"api","end":""},{"old":"/api/v1/admin/users/:id/suspension","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/users/:id/suspension","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/users/:id/suspension","type":0,"val":"users","end":""},{"old":"/api/v1/admin/users/:id/suspension","type":1,"val":"id","end":""},{"old":"/api/v1/admin/users/:id/suspension","type":0,"val":"suspension","end":""}],
     types: placeholder as Registry['admin.user_suspensions.destroy']['types'],
   },
+  'admin.impersonations.store': {
+    methods: ["POST"],
+    pattern: '/api/v1/admin/users/:id/impersonation',
+    tokens: [{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"api","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"v1","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"admin","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"users","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":1,"val":"id","end":""},{"old":"/api/v1/admin/users/:id/impersonation","type":0,"val":"impersonation","end":""}],
+    types: placeholder as Registry['admin.impersonations.store']['types'],
+  },
   'health_checks.live': {
     methods: ["GET","HEAD"],
     pattern: '/health/live',

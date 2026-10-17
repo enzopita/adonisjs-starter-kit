@@ -56,6 +56,7 @@
     "tenantReactivated": "reativou o espaço de trabalho “{name}”",
     "userDisabled": "desativou a conta {email}",
     "userEnabled": "ativou a conta {email}",
+    "impersonationStarted": "começou a agir como {email}",
     "unknown": "registrou um evento do tipo “{type}”"
   },
   "timeline": {

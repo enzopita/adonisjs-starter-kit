@@ -36,6 +36,7 @@ export type ScannedRoutes = {
     'admin.users.index': { paramsTuple?: []; params?: {} }
     'admin.user_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.user_suspensions.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.impersonations.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'health_checks.live': { paramsTuple?: []; params?: {} }
     'health_checks.ready': { paramsTuple?: []; params?: {} }
   }
@@ -91,6 +92,7 @@ export type ScannedRoutes = {
     'invitation_accept.store': { paramsTuple?: []; params?: {} }
     'admin.tenant_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'admin.user_suspensions.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
+    'admin.impersonations.store': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
   }
   DELETE: {
     'access.roles.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }

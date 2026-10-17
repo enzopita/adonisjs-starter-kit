@@ -91,6 +91,9 @@ export interface ApiDefinition {
       store: typeof routes['admin.user_suspensions.store']
       destroy: typeof routes['admin.user_suspensions.destroy']
     }
+    impersonations: {
+      store: typeof routes['admin.impersonations.store']
+    }
   }
   healthChecks: {
     live: typeof routes['health_checks.live']

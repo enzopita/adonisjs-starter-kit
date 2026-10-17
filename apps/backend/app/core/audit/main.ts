@@ -7,13 +7,23 @@ import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
 import type { AuditEntry, AuditEventType, Changes } from '#core/audit/types'
 
 function originOf(ctx: HttpContext | undefined) {
-  if (!ctx) return { actorId: null, sessionId: null, requestId: null, ip: null, userAgent: null }
+  if (!ctx) {
+    return {
+      actorId: null,
+      impersonatorId: null,
+      sessionId: null,
+      requestId: null,
+      ip: null,
+      userAgent: null,
+    }
+  }
 
   const user = ctx.auth.user
   const token = user?.currentAccessToken
 
   return {
     actorId: user?.id ?? null,
+    impersonatorId: token?.impersonatorId ?? null,
     sessionId: token ? String(token.identifier) : null,
     requestId: ctx.request.id() ?? null,
     ip: ctx.request.ip(),

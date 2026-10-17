@@ -201,6 +201,11 @@ const ACCOUNT_EVENTS: EventTexts<Exclude<AuditEventType, TenantEventType>> = {
   'admin.user_enabled': {
     describe: ({ data }) => ({ sentence: t('audit.events.userEnabled', { email: data.email }) }),
   },
+  'admin.impersonation_started': {
+    describe: ({ data }) => ({
+      sentence: t('audit.events.impersonationStarted', { email: data.email }),
+    }),
+  },
 }
 
 const EVENTS: EventTexts<AuditEventType> = { ...TENANT_EVENTS, ...ACCOUNT_EVENTS }

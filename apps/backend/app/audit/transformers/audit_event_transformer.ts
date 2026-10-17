@@ -30,7 +30,7 @@ export default class AuditEventTransformer extends BaseTransformer<AuditEventRow
   }
 
   private withEvent<Event>() {
-    const { event, actor } = this.resource
+    const { event, actor, impersonator } = this.resource
 
     return {
       id: event.id,
@@ -38,6 +38,7 @@ export default class AuditEventTransformer extends BaseTransformer<AuditEventRow
       // Depth 2: actor -> avatar. A top-level paginator's own depth() doesn't reach the
       // inferred response type, so the item carries it.
       actor: actor ? UserTransformer.transform(actor).depth(2) : null,
+      impersonator: impersonator ? UserTransformer.transform(impersonator).depth(2) : null,
       session: {
         id: event.sessionId,
         ip: event.ip,

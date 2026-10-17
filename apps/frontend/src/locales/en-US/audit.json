@@ -56,6 +56,7 @@
     "tenantReactivated": "reactivated the workspace “{name}”",
     "userDisabled": "disabled the account {email}",
     "userEnabled": "enabled the account {email}",
+    "impersonationStarted": "started acting as {email}",
     "unknown": "recorded an event of type “{type}”"
   },
   "timeline": {
