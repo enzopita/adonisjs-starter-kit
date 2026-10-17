@@ -3,5 +3,6 @@
   "users": ["core"],
   "auth": ["core"],
   "tenancy": ["core"],
+  "audit": ["core", "users", "tenancy"],
   "access": ["core", "users", "tenancy", "auth"]
 }

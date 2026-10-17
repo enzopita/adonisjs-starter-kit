@@ -1,0 +1,80 @@
+{
+  "areas": {
+    "tenant": "Workspace",
+    "role": "Roles",
+    "member": "Members",
+    "invitation": "Invitations"
+  },
+  "types": {
+    "tenantCreated": "Workspace created",
+    "roleCreated": "Role created",
+    "roleUpdated": "Role updated",
+    "roleDeleted": "Role deleted",
+    "memberJoined": "Member joined",
+    "memberRoleChanged": "Member’s role changed",
+    "memberPermissionsChanged": "Member’s permissions changed",
+    "invitationSent": "Invitation sent",
+    "invitationRevoked": "Invitation revoked",
+    "invitationAccepted": "Invitation accepted"
+  },
+  "events": {
+    "tenantCreated": "created the workspace “{name}”",
+    "roleCreated": "created the role “{name}”",
+    "roleRenamed": "renamed the role “{from}” to “{to}”",
+    "roleUpdated": "changed the permissions of the role “{name}”",
+    "roleDeleted": "deleted the role “{name}”",
+    "memberJoined": "joined the workspace",
+    "memberJoinedAs": "joined the workspace as “{role}”",
+    "memberRoleAssigned": "gave {member} the role “{to}”",
+    "memberRoleRemoved": "removed the role “{from}” from {member}",
+    "memberRoleChanged": "changed {member}’s role from “{from}” to “{to}”",
+    "memberPermissionsChanged": "changed {member}’s extra permissions",
+    "invitationSent": "invited {email}",
+    "invitationSentAs": "invited {email} as “{role}”",
+    "invitationRevoked": "revoked the invitation to {email}",
+    "invitationAccepted": "accepted the invitation sent to {email}",
+    "unknown": "recorded an event of type “{type}”"
+  },
+  "timeline": {
+    "system": "System",
+    "showOnly": "Show only {name}’s activity",
+    "details": "Details",
+    "added": "Added",
+    "removed": "Removed",
+    "when": "When",
+    "ip": "IP address",
+    "userAgent": "Browser",
+    "requestId": "Request ID",
+    "sessionId": "Session ID",
+    "none": "—"
+  },
+  "pagination": {
+    "label": "Pagination",
+    "page": "Page {page} of {pages}",
+    "previous": "Previous page",
+    "next": "Next page"
+  },
+  "auditPage": {
+    "title": "Audit trail",
+    "description": "Who changed what in this workspace, newest first.",
+    "event": "Event",
+    "allEvents": "All events",
+    "allInArea": "All in {area}",
+    "from": "From",
+    "to": "To",
+    "actor": "By {name}",
+    "someone": "By one person",
+    "removeActor": "Show everyone’s activity",
+    "clear": "Clear filters",
+    "emptyTitle": "No activity yet",
+    "emptyDescription": "Changes to roles, members and invitations will show up here.",
+    "noMatchTitle": "Nothing matches",
+    "noMatchDescription": "No event matches these filters. Widen the dates or clear the filters."
+  },
+  "historyDialog": {
+    "title": "History of {name}",
+    "description": "Every recorded change, newest first.",
+    "empty": "No changes recorded yet.",
+    "close": "Close"
+  }
+}

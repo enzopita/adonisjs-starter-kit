@@ -1,0 +1,80 @@
+{
+  "areas": {
+    "tenant": "Espaço de trabalho",
+    "role": "Papéis",
+    "member": "Membros",
+    "invitation": "Convites"
+  },
+  "types": {
+    "tenantCreated": "Espaço de trabalho criado",
+    "roleCreated": "Papel criado",
+    "roleUpdated": "Papel alterado",
+    "roleDeleted": "Papel excluído",
+    "memberJoined": "Membro entrou",
+    "memberRoleChanged": "Papel de membro alterado",
+    "memberPermissionsChanged": "Permissões de membro alteradas",
+    "invitationSent": "Convite enviado",
+    "invitationRevoked": "Convite revogado",
+    "invitationAccepted": "Convite aceito"
+  },
+  "events": {
+    "tenantCreated": "criou o espaço de trabalho “{name}”",
+    "roleCreated": "criou o papel “{name}”",
+    "roleRenamed": "renomeou o papel “{from}” para “{to}”",
+    "roleUpdated": "alterou as permissões do papel “{name}”",
+    "roleDeleted": "excluiu o papel “{name}”",
+    "memberJoined": "entrou no espaço de trabalho",
+    "memberJoinedAs": "entrou no espaço de trabalho como “{role}”",
+    "memberRoleAssigned": "atribuiu o papel “{to}” a {member}",
+    "memberRoleRemoved": "removeu o papel “{from}” de {member}",
+    "memberRoleChanged": "alterou o papel de {member} de “{from}” para “{to}”",
+    "memberPermissionsChanged": "alterou as permissões extras de {member}",
+    "invitationSent": "convidou {email}",
+    "invitationSentAs": "convidou {email} como “{role}”",
+    "invitationRevoked": "revogou o convite para {email}",
+    "invitationAccepted": "aceitou o convite enviado para {email}",
+    "unknown": "registrou um evento do tipo “{type}”"
+  },
+  "timeline": {
+    "system": "Sistema",
+    "showOnly": "Mostrar só a atividade de {name}",
+    "details": "Detalhes",
+    "added": "Adicionadas",
+    "removed": "Removidas",
+    "when": "Quando",
+    "ip": "Endereço IP",
+    "userAgent": "Navegador",
+    "requestId": "ID da requisição",
+    "sessionId": "ID da sessão",
+    "none": "—"
+  },
+  "pagination": {
+    "label": "Paginação",
+    "page": "Página {page} de {pages}",
+    "previous": "Página anterior",
+    "next": "Próxima página"
+  },
+  "auditPage": {
+    "title": "Trilha de auditoria",
+    "description": "Quem alterou o quê neste espaço de trabalho, do mais recente ao mais antigo.",
+    "event": "Evento",
+    "allEvents": "Todos os eventos",
+    "allInArea": "Tudo em {area}",
+    "from": "De",
+    "to": "Até",
+    "actor": "Por {name}",
+    "someone": "Por uma pessoa",
+    "removeActor": "Mostrar a atividade de todos",
+    "clear": "Limpar filtros",
+    "emptyTitle": "Nenhuma atividade ainda",
+    "emptyDescription": "Alterações em papéis, membros e convites vão aparecer aqui.",
+    "noMatchTitle": "Nada encontrado",
+    "noMatchDescription": "Nenhum evento corresponde a estes filtros. Amplie as datas ou limpe os filtros."
+  },
+  "historyDialog": {
+    "title": "Histórico de {name}",
+    "description": "Todas as alterações registradas, da mais recente à mais antiga.",
+    "empty": "Nenhuma alteração registrada ainda.",
+    "close": "Fechar"
+  }
+}
