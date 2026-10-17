@@ -11,6 +11,7 @@
 | `tenancy`     | Tenants and their members, the tenant scope on models, the `tenant` middleware.                                              |
 | `access`      | Roles and grants per tenant, platform admins, and the Bouncer ability every check goes through.                              |
 | `audit`       | Reading and pruning the audit trail: a tenant's events, a user's account activity, which permission opens which history.     |
+| `admin`       | The platform admin's area: every tenant and user, suspending, disabling, impersonating, and `node ace admin:grant`.          |
 
 ## Starting a new module or feature
 
@@ -132,6 +133,7 @@ A route that touches tenant data uses `middleware.tenant()` after `middleware.au
 | ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
 | Missing or not a UUID                      | 400, `key: 'E_INVALID_TENANT_HEADER'`                                                                                                    |
 | Unknown tenant, or the user isn't a member | 403, `key: 'E_TENANT_ACCESS_DENIED'`, the same body for both; a non-member's attempt is recorded as `access.tenant_denied` on the tenant |
+| A suspended tenant of the user             | 403, `key: 'E_TENANT_SUSPENDED'`; see [Admin](#admin)                                                                                    |
 | A tenant of the user                       | `ctx.tenant` is the `Tenant`, and the rest of the request runs in `runInTenant`                                                          |
 
 `GET /api/v1/tenants` lists the user's tenants. `POST /api/v1/tenants` creates one with the user as its first member, then emits `tenancy:tenant_created` (`{ tenantId, creatorId }`). Both need only `auth`.
@@ -197,13 +199,7 @@ Send every mail with `mail.sendLater(...)`; the lint rejects `mail.send()`. `sta
 
 ### Platform admins
 
-A user with a row in `platform_admins` passes every check in every tenant, and outside any tenant. `GET /api/v1/access/me` lists every permission for them, `platform.admin` included. No role or grant can hold `platform.admin`, and no endpoint creates a platform admin. Make one from `node ace repl`:
-
-```ts
-await import('#access/models/platform_admin').then(({ default: PlatformAdmin }) =>
-  PlatformAdmin.create({ userId }),
-)
-```
+A user with a row in `platform_admins` passes every check in every tenant, and outside any tenant. `GET /api/v1/access/me` lists every permission for them, `platform.admin` included. No role or grant can hold `platform.admin`, and no endpoint creates a platform admin. Make one with `node ace admin:grant <email>`: it is safe to run again, and records an `admin.granted` system event the first time.
 
 ### Tenant owner
 
@@ -229,7 +225,7 @@ Every successful write records one **audit event** in `audit_events`: what happe
 
 For an update, call `dirtyChanges(row, ['name', 'permissions'])` from `#core/audit/main` before `save()`: it returns `{ name: { from, to } }` for the named keys that changed. Keys named `password`, `token`, `tokenHash`, `token_hash`, `hash` or `secret` are stored as `'[redacted]'` at any depth.
 
-The origin comes from the request. `audit_scope_middleware` (router stack, after `silent_auth`) runs the request in an AsyncLocalStorage scope, and each event reads its actor (`ctx.auth.user`), session (the access token's id), request id, IP and user agent when it is recorded. Login and sign-up pass `actorId`, and login `sessionId`, because the user appears during the request. Outside a request (repl, seeds, jobs) an event has no origin, and the trail shows it as the system.
+The origin comes from the request. `audit_scope_middleware` (router stack, after `silent_auth`) runs the request in an AsyncLocalStorage scope, and each event reads its actor (`ctx.auth.user`), session (the access token's id), impersonator (the token's `impersonator_id`, see [Admin](#admin)), request id, IP and user agent when it is recorded. Login and sign-up pass `actorId`, and login `sessionId`, because the user appears during the request. Outside a request (repl, seeds, jobs) an event has no origin, and the trail shows it as the system.
 
 ### The guard
 
@@ -241,7 +237,7 @@ Lucid hooks run only inside an instance's `save()` and `delete()`, so a mixin mi
 
 ### Read a trail
 
-`GET /api/v1/audit/events` (`auth`, `tenant`) lists the tenant's events newest first, paginated (`page`, `perPage` up to 100) and filtered by `type[]`, `actorId`, `subjectType`, `subjectId`, `from` and `to` (ISO 8601). Each row holds `actor` (the user, or `null` for the system), `session` (`id`, `ip`, `userAgent`, `requestId`), `createdAt`, and `event: { type, subject, data }`, a union the frontend narrows on `event.type`. It is nested because the inferred response type keeps a union inside a field, not at the top level of a row.
+`GET /api/v1/audit/events` (`auth`, `tenant`) lists the tenant's events newest first, paginated (`page`, `perPage` up to 100) and filtered by `type[]`, `actorId`, `subjectType`, `subjectId`, `from` and `to` (ISO 8601). Each row holds `actor` (the user, or `null` for the system), `impersonator` (the platform admin acting as `actor`, or `null`), `session` (`id`, `ip`, `userAgent`, `requestId`), `createdAt`, and `event: { type, subject, data }`, a union the frontend narrows on `event.type`. It is nested because the inferred response type keeps a union inside a field, not at the top level of a row.
 
 The whole trail needs `audit.view`. Every Owner role holds it: a new tenant's from the start, an older one through a migration (see [Tenant owner](#tenant-owner)).
 
@@ -256,6 +252,30 @@ A scheduled job records as the system: no actor, no session. Declare its event a
 ### Retention
 
 `PruneAuditEventsJob` (`app/audit/jobs/`) runs daily at 03:30 UTC from `start/scheduler.ts`, and on demand with `node ace audit:prune`. It deletes the events older than `AUDIT_RETENTION_DAYS` (default 365, read as `auditRetentionDays` from `#config/app`) in batches of 1000, then records one `audit.pruned` system event with the `count` it deleted and the `before` cutoff. A run that deletes nothing records nothing. It is safe to run twice, concurrently (each batch skips the rows another run has locked), or after a crash.
+
+## Admin
+
+The `admin` module is the platform admins' area. Every route needs `auth` and runs outside any tenant, so `bouncer.authorize(can, PERMISSIONS.platformAdmin)` passes only a platform admin; `GET /api/v1/admin/me` answers `{ platformAdmin }` to anyone signed in, for the frontend to show the entry.
+
+| Route                                                     | Does                                                                                                                   |
+| --------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `GET /api/v1/admin/tenants` (`search`, `page`, `perPage`) | Every tenant by name, with `memberCount` and `suspendedAt`.                                                            |
+| `GET /api/v1/admin/tenants/:id`                           | The tenant and its members, each with `disabledAt`, `platformAdmin` and their role's name.                             |
+| `PUT /api/v1/admin/tenants/:id` (`{ name }`)              | Renames it: `admin.tenant_renamed` on the tenant's trail.                                                              |
+| `POST`, `DELETE /api/v1/admin/tenants/:id/suspension`     | Suspends and reactivates it: `admin.tenant_suspended`, `admin.tenant_reactivated`.                                     |
+| `GET /api/v1/admin/users` (`search`, `page`, `perPage`)   | Every user by email, searched by email or name, with `disabledAt`, `platformAdmin` and `tenantCount`.                  |
+| `POST`, `DELETE /api/v1/admin/users/:id/suspension`       | Disables and enables the account: `admin.user_disabled`, `admin.user_enabled`, in the user's account activity.         |
+| `POST /api/v1/admin/users/:id/impersonation`              | `{ user, token }` like login: a one-hour token that acts as the user. `admin.impersonation_started` in their activity. |
+
+The states are nullable timestamps, and each holds an invariant at its write rather than a check on every request:
+
+- **A suspended tenant (`tenants.suspended_at`) lets nobody in.** The `tenant` middleware answers its members 403 `E_TENANT_SUSPENDED`, after the membership check, so a non-member still gets `E_TENANT_ACCESS_DENIED`. `GET /api/v1/tenants` keeps listing it with its `suspendedAt`, for the frontend to say why.
+- **A disabled user (`users.disabled_at`) holds no access token.** Disabling deletes every token of theirs in the same transaction, login answers 403 `E_ACCOUNT_DISABLED` once the password is right, and impersonating them answers 409 `E_USER_DISABLED`.
+- **A platform admin is never disabled or impersonated through the API**, the caller included: 409 `E_PLATFORM_ADMIN_PROTECTED`. Enabling isn't protected, so someone disabled before `admin:grant` can still be enabled.
+
+Suspending, disabling and their reverses are idempotent: a repeat keeps the first date and answers 200, and records its event again, since every successful write records one (see [The guard](#the-guard)).
+
+An impersonation token is an ordinary access token whose `impersonator_id` names the admin: `User.currentAccessToken.impersonatorId` carries it, and every event recorded with it stores it in `audit_events.impersonator_id`. The session ends with `POST /api/v1/account/logout` from that token, and the frontend restores the admin's own token. It never reaches the admin area, since its user is never a platform admin.
 
 ## Translations
 
