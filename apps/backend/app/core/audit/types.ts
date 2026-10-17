@@ -31,6 +31,10 @@ export type TenantEventType = {
 
 export type AuditSubject<S extends string = string> = { type: S; id: string }
 
+export type TenantSubjectType = {
+  [T in TenantEventType]: AuditEvents[T] extends { subject: infer S extends string } ? S : never
+}[TenantEventType]
+
 export type SubjectOf<T extends AuditEventType> = AuditEvents[T] extends {
   subject: infer S extends string
 }

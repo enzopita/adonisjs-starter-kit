@@ -46,6 +46,7 @@ test.group('Access | effective permissions', group => {
     assert.deepEqual(await permissionsOf(client, admin, acme.headers), [
       'roles.manage',
       'members.manage',
+      'audit.view',
       'platform.admin',
     ])
   })
@@ -70,6 +71,7 @@ test.group('Access | permission catalog', group => {
     assert.deepEqual(response.body().data.groups, [
       { key: 'roles', permissions: ['roles.manage'] },
       { key: 'members', permissions: ['members.manage'] },
+      { key: 'audit', permissions: ['audit.view'] },
     ])
   })
 })

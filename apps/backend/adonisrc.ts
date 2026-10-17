@@ -96,6 +96,9 @@ export default defineConfig({
     // access
     () => import('#access/routes'),
     () => import('#access/start/events'),
+
+    // audit
+    () => import('#audit/routes'),
   ],
 
   /*

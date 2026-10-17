@@ -9,6 +9,7 @@ import type AccessInvitationTransformer from '#app/access/transformers/invitatio
 import type AccessMemberTransformer from '#app/access/transformers/member_transformer'
 import type AccessRoleTransformer from '#app/access/transformers/role_transformer'
 import type AttachmentsAttachmentTransformer from '#app/attachments/transformers/attachment_transformer'
+import type AuditAuditEventTransformer from '#app/audit/transformers/audit_event_transformer'
 import type TenancyTenantTransformer from '#app/tenancy/transformers/tenant_transformer'
 import type UsersUserTransformer from '#app/users/transformers/user_transformer'
 
@@ -31,6 +32,12 @@ export namespace Data {
     export type Attachment = InferData<AttachmentsAttachmentTransformer>
     export namespace Attachment {
       export type Variants = InferVariants<AttachmentsAttachmentTransformer>
+    }
+  }
+  export namespace Audit {
+    export type AuditEvent = InferData<AuditAuditEventTransformer>
+    export namespace AuditEvent {
+      export type Variants = InferVariants<AuditAuditEventTransformer>
     }
   }
   export namespace Tenancy {

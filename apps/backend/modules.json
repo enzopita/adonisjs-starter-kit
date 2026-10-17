@@ -4,5 +4,6 @@
   "auth": ["core", "users"],
   "attachments": ["core"],
   "tenancy": ["core", "users"],
-  "access": ["core", "users", "tenancy"]
+  "access": ["core", "users", "tenancy"],
+  "audit": ["core", "users", "tenancy", "access"]
 }

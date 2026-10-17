@@ -1,6 +1,7 @@
 export const PERMISSIONS = {
   rolesManage: 'roles.manage',
   membersManage: 'members.manage',
+  auditView: 'audit.view',
   platformAdmin: 'platform.admin',
 } as const
 

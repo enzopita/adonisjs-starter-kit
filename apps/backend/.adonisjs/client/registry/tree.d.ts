@@ -63,6 +63,11 @@ export interface ApiDefinition {
   invitationAccept: {
     store: typeof routes['invitation_accept.store']
   }
+  audit: {
+    auditEvents: {
+      index: typeof routes['audit.audit_events.index']
+    }
+  }
   healthChecks: {
     live: typeof routes['health_checks.live']
     ready: typeof routes['health_checks.ready']

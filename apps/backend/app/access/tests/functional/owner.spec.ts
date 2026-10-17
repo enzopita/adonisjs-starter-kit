@@ -22,7 +22,11 @@ test.group('Access | tenant owner', group => {
       .headers(acme.headers)
       .loginAs(founder)
 
-    assert.deepEqual(response.body().data.permissions, ['roles.manage', 'members.manage'])
+    assert.deepEqual(response.body().data.permissions, [
+      'roles.manage',
+      'members.manage',
+      'audit.view',
+    ])
     assert.lengthOf(await acme.inside(() => Role.all()), 1)
     assert.lengthOf(await acme.inside(() => RoleAssignment.all()), 1)
   })

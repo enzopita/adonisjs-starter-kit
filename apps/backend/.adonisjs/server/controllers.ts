@@ -17,6 +17,9 @@ export const controllers = {
   attachments: {
     Attachments: () => import('#app/attachments/controllers/attachments_controller'),
   },
+  audit: {
+    AuditEvents: () => import('#app/audit/controllers/audit_events_controller'),
+  },
   auth: {
     AccessTokens: () => import('#app/auth/controllers/access_tokens_controller'),
     NewAccount: () => import('#app/auth/controllers/new_account_controller'),

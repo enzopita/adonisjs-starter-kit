@@ -132,6 +132,12 @@ const routes = {
     tokens: [{"old":"/api/v1/invitations/accept","type":0,"val":"api","end":""},{"old":"/api/v1/invitations/accept","type":0,"val":"v1","end":""},{"old":"/api/v1/invitations/accept","type":0,"val":"invitations","end":""},{"old":"/api/v1/invitations/accept","type":0,"val":"accept","end":""}],
     types: placeholder as Registry['invitation_accept.store']['types'],
   },
+  'audit.audit_events.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/audit/events',
+    tokens: [{"old":"/api/v1/audit/events","type":0,"val":"api","end":""},{"old":"/api/v1/audit/events","type":0,"val":"v1","end":""},{"old":"/api/v1/audit/events","type":0,"val":"audit","end":""},{"old":"/api/v1/audit/events","type":0,"val":"events","end":""}],
+    types: placeholder as Registry['audit.audit_events.index']['types'],
+  },
   'health_checks.live': {
     methods: ["GET","HEAD"],
     pattern: '/health/live',
