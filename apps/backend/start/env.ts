@@ -25,7 +25,18 @@ export default await Env.create(new URL('../', import.meta.url), {
   FRONTEND_URL: Env.schema.string({ format: 'url', tld: false }),
   MONITORING_SECRET: Env.schema.secret(),
   CORS_ORIGIN: Env.schema.string.optional(),
-  AUDIT_RETENTION_DAYS: Env.schema.number.optional(),
+  // At least a day: 0 or less would delete the whole audit trail on the next prune.
+  AUDIT_RETENTION_DAYS: (key: string, value?: string) => {
+    if (value === undefined || value === '') return undefined
+
+    const days = Number(value)
+
+    if (!Number.isInteger(days) || days < 1) {
+      throw new Error(`Invalid value for "${key}": expected a whole number of days, 1 or more`)
+    }
+
+    return days
+  },
 
   // Database
   DB_HOST: Env.schema.string({ format: 'host' }),
