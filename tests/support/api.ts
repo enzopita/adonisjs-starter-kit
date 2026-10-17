@@ -1,6 +1,8 @@
 import type { Browser } from '@e2e-dev/web'
 import { expect } from 'e2e'
+import { execFile } from 'node:child_process'
 import { randomUUID } from 'node:crypto'
+import { promisify } from 'node:util'
 
 /** Arrange steps go straight to the API; only the behavior under test goes through the UI. */
 export const API_URL = 'http://localhost:3333/api/v1'
@@ -78,6 +80,13 @@ export async function signUp(fullName = 'E2E Member'): Promise<Account> {
 /** A workspace owned by `account`, which holds every permission in it. */
 export function createTenant(account: Account, name = unique('Workspace')) {
   return api<Tenant>('/tenants', { token: account.token, body: { name } })
+}
+
+const BACKEND_DIR = new URL('../../apps/backend/', import.meta.url)
+
+/** Makes `account` a platform admin the way an operator does, from the command line: no API grants it. */
+export async function grantPlatformAdmin(account: Account) {
+  await promisify(execFile)('node', ['ace', 'admin:grant', account.email], { cwd: BACKEND_DIR })
 }
 
 export type Role = { id: string; name: string; permissions: string[] }
