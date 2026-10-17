@@ -14,7 +14,13 @@ export default class AccessTokensController {
     try {
       user = await User.verifyCredentials(email, password)
     } catch (error) {
-      await audit.note('auth.login_failed', { tenantId: null, subject: null, data: { email } })
+      const owner = await User.findBy('email', email)
+
+      await audit.note('auth.login_failed', {
+        tenantId: null,
+        subject: owner ? { type: 'user', id: owner.id } : null,
+        data: { email },
+      })
 
       throw error
     }

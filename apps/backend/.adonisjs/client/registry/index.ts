@@ -138,6 +138,12 @@ const routes = {
     tokens: [{"old":"/api/v1/audit/events","type":0,"val":"api","end":""},{"old":"/api/v1/audit/events","type":0,"val":"v1","end":""},{"old":"/api/v1/audit/events","type":0,"val":"audit","end":""},{"old":"/api/v1/audit/events","type":0,"val":"events","end":""}],
     types: placeholder as Registry['audit.audit_events.index']['types'],
   },
+  'audit.account_activity.index': {
+    methods: ["GET","HEAD"],
+    pattern: '/api/v1/account/activity',
+    tokens: [{"old":"/api/v1/account/activity","type":0,"val":"api","end":""},{"old":"/api/v1/account/activity","type":0,"val":"v1","end":""},{"old":"/api/v1/account/activity","type":0,"val":"account","end":""},{"old":"/api/v1/account/activity","type":0,"val":"activity","end":""}],
+    types: placeholder as Registry['audit.account_activity.index']['types'],
+  },
   'health_checks.live': {
     methods: ["GET","HEAD"],
     pattern: '/health/live',

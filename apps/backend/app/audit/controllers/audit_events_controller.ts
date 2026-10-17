@@ -21,7 +21,7 @@ export default class AuditEventsController {
     if (!allowed) await bouncer.authorize(can, PERMISSIONS.auditView)
 
     const { rows, meta } = await new ListAuditEvents().handle({
-      tenantId: tenant.id,
+      trail: { tenantId: tenant.id },
       page: page ?? 1,
       perPage: perPage ?? 20,
       types: type,

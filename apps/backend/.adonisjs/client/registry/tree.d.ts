@@ -67,6 +67,9 @@ export interface ApiDefinition {
     auditEvents: {
       index: typeof routes['audit.audit_events.index']
     }
+    accountActivity: {
+      index: typeof routes['audit.account_activity.index']
+    }
   }
   healthChecks: {
     live: typeof routes['health_checks.live']

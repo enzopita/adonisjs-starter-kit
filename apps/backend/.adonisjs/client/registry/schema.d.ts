@@ -271,6 +271,18 @@ export interface Registry {
       errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/audit/controllers/audit_events_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'audit.account_activity.index': {
+    methods: ["GET","HEAD"]
+    pattern: '/api/v1/account/activity'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: ExtractQueryForGet<InferInput<(typeof import('#audit/validators/audit_event').listAccountActivityValidator)>>
+      response: ExtractResponse<Awaited<ReturnType<import('#app/audit/controllers/account_activity_controller').default['index']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#app/audit/controllers/account_activity_controller').default['index']>>> | { status: 422; response: { errors: SimpleError[] } }
+    }
+  }
   'health_checks.live': {
     methods: ["GET","HEAD"]
     pattern: '/health/live'

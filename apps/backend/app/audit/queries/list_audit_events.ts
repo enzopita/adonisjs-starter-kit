@@ -2,8 +2,11 @@ import type { DateTime } from 'luxon'
 import User from '#users/models/user'
 import AuditEvent from '#core/models/audit_event'
 
+/** A tenant's events, or a user's own account events (sign-in, avatar), which have no tenant. */
+export type AuditTrail = { tenantId: string } | { accountOf: string }
+
 export interface ListAuditEventsInput {
-  tenantId: string
+  trail: AuditTrail
   page: number
   perPage: number
   types?: string[]
@@ -20,11 +23,25 @@ export interface AuditEventRow {
   actor: User | null
 }
 
+function queryTrail(trail: AuditTrail) {
+  if ('tenantId' in trail) return AuditEvent.query().where('tenant_id', trail.tenantId)
+
+  return AuditEvent.query()
+    .whereNull('tenant_id')
+    .where(own =>
+      own
+        .where('actor_id', trail.accountOf)
+        .orWhere(subject =>
+          subject.where('subject_type', 'user').where('subject_id', trail.accountOf),
+        ),
+    )
+}
+
 /** AuditEvent isn't tenant-scoped (see #core/models/audit_event), so tenant_id is filtered here. */
 export default class ListAuditEvents {
   async handle(input: ListAuditEventsInput) {
-    const { tenantId, types, actorId, subjectType, subjectId, from, to } = input
-    const query = AuditEvent.query().where('tenant_id', tenantId)
+    const { trail, types, actorId, subjectType, subjectId, from, to } = input
+    const query = queryTrail(trail)
 
     if (types) query.whereIn('type', types)
 

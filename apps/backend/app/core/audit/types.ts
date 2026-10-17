@@ -25,9 +25,13 @@ export type TenantEvent<S extends string | null, D> = { scope: 'tenant'; subject
 /** Recorded for a user outside any tenant: sign-up, login, their own avatar. */
 export type AccountEvent<S extends string | null, D> = { scope: 'account'; subject: S; data: D }
 
-export type TenantEventType = {
-  [T in AuditEventType]: AuditEvents[T] extends { scope: 'tenant' } ? T : never
+type EventTypeIn<Scope> = {
+  [T in AuditEventType]: AuditEvents[T] extends { scope: Scope } ? T : never
 }[AuditEventType]
+
+export type TenantEventType = EventTypeIn<'tenant'>
+
+export type AccountEventType = EventTypeIn<'account'>
 
 export type AuditSubject<S extends string = string> = { type: S; id: string }
 
@@ -35,11 +39,10 @@ export type TenantSubjectType = {
   [T in TenantEventType]: AuditEvents[T] extends { subject: infer S extends string } ? S : never
 }[TenantEventType]
 
-export type SubjectOf<T extends AuditEventType> = AuditEvents[T] extends {
-  subject: infer S extends string
-}
-  ? AuditSubject<S>
-  : null
+type SubjectFor<S> = S extends string ? AuditSubject<S> : null
+
+/** An event declared with subject `'user' | null` takes a user subject or none. */
+export type SubjectOf<T extends AuditEventType> = SubjectFor<AuditEvents[T]['subject']>
 
 export type DataOf<T extends AuditEventType> = AuditEvents[T] extends { data: infer D } ? D : never
 

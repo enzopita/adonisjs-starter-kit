@@ -26,6 +26,7 @@ export type ScannedRoutes = {
     'access.invitations.destroy': { paramsTuple: [ParamValue]; params: {'id': ParamValue} }
     'invitation_accept.store': { paramsTuple?: []; params?: {} }
     'audit.audit_events.index': { paramsTuple?: []; params?: {} }
+    'audit.account_activity.index': { paramsTuple?: []; params?: {} }
     'health_checks.live': { paramsTuple?: []; params?: {} }
     'health_checks.ready': { paramsTuple?: []; params?: {} }
   }
@@ -38,6 +39,7 @@ export type ScannedRoutes = {
     'access.members.index': { paramsTuple?: []; params?: {} }
     'access.invitations.index': { paramsTuple?: []; params?: {} }
     'audit.audit_events.index': { paramsTuple?: []; params?: {} }
+    'audit.account_activity.index': { paramsTuple?: []; params?: {} }
     'health_checks.live': { paramsTuple?: []; params?: {} }
     'health_checks.ready': { paramsTuple?: []; params?: {} }
   }
@@ -50,6 +52,7 @@ export type ScannedRoutes = {
     'access.members.index': { paramsTuple?: []; params?: {} }
     'access.invitations.index': { paramsTuple?: []; params?: {} }
     'audit.audit_events.index': { paramsTuple?: []; params?: {} }
+    'audit.account_activity.index': { paramsTuple?: []; params?: {} }
     'health_checks.live': { paramsTuple?: []; params?: {} }
     'health_checks.ready': { paramsTuple?: []; params?: {} }
   }

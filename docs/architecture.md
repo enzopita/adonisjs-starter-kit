@@ -10,7 +10,7 @@
 | `attachments` | Stored files: upload, signed URLs, the claim service consumers call, pruning.                                                |
 | `tenancy`     | Tenants and their members, the tenant scope on models, the `tenant` middleware.                                              |
 | `access`      | Roles and grants per tenant, platform admins, and the Bouncer ability every check goes through.                              |
-| `audit`       | Reading the audit trail: the tenant's events endpoint and which permission opens which subject's history.                    |
+| `audit`       | Reading the audit trail: a tenant's events, a user's account activity, which permission opens which subject's history.       |
 
 ## Starting a new module or feature
 
@@ -243,7 +243,9 @@ Lucid hooks run only inside an instance's `save()` and `delete()`, so a mixin mi
 
 `GET /api/v1/audit/events` (`auth`, `tenant`) lists the tenant's events newest first, paginated (`page`, `perPage` up to 100) and filtered by `type[]`, `actorId`, `subjectType`, `subjectId`, `from` and `to` (ISO 8601). Each row holds `actor` (the user, or `null` for the system), `session` (`id`, `ip`, `userAgent`, `requestId`), `createdAt`, and `event: { type, subject, data }`, a union the frontend narrows on `event.type`. It is nested because the inferred response type keeps a union inside a field, not at the top level of a row.
 
-The whole trail needs `audit.view`. Every Owner role holds it: a new tenant's from the start, an older one through a migration (see [Tenant owner](#tenant-owner)). Account events are recorded, but no endpoint lists them yet.
+The whole trail needs `audit.view`. Every Owner role holds it: a new tenant's from the start, an older one through a migration (see [Tenant owner](#tenant-owner)).
+
+`GET /api/v1/account/activity` (`auth` only) lists the signed-in user's account events, those with no tenant that they did or that are about them, in the same paginated shape (`page`, `perPage`). A failed login on an existing account's email has that user as its subject, so its owner sees the attempt; the login response stays the same. The tenant trail's `event` union holds tenant events only and the account activity's account events only: `AuditEventTransformer` serializes them as `toObject()` and `forAccount()`.
 
 A feature shows the history of its own records through the same endpoint, filtered by `subjectType` and `subjectId`. `SUBJECT_PERMISSIONS` in `app/audit/subject_permissions.ts` maps a subject type to the feature permission that may read its trail without `audit.view` (`role` to `roles.manage`). A new feature adds its subject type there.
 
