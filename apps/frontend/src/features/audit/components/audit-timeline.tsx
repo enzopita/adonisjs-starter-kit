@@ -106,6 +106,12 @@ function AuditTimelineItem({
               </>
             )}
             {sentence}
+            {row.impersonator && (
+              <span className="text-muted-foreground">
+                {' '}
+                {t('audit.timeline.impersonatedBy', { name: actorName(row.impersonator) })}
+              </span>
+            )}
           </p>
           {createdAt && (
             <time

@@ -71,7 +71,8 @@
     "requestId": "ID da requisição",
     "sessionId": "ID da sessão",
     "none": "—",
-    "from": "De {ip} · {browser}"
+    "from": "De {ip} · {browser}",
+    "impersonatedBy": "(por {name}, acessando como esta pessoa)"
   },
   "auditPage": {
     "title": "Trilha de auditoria",

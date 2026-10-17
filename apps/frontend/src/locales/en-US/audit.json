@@ -71,7 +71,8 @@
     "requestId": "Request ID",
     "sessionId": "Session ID",
     "none": "—",
-    "from": "From {ip} · {browser}"
+    "from": "From {ip} · {browser}",
+    "impersonatedBy": "(by {name}, impersonating)"
   },
   "auditPage": {
     "title": "Audit trail",
