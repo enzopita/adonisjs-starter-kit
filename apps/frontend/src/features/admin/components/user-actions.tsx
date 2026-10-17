@@ -44,7 +44,6 @@ export function UserStatus({ row }: { row: AdminUserRow }) {
 
 type Confirming = 'disable' | 'grant' | 'revoke' | null
 
-/** One row's available menu items, in display order. */
 type RowAction = {
   key: 'impersonate' | 'makeAdmin' | 'disable' | 'enable' | 'removeAdmin'
   label: string
@@ -159,8 +158,6 @@ export function UserActions({ row }: { row: AdminUserRow }) {
             onSelect: () => setConfirming('disable'),
           },
         ]
-
-  if (actions.length === 0) return null
 
   return (
     <div className="flex justify-end">
