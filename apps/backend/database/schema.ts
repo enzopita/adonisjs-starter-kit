@@ -34,6 +34,48 @@ export class AttachmentSchema extends BaseModel {
   declare uploaderId: string
 }
 
+export class AuditEventSchema extends BaseModel {
+  static $columns = [
+    'actorId',
+    'createdAt',
+    'data',
+    'id',
+    'ip',
+    'requestId',
+    'sessionId',
+    'subjectId',
+    'subjectType',
+    'tenantId',
+    'type',
+    'userAgent',
+  ] as const
+  $columns = AuditEventSchema.$columns
+  @column()
+  declare actorId: string | null
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare data: any
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare ip: string | null
+  @column()
+  declare requestId: string | null
+  @column()
+  declare sessionId: string | null
+  @column()
+  declare subjectId: string | null
+  @column()
+  declare subjectType: string | null
+  @column()
+  declare tenantId: string | null
+  @column()
+  declare type: string
+  @column()
+  declare userAgent: string | null
+}
+
 export class AuthAccessTokenSchema extends BaseModel {
   static $columns = [
     'abilities',
