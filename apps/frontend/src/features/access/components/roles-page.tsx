@@ -9,13 +9,14 @@ import {
   TableRow,
 } from '@monorepo/ui/components/table'
 import { useMutation, useQuery, useSuspenseQueries } from '@tanstack/react-query'
-import { PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
+import { HistoryIcon, PencilIcon, PlusIcon, Trash2Icon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { RequirePermission } from '@/features/access/components/require-permission'
 import { RoleDialog } from '@/features/access/components/role-dialog'
 import { can, permissionLabel, usePermissions } from '@/features/access/permissions'
 import { membersQuery, permissionCatalogQuery, rolesQuery } from '@/features/access/queries'
+import { AuditHistoryDialog } from '@/features/audit/components/audit-history-dialog'
 import { queries, tenantHeaders } from '@/features/core/api'
 import type { api } from '@/features/core/api'
 import { ConfirmDialog } from '@/features/core/components/confirm-dialog'
@@ -47,6 +48,7 @@ function Roles() {
   const [creating, setCreating] = useState(false)
   const [editing, setEditing] = useState<Role | null>(null)
   const [deleting, setDeleting] = useState<Role | null>(null)
+  const [viewingHistory, setViewingHistory] = useState<Role | null>(null)
 
   return (
     <>
@@ -64,6 +66,7 @@ function Roles() {
       <RolesTable
         roles={roles.data}
         members={members?.data.members ?? null}
+        onHistory={setViewingHistory}
         onEdit={setEditing}
         onDelete={setDeleting}
       />
@@ -97,6 +100,18 @@ function Roles() {
           onOpenChange={open => !open && setDeleting(null)}
         />
       )}
+
+      {viewingHistory && (
+        <AuditHistoryDialog
+          key={viewingHistory.id}
+          subject={{ type: 'role', id: viewingHistory.id }}
+          name={viewingHistory.name}
+          tenantId={tenantId}
+          permissionLabel={key => permissionLabel(key).label}
+          open
+          onOpenChange={open => !open && setViewingHistory(null)}
+        />
+      )}
     </>
   )
 }
@@ -104,11 +119,13 @@ function Roles() {
 function RolesTable({
   roles,
   members,
+  onHistory,
   onEdit,
   onDelete,
 }: {
   roles: readonly Role[]
   members: { roleId: string | null }[] | null
+  onHistory: (role: Role) => void
   onEdit: (role: Role) => void
   onDelete: (role: Role) => void
 }) {
@@ -156,6 +173,14 @@ function RolesTable({
             </TableCell>
             <TableCell>
               <div className="flex justify-end gap-1">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label={t('access.rolesPage.roleHistory', { name: role.name })}
+                  onClick={() => onHistory(role)}
+                >
+                  <HistoryIcon />
+                </Button>
                 <Button
                   variant="ghost"
                   size="icon-sm"

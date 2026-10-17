@@ -9,13 +9,14 @@ import {
   TableRow,
 } from '@monorepo/ui/components/table'
 import { useSuspenseQueries } from '@tanstack/react-query'
-import { KeyRoundIcon } from 'lucide-react'
+import { HistoryIcon, KeyRoundIcon } from 'lucide-react'
 import { useState } from 'react'
 import { MemberGrantsDialog } from '@/features/access/components/member-grants-dialog'
 import { MemberRoleSelect } from '@/features/access/components/member-role-select'
 import { RequirePermission } from '@/features/access/components/require-permission'
 import { permissionLabel } from '@/features/access/permissions'
 import { membersQuery, permissionCatalogQuery, rolesQuery } from '@/features/access/queries'
+import { AuditHistoryDialog } from '@/features/audit/components/audit-history-dialog'
 import type { api } from '@/features/core/api'
 import { PageHeader } from '@/features/core/components/page-header'
 import { t } from '@/features/core/i18n'
@@ -47,6 +48,7 @@ function Members() {
     })
 
   const [editing, setEditing] = useState<Member | null>(null)
+  const [viewingHistory, setViewingHistory] = useState<Member | null>(null)
 
   return (
     <>
@@ -109,14 +111,24 @@ function Members() {
                   )}
                 </TableCell>
                 <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label={t('access.membersPage.editPermissionsFor', { name })}
-                    onClick={() => setEditing(member)}
-                  >
-                    <KeyRoundIcon />
-                  </Button>
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t('access.membersPage.historyFor', { name })}
+                      onClick={() => setViewingHistory(member)}
+                    >
+                      <HistoryIcon />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      aria-label={t('access.membersPage.editPermissionsFor', { name })}
+                      onClick={() => setEditing(member)}
+                    >
+                      <KeyRoundIcon />
+                    </Button>
+                  </div>
                 </TableCell>
               </TableRow>
             )
@@ -136,6 +148,18 @@ function Members() {
           tenantId={tenantId}
           open
           onOpenChange={open => !open && setEditing(null)}
+        />
+      )}
+
+      {viewingHistory && (
+        <AuditHistoryDialog
+          key={viewingHistory.user.id}
+          subject={{ type: 'member', id: viewingHistory.user.id }}
+          name={viewingHistory.user.fullName ?? viewingHistory.user.email}
+          tenantId={tenantId}
+          permissionLabel={key => permissionLabel(key).label}
+          open
+          onOpenChange={open => !open && setViewingHistory(null)}
         />
       )}
     </>

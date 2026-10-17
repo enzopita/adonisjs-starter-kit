@@ -33,6 +33,7 @@
     "you": "Você",
     "none": "Nenhuma",
     "editPermissionsFor": "Editar permissões de {name}",
+    "historyFor": "Histórico de {name}",
     "actions": "Ações"
   },
   "roleDialog": {
@@ -59,6 +60,7 @@
     "actions": "Ações",
     "editRole": "Editar {name}",
     "deleteRole": "Excluir {name}",
+    "roleHistory": "Histórico de {name}",
     "deleted": "Papel “{name}” excluído",
     "deleteTitle": "Excluir “{name}”?",
     "deleteDescription": "Membros com este papel mantêm a conta, mas perdem o que ele concedia. Isso não pode ser desfeito.",
