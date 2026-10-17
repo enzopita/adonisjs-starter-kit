@@ -5,6 +5,9 @@ import { queries, tenantHeaders } from '@/features/core/api'
 
 const PER_PAGE = 20
 
+export const accountActivityQuery = (page: number) =>
+  queries.audit.accountActivity.index.queryOptions({ query: { page, perPage: PER_PAGE } })
+
 /**
  * The audit page's filters, as its URL holds them. `event` is an area (`role`) or one event type
  * (`role.updated`); `from` and `to` are calendar days in the viewer's time zone. A value that

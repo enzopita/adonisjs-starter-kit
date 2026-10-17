@@ -8,7 +8,7 @@ import {
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import type { TuyauError } from '@tuyau/core/client'
 import { useRef } from 'react'
-import type { ChangeEvent } from 'react'
+import type { ChangeEvent, ReactNode } from 'react'
 import { toast } from 'sonner'
 import { queries } from '@/features/core/api'
 import { PageHeader } from '@/features/core/components/page-header'
@@ -20,7 +20,8 @@ import { profileQuery } from '@/features/users/profile'
 
 const dateFormat = new Intl.DateTimeFormat(locale, { dateStyle: 'long' })
 
-export function ProfilePage() {
+/** `children` render below the profile's own cards: sections other features own. */
+export function ProfilePage({ children }: { children?: ReactNode }) {
   const user = useSuspenseQuery(profileQuery()).data.data
 
   return (
@@ -49,6 +50,7 @@ export function ProfilePage() {
           </dl>
         </CardContent>
       </Card>
+      {children}
     </main>
   )
 }

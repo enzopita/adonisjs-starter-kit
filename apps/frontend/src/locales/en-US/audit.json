@@ -33,6 +33,14 @@
     "invitationSentAs": "invited {email} as “{role}”",
     "invitationRevoked": "revoked the invitation to {email}",
     "invitationAccepted": "accepted the invitation sent to {email}",
+    "signedUp": "created their account",
+    "loggedIn": "signed in",
+    "loginFailed": "Someone tried to sign in as {email} with a wrong password",
+    "loggedOut": "signed out",
+    "avatarAdded": "added a photo",
+    "avatarChanged": "changed their photo",
+    "avatarRemoved": "removed their photo",
+    "fileUploaded": "uploaded “{name}”",
     "unknown": "recorded an event of type “{type}”"
   },
   "timeline": {
@@ -46,7 +54,8 @@
     "userAgent": "Browser",
     "requestId": "Request ID",
     "sessionId": "Session ID",
-    "none": "—"
+    "none": "—",
+    "from": "From {ip} · {browser}"
   },
   "pagination": {
     "label": "Pagination",
@@ -76,5 +85,10 @@
     "description": "Every recorded change, newest first.",
     "empty": "No changes recorded yet.",
     "close": "Close"
+  },
+  "accountActivity": {
+    "title": "Account activity",
+    "description": "Sign-ins, failed attempts on your email and changes to your account, newest first, with the address and browser each came from.",
+    "empty": "No activity recorded yet."
   }
 }

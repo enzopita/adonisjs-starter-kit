@@ -9,6 +9,9 @@
 | `auth`    | The login and sign-up pages.                                                                          |
 | `tenancy` | The tenant list, the chosen workspace, the switcher, onboarding.                                      |
 | `access`  | Permissions, the workspace pages (overview, members, invitations, roles), accepting an invitation.    |
+| `audit`   | The event timeline and its texts, the audit trail page, a record's history, the account activity.     |
+
+A page that shows another feature's section composes it in its route: `routes/_app/profile.tsx` renders `ProfilePage` from `users` with `AccountActivity` from `audit` as its children, since `users` can't import `audit`.
 
 ## Dependencies between features
 

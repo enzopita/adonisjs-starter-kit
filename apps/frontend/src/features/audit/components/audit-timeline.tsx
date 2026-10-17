@@ -1,6 +1,6 @@
 import { Avatar, AvatarFallback } from '@monorepo/ui/components/avatar'
 import { Badge } from '@monorepo/ui/components/badge'
-import { CogIcon } from 'lucide-react'
+import { CogIcon, ShieldAlertIcon } from 'lucide-react'
 import { describeEvent } from '@/features/audit/event-text'
 import type { AuditEventRow } from '@/features/audit/event-text'
 import { locale, t } from '@/features/core/i18n'
@@ -36,18 +36,23 @@ const actorName = (actor: Actor) => actor.fullName ?? actor.email
 /** Permission names belong to the access feature, which depends on this one: callers pass them in. */
 export type PermissionLabel = (permission: string) => string
 
+const rawPermission: PermissionLabel = permission => permission
+
 /**
  * A trail of audit events, newest first as the API lists them. With `onActorSelect`, each actor's
- * name filters the trail to that person.
+ * name filters the trail to that person. With `showSession`, each row shows where it came from
+ * without opening its details. `permissionLabel` names the permissions a workspace event changed.
  */
 export function AuditTimeline({
   events,
-  permissionLabel,
+  permissionLabel = rawPermission,
   onActorSelect,
+  showSession = false,
 }: {
   events: readonly AuditEventRow[]
-  permissionLabel: PermissionLabel
+  permissionLabel?: PermissionLabel
   onActorSelect?: (actor: Actor) => void
+  showSession?: boolean
 }) {
   return (
     <ol className="flex flex-col divide-y">
@@ -57,6 +62,7 @@ export function AuditTimeline({
           row={row}
           permissionLabel={permissionLabel}
           onActorSelect={onActorSelect}
+          showSession={showSession}
         />
       ))}
     </ol>
@@ -67,23 +73,29 @@ function AuditTimelineItem({
   row,
   permissionLabel,
   onActorSelect,
+  showSession,
 }: {
   row: AuditEventRow
   permissionLabel: PermissionLabel
   onActorSelect?: (actor: Actor) => void
+  showSession: boolean
 }) {
   const { actor, session } = row
-  const { sentence, permissions } = describeEvent(row.event)
+  const { sentence, standalone, permissions } = describeEvent(row.event)
   const createdAt = row.createdAt ? new Date(row.createdAt) : null
 
   return (
     <li className="flex gap-3 py-3">
-      {actor ? (
+      {actor && !standalone ? (
         <UserAvatar user={actor} className="size-7" />
       ) : (
         <Avatar className="size-7">
           <AvatarFallback>
-            <CogIcon className="size-3.5" />
+            {standalone ? (
+              <ShieldAlertIcon className="size-3.5" />
+            ) : (
+              <CogIcon className="size-3.5" />
+            )}
           </AvatarFallback>
         </Avatar>
       )}
@@ -91,20 +103,11 @@ function AuditTimelineItem({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
           <p className="min-w-0 text-xs/relaxed">
-            {actor && onActorSelect ? (
-              <button
-                type="button"
-                className="font-medium underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none"
-                title={t('audit.timeline.showOnly', { name: actorName(actor) })}
-                onClick={() => onActorSelect(actor)}
-              >
-                {actorName(actor)}
-              </button>
-            ) : (
-              <span className="font-medium">
-                {actor ? actorName(actor) : t('audit.timeline.system')}
-              </span>
-            )}{' '}
+            {!standalone && (
+              <>
+                <Byline actor={actor} onActorSelect={onActorSelect} />{' '}
+              </>
+            )}
             {sentence}
           </p>
           {createdAt && (
@@ -117,6 +120,18 @@ function AuditTimelineItem({
             </time>
           )}
         </div>
+
+        {showSession && (
+          <p
+            className="truncate text-xs text-muted-foreground"
+            title={session.userAgent ?? undefined}
+          >
+            {t('audit.timeline.from', {
+              ip: session.ip ?? t('audit.timeline.none'),
+              browser: session.userAgent ?? t('audit.timeline.none'),
+            })}
+          </p>
+        )}
 
         <details className="group text-xs">
           <summary className="w-fit cursor-pointer text-muted-foreground select-none hover:text-foreground">
@@ -149,6 +164,29 @@ function AuditTimelineItem({
         </details>
       </div>
     </li>
+  )
+}
+
+function Byline({
+  actor,
+  onActorSelect,
+}: {
+  actor: Actor | null
+  onActorSelect?: (actor: Actor) => void
+}) {
+  if (!actor) return <span className="font-medium">{t('audit.timeline.system')}</span>
+
+  if (!onActorSelect) return <span className="font-medium">{actorName(actor)}</span>
+
+  return (
+    <button
+      type="button"
+      className="font-medium underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none"
+      title={t('audit.timeline.showOnly', { name: actorName(actor) })}
+      onClick={() => onActorSelect(actor)}
+    >
+      {actorName(actor)}
+    </button>
   )
 }
 

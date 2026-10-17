@@ -33,6 +33,14 @@
     "invitationSentAs": "convidou {email} como “{role}”",
     "invitationRevoked": "revogou o convite para {email}",
     "invitationAccepted": "aceitou o convite enviado para {email}",
+    "signedUp": "criou a conta",
+    "loggedIn": "entrou",
+    "loginFailed": "Alguém tentou entrar como {email} com uma senha errada",
+    "loggedOut": "saiu",
+    "avatarAdded": "adicionou uma foto",
+    "avatarChanged": "trocou a foto",
+    "avatarRemoved": "removeu a foto",
+    "fileUploaded": "enviou “{name}”",
     "unknown": "registrou um evento do tipo “{type}”"
   },
   "timeline": {
@@ -46,7 +54,8 @@
     "userAgent": "Navegador",
     "requestId": "ID da requisição",
     "sessionId": "ID da sessão",
-    "none": "—"
+    "none": "—",
+    "from": "De {ip} · {browser}"
   },
   "pagination": {
     "label": "Paginação",
@@ -76,5 +85,10 @@
     "description": "Todas as alterações registradas, da mais recente à mais antiga.",
     "empty": "Nenhuma alteração registrada ainda.",
     "close": "Fechar"
+  },
+  "accountActivity": {
+    "title": "Atividade da conta",
+    "description": "Entradas, tentativas com o seu e-mail e mudanças na sua conta, das mais recentes às mais antigas, com o endereço e o navegador de cada uma.",
+    "empty": "Nenhuma atividade registrada ainda."
   }
 }

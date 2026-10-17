@@ -1,29 +1,41 @@
 import type { api } from '@/features/core/api'
 import { t } from '@/features/core/i18n'
 
-export type AuditEventRow = Awaited<ReturnType<typeof api.audit.auditEvents.index>>['data'][number]
+type TenantEventRow = Awaited<ReturnType<typeof api.audit.auditEvents.index>>['data'][number]
+
+type AccountEventRow = Awaited<ReturnType<typeof api.audit.accountActivity.index>>['data'][number]
+
+export type AuditEventRow = TenantEventRow | AccountEventRow
 
 export type AuditEvent = AuditEventRow['event']
 
 export type AuditEventType = AuditEvent['type']
 
-/** The part of an event type before its dot (`role` for `role.updated`), one filter group each. */
-export type AuditArea = AuditEventType extends `${infer Area}.${string}` ? Area : never
+export type TenantEventType = TenantEventRow['event']['type']
 
-export type AuditSubject = NonNullable<AuditEvent['subject']>
+/** The part of an event type before its dot (`role` for `role.updated`), one filter group each. */
+export type AuditArea = TenantEventType extends `${infer Area}.${string}` ? Area : never
+
+export type AuditSubject = NonNullable<TenantEventRow['event']['subject']>
 
 type EventMap = { [E in AuditEvent as E['type']]: E }
 
-/** What a timeline row says after the actor's name, and the permissions the event added or removed. */
+/**
+ * What a timeline row says after the actor's name, and the permissions the event added or
+ * removed. A `standalone` sentence reads without an actor: nobody signed in did it.
+ */
 export type EventDescription = {
   sentence: string
+  standalone?: boolean
   permissions?: { added: string[]; removed: string[] }
 }
 
 type EventText<T extends AuditEventType> = {
-  label: string
   describe: (event: EventMap[T]) => EventDescription
 }
+
+/** A workspace event also names its type in the trail's filter. */
+type LabeledEventText<T extends AuditEventType> = EventText<T> & { label: string }
 
 type Snapshot = { email: string; fullName: string | null }
 
@@ -37,9 +49,11 @@ function permissionChanges(from: readonly string[], to: readonly string[]) {
 }
 
 /** One entry per event type the API returns: a new backend type without one fails the typecheck. */
-type EventTexts = { [T in AuditEventType]: EventText<T> }
+type EventTexts<Types extends AuditEventType> = { [T in Types]: EventText<T> }
 
-const EVENTS: EventTexts = {
+type TenantEventTexts = { [T in TenantEventType]: LabeledEventText<T> }
+
+const TENANT_EVENTS: TenantEventTexts = {
   'tenant.created': {
     label: t('audit.types.tenantCreated'),
     describe: ({ data }) => ({ sentence: t('audit.events.tenantCreated', { name: data.name }) }),
@@ -114,12 +128,44 @@ const EVENTS: EventTexts = {
   },
 }
 
-// SAFETY: the keys of EVENTS are exactly AuditEventType, which the mapped type above enforces.
-export const AUDIT_EVENT_TYPES = Object.keys(EVENTS) as AuditEventType[]
+const ACCOUNT_EVENTS: EventTexts<Exclude<AuditEventType, TenantEventType>> = {
+  'auth.signed_up': {
+    describe: () => ({ sentence: t('audit.events.signedUp') }),
+  },
+  'auth.logged_in': {
+    describe: () => ({ sentence: t('audit.events.loggedIn') }),
+  },
+  'auth.login_failed': {
+    describe: ({ data }) => ({
+      sentence: t('audit.events.loginFailed', { email: data.email }),
+      standalone: true,
+    }),
+  },
+  'auth.logged_out': {
+    describe: () => ({ sentence: t('audit.events.loggedOut') }),
+  },
+  'user.avatar_changed': {
+    describe: ({ data: { changes } }) => {
+      if (!changes.avatarAttachmentId?.to) return { sentence: t('audit.events.avatarRemoved') }
+
+      if (!changes.avatarAttachmentId.from) return { sentence: t('audit.events.avatarAdded') }
+
+      return { sentence: t('audit.events.avatarChanged') }
+    },
+  },
+  'attachment.uploaded': {
+    describe: ({ data }) => ({ sentence: t('audit.events.fileUploaded', { name: data.name }) }),
+  },
+}
+
+const EVENTS: EventTexts<AuditEventType> = { ...TENANT_EVENTS, ...ACCOUNT_EVENTS }
+
+// SAFETY: the keys of TENANT_EVENTS are exactly TenantEventType, which its mapped type enforces.
+export const AUDIT_EVENT_TYPES = Object.keys(TENANT_EVENTS) as TenantEventType[]
 
 export const AUDIT_AREAS = [...new Set(AUDIT_EVENT_TYPES.map(areaOf))]
 
-export function areaOf(type: AuditEventType) {
+export function areaOf(type: TenantEventType) {
   // SAFETY: every event type is `<area>.<action>`, which AuditArea is derived from.
   return type.slice(0, type.indexOf('.')) as AuditArea
 }
@@ -133,7 +179,7 @@ const AREA_LABELS: Record<AuditArea, string> = {
 
 export const areaLabel = (area: AuditArea) => AREA_LABELS[area]
 
-export const eventTypeLabel = (type: AuditEventType) => EVENTS[type].label
+export const eventTypeLabel = (type: TenantEventType) => TENANT_EVENTS[type].label
 
 function isKnown(type: string): type is AuditEventType {
   return Object.hasOwn(EVENTS, type)
