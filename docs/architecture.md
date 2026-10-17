@@ -207,7 +207,7 @@ await import('#access/models/platform_admin').then(({ default: PlatformAdmin }) 
 
 ### Tenant owner
 
-`access` listens to `tenancy:tenant_created`: it creates the tenant's "Owner" role, named in the creator's locale (`access.owner_role`), with every permission but `platform.admin`, and assigns it to the creator. Both steps keep what exists, so the listener is safe to run again. A permission added to the catalog later doesn't reach existing Owner roles: add it through `PUT /api/v1/roles/:id`.
+`access` listens to `tenancy:tenant_created`: it creates the tenant's "Owner" role, named in the creator's locale (`access.owner_role`), with every permission but `platform.admin`, and assigns it to the creator. Both steps keep what exists, so the listener is safe to run again. A permission added to the catalog later doesn't reach existing Owner roles: grant it through `PUT /api/v1/roles/:id`, or with a data migration that also records a `role.updated` event per role it changes. `…_grant_audit_view_to_owner_roles.ts` is the reference: it adds `audit.view` to every role holding `roles.manage` and `members.manage` without it, as the system, and its `down()` keeps the grant.
 
 `POST /api/v1/tenants` awaits the listener. If it throws, the request answers 500 with the tenant and the membership already committed, and the tenant has no Owner. Finish it from `node ace repl`:
 
@@ -243,7 +243,7 @@ Lucid hooks run only inside an instance's `save()` and `delete()`, so a mixin mi
 
 `GET /api/v1/audit/events` (`auth`, `tenant`) lists the tenant's events newest first, paginated (`page`, `perPage` up to 100) and filtered by `type[]`, `actorId`, `subjectType`, `subjectId`, `from` and `to` (ISO 8601). Each row holds `actor` (the user, or `null` for the system), `session` (`id`, `ip`, `userAgent`, `requestId`), `createdAt`, and `event: { type, subject, data }`, a union the frontend narrows on `event.type`. It is nested because the inferred response type keeps a union inside a field, not at the top level of a row.
 
-The whole trail needs `audit.view`. The Owner role of a new tenant holds it; an Owner role created before it existed doesn't (see [Tenant owner](#tenant-owner)). Account events are recorded, but no endpoint lists them yet.
+The whole trail needs `audit.view`. Every Owner role holds it: a new tenant's from the start, an older one through a migration (see [Tenant owner](#tenant-owner)). Account events are recorded, but no endpoint lists them yet.
 
 A feature shows the history of its own records through the same endpoint, filtered by `subjectType` and `subjectId`. `SUBJECT_PERMISSIONS` in `app/audit/subject_permissions.ts` maps a subject type to the feature permission that may read its trail without `audit.view` (`role` to `roles.manage`). A new feature adds its subject type there.
 
