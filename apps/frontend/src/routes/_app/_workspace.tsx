@@ -34,7 +34,7 @@ function WorkspaceLayout() {
           <Link
             key={item.to}
             to={item.to}
-            activeOptions={{ exact: true }}
+            activeOptions={{ exact: true, includeSearch: false }}
             className={buttonVariants({ variant: 'ghost', className: 'justify-start' })}
             activeProps={{ className: 'bg-muted text-foreground' }}
           >

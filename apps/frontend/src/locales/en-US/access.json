@@ -20,7 +20,9 @@
     "invitations": "Invitations",
     "invitationsDescription": "Invite people by email and revoke pending invitations.",
     "roles": "Roles",
-    "rolesDescription": "Define roles and the permissions each one grants."
+    "rolesDescription": "Define roles and the permissions each one grants.",
+    "audit": "Audit trail",
+    "auditDescription": "See who changed what in this workspace, and when."
   },
   "membersPage": {
     "title": "Members",

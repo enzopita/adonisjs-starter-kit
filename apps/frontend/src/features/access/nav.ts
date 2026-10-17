@@ -1,5 +1,5 @@
 import type { LucideIcon } from 'lucide-react'
-import { LayoutDashboardIcon, MailIcon, ShieldIcon, UsersIcon } from 'lucide-react'
+import { HistoryIcon, LayoutDashboardIcon, MailIcon, ShieldIcon, UsersIcon } from 'lucide-react'
 import { can } from '@/features/access/permissions'
 import type { Permission } from '@/features/access/permissions'
 import { t } from '@/features/core/i18n'
@@ -43,6 +43,13 @@ export const TENANT_NAV: readonly NavItem[] = [
     description: t('access.nav.rolesDescription'),
     icon: ShieldIcon,
     requires: 'roles.manage',
+  },
+  {
+    to: '/audit',
+    label: t('access.nav.audit'),
+    description: t('access.nav.auditDescription'),
+    icon: HistoryIcon,
+    requires: 'audit.view',
   },
 ]
 

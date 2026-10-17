@@ -20,7 +20,9 @@
     "invitations": "Convites",
     "invitationsDescription": "Convide pessoas por e-mail e revogue convites pendentes.",
     "roles": "Papéis",
-    "rolesDescription": "Defina papéis e as permissões que cada um concede."
+    "rolesDescription": "Defina papéis e as permissões que cada um concede.",
+    "audit": "Auditoria",
+    "auditDescription": "Veja quem alterou o quê neste espaço de trabalho, e quando."
   },
   "membersPage": {
     "title": "Membros",
