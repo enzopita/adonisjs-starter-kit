@@ -1,6 +1,12 @@
 import { Badge } from '@monorepo/ui/components/badge'
 import { Button } from '@monorepo/ui/components/button'
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@monorepo/ui/components/dropdown-menu'
+import {
   Table,
   TableBody,
   TableCell,
@@ -10,7 +16,8 @@ import {
 } from '@monorepo/ui/components/table'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { Link } from '@tanstack/react-router'
-import { PencilIcon } from 'lucide-react'
+import { CirclePauseIcon, CirclePlayIcon, MoreHorizontalIcon, PencilIcon } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { RenameTenantDialog } from '@/features/admin/components/rename-tenant-dialog'
@@ -22,7 +29,6 @@ import type { api } from '@/features/core/api'
 import { ConfirmDialog } from '@/features/core/components/confirm-dialog'
 import { PageHeader } from '@/features/core/components/page-header'
 import { Pagination } from '@/features/core/components/pagination'
-import { PendingButton } from '@/features/core/components/pending-button'
 import { errorMessage } from '@/features/core/errors'
 import { locale, t } from '@/features/core/i18n'
 
@@ -90,28 +96,11 @@ export function TenantsPage({
                   <TenantStatus suspendedAt={tenant.suspendedAt} />
                 </TableCell>
                 <TableCell>
-                  <div className="flex justify-end gap-1">
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={t('admin.tenantsPage.renameFor', { name: tenant.name })}
-                      onClick={() => setRenaming(tenant)}
-                    >
-                      <PencilIcon />
-                    </Button>
-                    {tenant.suspendedAt ? (
-                      <ReactivateButton tenant={tenant} />
-                    ) : (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        aria-label={t('admin.tenantsPage.suspendFor', { name: tenant.name })}
-                        onClick={() => setSuspending(tenant)}
-                      >
-                        {t('admin.tenantsPage.suspend')}
-                      </Button>
-                    )}
-                  </div>
+                  <TenantRowActions
+                    tenant={tenant}
+                    onRename={() => setRenaming(tenant)}
+                    onSuspend={() => setSuspending(tenant)}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -154,7 +143,15 @@ export function TenantStatus({ suspendedAt }: { suspendedAt: string | null }) {
 }
 
 /** Reactivating gives access back, which needs no second thought, unlike suspending. */
-function ReactivateButton({ tenant }: { tenant: Tenant }) {
+function TenantRowActions({
+  tenant,
+  onRename,
+  onSuspend,
+}: {
+  tenant: Tenant
+  onRename: () => void
+  onSuspend: () => void
+}) {
   const reactivate = useMutation(
     queries.admin.tenantSuspensions.destroy.mutationOptions({
       onSuccess: () => toast.success(t('admin.tenantsPage.reactivated', { name: tenant.name })),
@@ -162,16 +159,62 @@ function ReactivateButton({ tenant }: { tenant: Tenant }) {
     }),
   )
 
+  const actions: {
+    key: string
+    label: string
+    icon: LucideIcon
+    destructive?: boolean
+    disabled?: boolean
+    onSelect: () => void
+  }[] = [
+    { key: 'rename', label: t('admin.tenantsPage.rename'), icon: PencilIcon, onSelect: onRename },
+    tenant.suspendedAt
+      ? {
+          key: 'reactivate',
+          label: t('admin.tenantsPage.reactivate'),
+          icon: CirclePlayIcon,
+          disabled: reactivate.isPending,
+          onSelect: () => reactivate.mutate({ params: { id: tenant.id } }),
+        }
+      : {
+          key: 'suspend',
+          label: t('admin.tenantsPage.suspend'),
+          icon: CirclePauseIcon,
+          destructive: true,
+          onSelect: onSuspend,
+        },
+  ]
+
   return (
-    <PendingButton
-      variant="outline"
-      size="sm"
-      pending={reactivate.isPending}
-      aria-label={t('admin.tenantsPage.reactivateFor', { name: tenant.name })}
-      onClick={() => reactivate.mutate({ params: { id: tenant.id } })}
-    >
-      {t('admin.tenantsPage.reactivate')}
-    </PendingButton>
+    <div className="flex justify-end">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t('admin.tenantsPage.actionsFor', { name: tenant.name })}
+            />
+          }
+        >
+          <MoreHorizontalIcon />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-auto max-w-xs">
+          {actions.map(action => (
+            <DropdownMenuItem
+              key={action.key}
+              variant={action.destructive ? 'destructive' : 'default'}
+              disabled={action.disabled}
+              onClick={action.onSelect}
+              className="whitespace-nowrap"
+            >
+              <action.icon />
+              <span className="truncate">{action.label}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   )
 }
 

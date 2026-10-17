@@ -1,12 +1,26 @@
 import { Badge } from '@monorepo/ui/components/badge'
 import { Button } from '@monorepo/ui/components/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@monorepo/ui/components/dropdown-menu'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
+import {
+  BanIcon,
+  CircleCheckIcon,
+  MoreHorizontalIcon,
+  ShieldMinusIcon,
+  ShieldPlusIcon,
+  VenetianMaskIcon,
+} from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import { queries } from '@/features/core/api'
 import { ConfirmDialog } from '@/features/core/components/confirm-dialog'
-import { PendingButton } from '@/features/core/components/pending-button'
 import { errorMessage } from '@/features/core/errors'
 import { t } from '@/features/core/i18n'
 import { session } from '@/features/core/session'
@@ -29,6 +43,16 @@ export function UserStatus({ row }: { row: AdminUserRow }) {
 }
 
 type Confirming = 'disable' | 'grant' | 'revoke' | null
+
+/** One row's available menu items, in display order. */
+type RowAction = {
+  key: 'impersonate' | 'makeAdmin' | 'disable' | 'enable' | 'removeAdmin'
+  label: string
+  icon: LucideIcon
+  destructive?: boolean
+  disabled?: boolean
+  onSelect: () => void
+}
 
 /** A platform admin can only lose the role, and never from themself: the API refuses the rest. */
 export function UserActions({ row }: { row: AdminUserRow }) {
@@ -89,75 +113,94 @@ export function UserActions({ row }: { row: AdminUserRow }) {
   )
 
   const params = { params: { id: row.user.id } }
+  const isSelf = row.user.id === me.data.id
 
-  if (row.platformAdmin) {
-    if (row.user.id === me.data.id) return null
+  if (row.platformAdmin && isSelf) return null
 
-    return (
-      <div className="flex justify-end gap-1">
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-label={t('admin.userActions.removeAdminFor', { name })}
-          onClick={() => setConfirming('revoke')}
-        >
-          {t('admin.userActions.removeAdmin')}
-        </Button>
-        <ConfirmDialog
-          open={confirming === 'revoke'}
-          onOpenChange={closeDialog}
-          title={t('admin.userActions.removeAdminTitle', { name })}
-          description={t('admin.userActions.removeAdminDescription')}
-          confirmLabel={t('admin.userActions.removeAdmin')}
-          pending={revoke.isPending}
-          onConfirm={() => revoke.mutate(params)}
-        />
-      </div>
-    )
-  }
+  const actions: RowAction[] = row.platformAdmin
+    ? [
+        {
+          key: 'removeAdmin',
+          label: t('admin.userActions.removeAdmin'),
+          icon: ShieldMinusIcon,
+          destructive: true,
+          onSelect: () => setConfirming('revoke'),
+        },
+      ]
+    : row.disabledAt
+      ? [
+          {
+            key: 'enable',
+            label: t('admin.userActions.enable'),
+            icon: CircleCheckIcon,
+            disabled: enable.isPending,
+            onSelect: () => enable.mutate(params),
+          },
+        ]
+      : [
+          {
+            key: 'impersonate',
+            label: t('admin.userActions.impersonate'),
+            icon: VenetianMaskIcon,
+            disabled: impersonate.isPending,
+            onSelect: () => impersonate.mutate(params),
+          },
+          {
+            key: 'makeAdmin',
+            label: t('admin.userActions.makeAdmin'),
+            icon: ShieldPlusIcon,
+            onSelect: () => setConfirming('grant'),
+          },
+          {
+            key: 'disable',
+            label: t('admin.userActions.disable'),
+            icon: BanIcon,
+            destructive: true,
+            onSelect: () => setConfirming('disable'),
+          },
+        ]
+
+  if (actions.length === 0) return null
 
   return (
-    <div className="flex justify-end gap-1">
-      {row.disabledAt ? (
-        <PendingButton
-          variant="outline"
-          size="sm"
-          pending={enable.isPending}
-          aria-label={t('admin.userActions.enableFor', { name })}
-          onClick={() => enable.mutate(params)}
+    <div className="flex justify-end">
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              aria-label={t('admin.userActions.actionsFor', { name })}
+            />
+          }
         >
-          {t('admin.userActions.enable')}
-        </PendingButton>
-      ) : (
-        <>
-          <PendingButton
-            variant="outline"
-            size="sm"
-            pending={impersonate.isPending}
-            aria-label={t('admin.userActions.impersonateFor', { name })}
-            onClick={() => impersonate.mutate(params)}
-          >
-            {t('admin.userActions.impersonate')}
-          </PendingButton>
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-label={t('admin.userActions.makeAdminFor', { name })}
-            onClick={() => setConfirming('grant')}
-          >
-            {t('admin.userActions.makeAdmin')}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            aria-label={t('admin.userActions.disableFor', { name })}
-            onClick={() => setConfirming('disable')}
-          >
-            {t('admin.userActions.disable')}
-          </Button>
-        </>
-      )}
+          <MoreHorizontalIcon />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-auto max-w-xs">
+          {actions.map(action => (
+            <DropdownMenuItem
+              key={action.key}
+              variant={action.destructive ? 'destructive' : 'default'}
+              disabled={action.disabled}
+              onClick={action.onSelect}
+              className="whitespace-nowrap"
+            >
+              <action.icon />
+              <span className="truncate">{action.label}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
+      <ConfirmDialog
+        open={confirming === 'revoke'}
+        onOpenChange={closeDialog}
+        title={t('admin.userActions.removeAdminTitle', { name })}
+        description={t('admin.userActions.removeAdminDescription')}
+        confirmLabel={t('admin.userActions.removeAdmin')}
+        pending={revoke.isPending}
+        onConfirm={() => revoke.mutate(params)}
+      />
       <ConfirmDialog
         open={confirming === 'grant'}
         onOpenChange={closeDialog}

@@ -42,7 +42,8 @@ test('a suspended workspace locks its members out until it is reactivated', asyn
   await screen.getByRole('menuitem', 'Platform admin').tap()
   await expect(screen.getByRole('heading', 'Workspaces', { level: 1 })).toBeVisible()
   await app.open(`/admin?${searchFor(tenant.name)}`)
-  await screen.getByRole('button', `Suspend ${tenant.name}`).tap()
+  await screen.getByRole('button', `Actions for ${tenant.name}`).tap()
+  await screen.getByRole('menuitem', 'Suspend').tap()
   await screen.getByRole('alertdialog').getByRole('button', 'Suspend').tap()
   await expect(row().getByText('Suspended')).toBeVisible()
 
@@ -53,7 +54,8 @@ test('a suspended workspace locks its members out until it is reactivated', asyn
 
   await switchAccount(browser, admin)
   await app.open(`/admin?${searchFor(tenant.name)}`)
-  await screen.getByRole('button', `Reactivate ${tenant.name}`).tap()
+  await screen.getByRole('button', `Actions for ${tenant.name}`).tap()
+  await screen.getByRole('menuitem', 'Reactivate').tap()
   await expect(row().getByText('Active')).toBeVisible()
 
   await switchAccount(browser, owner)
@@ -84,7 +86,8 @@ test('a disabled user is signed out and refused at login until enabled again', a
 
   await signInAs(browser, admin)
   await app.open(`/admin/users?${searchFor(user.email)}`)
-  await screen.getByRole('button', `Disable ${user.fullName}`).tap()
+  await screen.getByRole('button', `Actions for ${user.fullName}`).tap()
+  await screen.getByRole('menuitem', 'Disable').tap()
   await screen.getByRole('alertdialog').getByRole('button', 'Disable').tap()
   await expect(row().getByText('Disabled')).toBeVisible()
 
@@ -99,7 +102,8 @@ test('a disabled user is signed out and refused at login until enabled again', a
 
   await switchAccount(browser, admin)
   await app.open(`/admin/users?${searchFor(user.email)}`)
-  await screen.getByRole('button', `Enable ${user.fullName}`).tap()
+  await screen.getByRole('button', `Actions for ${user.fullName}`).tap()
+  await screen.getByRole('menuitem', 'Enable').tap()
   await expect(row().getByText('Active')).toBeVisible()
 
   await signOut(browser)
@@ -119,11 +123,13 @@ test('an admin makes a user a platform admin and removes them again, never thems
 
   await signInAs(browser, admin)
   await app.open(`/admin/users?${searchFor(user.email)}`)
-  await screen.getByRole('button', `Make ${user.fullName} a platform admin`).tap()
+  await screen.getByRole('button', `Actions for ${user.fullName}`).tap()
+  await screen.getByRole('menuitem', 'Make platform admin').tap()
   await screen.getByRole('alertdialog').getByRole('button', 'Make platform admin').tap()
   await expect(row().getByText('Platform admin')).toBeVisible()
 
-  await screen.getByRole('button', `Remove platform admin from ${user.fullName}`).tap()
+  await screen.getByRole('button', `Actions for ${user.fullName}`).tap()
+  await screen.getByRole('menuitem', 'Remove platform admin').tap()
   await screen.getByRole('alertdialog').getByRole('button', 'Remove platform admin').tap()
   await expect(row().getByText('Active')).toBeVisible()
 
@@ -131,9 +137,7 @@ test('an admin makes a user a platform admin and removes them again, never thems
   await expect(
     screen.getByRole('row').filter({ hasText: admin.email }).getByText('Platform admin'),
   ).toBeVisible()
-  await expect(
-    screen.getByRole('button', `Remove platform admin from ${admin.fullName}`),
-  ).toBeHidden()
+  await expect(screen.getByRole('button', `Actions for ${admin.fullName}`)).toBeHidden()
 })
 
 test('an admin impersonates a member and comes back as themself', async ({
@@ -149,7 +153,8 @@ test('an admin impersonates a member and comes back as themself', async ({
   await signInAs(browser, admin)
   await app.open(`/admin?${searchFor(tenant.name)}`)
   await screen.getByRole('link', tenant.name).tap()
-  await screen.getByRole('button', `Impersonate ${member.fullName}`).tap()
+  await screen.getByRole('button', `Actions for ${member.fullName}`).tap()
+  await screen.getByRole('menuitem', 'Impersonate').tap()
 
   await expect(banner()).toContainText(`${member.fullName} (${member.email})`)
   await expect(screen.getByRole('heading', tenant.name, { level: 1 })).toBeVisible()
@@ -165,7 +170,8 @@ test('an admin impersonates a member and comes back as themself', async ({
 
   await app.open(`/admin?${searchFor(tenant.name)}`)
   await screen.getByRole('link', tenant.name).tap()
-  await screen.getByRole('button', `Impersonate ${member.fullName}`).tap()
+  await screen.getByRole('button', `Actions for ${member.fullName}`).tap()
+  await screen.getByRole('menuitem', 'Impersonate').tap()
   await expect(banner()).toBeVisible()
   await screen.getByRole('button', 'Account menu').tap()
   await screen.getByRole('menuitem', 'Log out').tap()
