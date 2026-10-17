@@ -12,5 +12,6 @@
   "E_ROLE_IN_USE": "Mova os membros deste papel para outro papel antes de excluí-lo.",
   "E_ROW_NOT_FOUND": "Este item não existe.",
   "E_TENANT_ACCESS_DENIED": "Você não é membro deste espaço de trabalho.",
+  "E_UNAUDITED_WRITE": "Esta alteração foi salva sem registro de auditoria. Avise a equipe.",
   "E_UNAUTHORIZED_ACCESS": "Entre para continuar."
 }

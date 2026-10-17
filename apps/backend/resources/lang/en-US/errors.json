@@ -12,5 +12,6 @@
   "E_ROLE_IN_USE": "Move this role’s members to another role before deleting it.",
   "E_ROW_NOT_FOUND": "This item doesn’t exist.",
   "E_TENANT_ACCESS_DENIED": "You’re not a member of this workspace.",
+  "E_UNAUDITED_WRITE": "This change was saved without an audit record. Report it to the team.",
   "E_UNAUTHORIZED_ACCESS": "Sign in to continue."
 }
