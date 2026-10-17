@@ -96,6 +96,21 @@ export function createRole(
   })
 }
 
+export function updateRole(
+  owner: Account,
+  tenant: Tenant,
+  roleId: string,
+  name: string,
+  permissions: string[] = [],
+) {
+  return api<Role>(`/roles/${roleId}`, {
+    method: 'PUT',
+    token: owner.token,
+    tenantId: tenant.id,
+    body: { name, permissions },
+  })
+}
+
 export function assignRole(owner: Account, tenant: Tenant, userId: string, roleId: string | null) {
   return api(`/members/${userId}/role`, {
     method: 'PUT',
