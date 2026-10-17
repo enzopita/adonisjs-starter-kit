@@ -85,7 +85,7 @@ A file reaches a record in two requests: the frontend uploads it to `POST /api/v
 3. **Lets the frontend upload first.** The upload endpoint accepts every type in `#attachments/rules`; the consumer narrows it.
 4. **Claims in the same transaction as its write**: `new ClaimAttachments().handle(trx, { ids, uploaderId, rule })`, with a rule from `defineAttachmentRule({ extnames, maxSize })` and only the ids the record is newly adding. It throws a 422 `E_INVALID_ATTACHMENT` for an unknown id, another user's upload, or a file outside the rule.
 5. **Embeds it through `AttachmentTransformer`**, which signs a one-hour URL. Load the relation first; whoever serializes the record has already authorized it.
-6. **Drops the reference to remove a file.** Never delete attachments by hand: the prune deletes every attachment older than a day that no foreign key references, row and object. It runs daily at 03:00 UTC from `start/scheduler.ts` (`PruneAttachmentsJob`), and on demand with `node ace attachments:prune`; it is safe to run concurrently or after a crash.
+6. **Drops the reference to remove a file.** Never delete attachments by hand: the prune deletes every attachment older than a day that no foreign key references, row and object. It runs daily at 03:00 UTC from `start/scheduler.ts` (`PruneAttachmentsJob`), and on demand with `node ace attachments:prune`; it is safe to run concurrently or after a crash. A run that deletes some records one `attachment.pruned` system event with their `count`.
 
 ## Queues
 

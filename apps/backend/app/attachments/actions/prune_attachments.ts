@@ -1,6 +1,8 @@
 import db from '@adonisjs/lucid/services/db'
 import logger from '@adonisjs/core/services/logger'
+import { audit } from '#core/audit/main'
 import drive from '@adonisjs/drive/services/main'
+import type {} from '#attachments/types/audit'
 import Attachment from '#attachments/models/attachment'
 
 const BATCH_SIZE = 100
@@ -15,7 +17,8 @@ interface AttachmentReference {
  * and object. The references are read from the Postgres catalog on every run,
  * so a new consumer is covered by its migration alone. Safe to run twice,
  * concurrently, or after a crash: each row is deleted in its own transaction,
- * and a row whose object delete failed is simply found again next run.
+ * and a row whose object delete failed is simply found again next run. A run
+ * that deleted some records one system event with the count.
  */
 export default class PruneAttachments {
   async handle() {
@@ -43,10 +46,20 @@ export default class PruneAttachments {
         if (await pruneOne(candidate.id)) deleted++
       }
 
-      if (candidates.length < BATCH_SIZE) return deleted
+      if (candidates.length < BATCH_SIZE) break
 
       after = candidates.at(-1)?.id
     }
+
+    if (deleted > 0) {
+      await audit.note('attachment.pruned', {
+        tenantId: null,
+        subject: null,
+        data: { count: deleted },
+      })
+    }
+
+    return deleted
   }
 }
 
