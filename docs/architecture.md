@@ -10,7 +10,7 @@
 | `attachments` | Stored files: upload, signed URLs, the claim service consumers call, pruning.                                                |
 | `tenancy`     | Tenants and their members, the tenant scope on models, the `tenant` middleware.                                              |
 | `access`      | Roles and grants per tenant, platform admins, and the Bouncer ability every check goes through.                              |
-| `audit`       | Reading the audit trail: a tenant's events, a user's account activity, which permission opens which subject's history.       |
+| `audit`       | Reading and pruning the audit trail: a tenant's events, a user's account activity, which permission opens which history.     |
 
 ## Starting a new module or feature
 
@@ -219,7 +219,7 @@ await import('#access/actions/seed_tenant_owner').then(({ default: SeedTenantOwn
 
 ## Audit trail
 
-Every successful write records one **audit event** in `audit_events`: what happened in business terms (`member.role_changed`), its subject, the display values of that moment, and who did it from which session. The app never updates or deletes an event.
+Every successful write records one **audit event** in `audit_events`: what happened in business terms (`member.role_changed`), its subject, the display values of that moment, and who did it from which session. The app never updates an event, and deletes one only once it is older than the retention (see [Retention](#retention)).
 
 ### Record an event
 
@@ -251,7 +251,11 @@ A feature shows the history of its own records through the same endpoint, filter
 
 ### Jobs
 
-No job records an event today. A job that writes on behalf of a request will carry the request's origin in its payload: add to `#core/audit/scope` a function that snapshots the current origin as plain values for the dispatch, and a scope the job runs its work in, built from that snapshot. A scheduled job records as the system.
+A scheduled job records as the system: no actor, no session. Declare its event as `SystemEvent<…>`, which belongs to no tenant and no account, so no screen lists it (`audit.pruned`). No job writes on behalf of a request today. One that does will carry the request's origin in its payload: add to `#core/audit/scope` a function that snapshots the current origin as plain values for the dispatch, and a scope the job runs its work in, built from that snapshot.
+
+### Retention
+
+`PruneAuditEventsJob` (`app/audit/jobs/`) runs daily at 03:30 UTC from `start/scheduler.ts`, and on demand with `node ace audit:prune`. It deletes the events older than `AUDIT_RETENTION_DAYS` (default 365, read as `auditRetentionDays` from `#config/app`) in batches of 1000, then records one `audit.pruned` system event with the `count` it deleted and the `before` cutoff. A run that deletes nothing records nothing. It is safe to run twice, concurrently (each batch skips the rows another run has locked), or after a crash.
 
 ## Translations
 

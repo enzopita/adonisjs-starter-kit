@@ -25,6 +25,9 @@ export type TenantEvent<S extends string | null, D> = { scope: 'tenant'; subject
 /** Recorded for a user outside any tenant: sign-up, login, their own avatar. */
 export type AccountEvent<S extends string | null, D> = { scope: 'account'; subject: S; data: D }
 
+/** Recorded by the app itself outside any tenant and account (a scheduled cleanup): no screen lists it. */
+export type SystemEvent<D> = { scope: 'system'; subject: null; data: D }
+
 type EventTypeIn<Scope> = {
   [T in AuditEventType]: AuditEvents[T] extends { scope: Scope } ? T : never
 }[AuditEventType]

@@ -25,6 +25,7 @@ export default await Env.create(new URL('../', import.meta.url), {
   FRONTEND_URL: Env.schema.string({ format: 'url', tld: false }),
   MONITORING_SECRET: Env.schema.secret(),
   CORS_ORIGIN: Env.schema.string.optional(),
+  AUDIT_RETENTION_DAYS: Env.schema.number.optional(),
 
   // Database
   DB_HOST: Env.schema.string({ format: 'host' }),
