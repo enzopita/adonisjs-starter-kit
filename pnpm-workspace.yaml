@@ -14,7 +14,7 @@ catalog:
   '@adonisjs/redis': ^11.0.0
   '@aws-sdk/client-s3': ^3.1155.0
   '@aws-sdk/s3-request-presigner': ^3.1155.0
-  '@enzopita/adonisjs-openapi': ^0.4.0
+  '@enzopita/adonisjs-openapi': ^0.4.1
   '@openrouter/ai-sdk-provider': ^3.1.0
   '@types/mjml': ^5.0.0
   '@tanstack/react-form': ^1.33.5
@@ -52,4 +52,4 @@ allowBuilds:
 minimumReleaseAgeExclude:
   - '@adonisjs/queue@0.7.0'
   - '@boringnode/queue@0.9.0'
-  - '@enzopita/adonisjs-openapi@0.4.0'
+  - '@enzopita/adonisjs-openapi@0.4.1'
