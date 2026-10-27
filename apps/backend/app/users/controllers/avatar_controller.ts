@@ -13,7 +13,7 @@ export default class AvatarController {
    * `attachmentId` is an image the user uploaded through `POST /attachments`: jpg, jpeg, png or
    * webp, at most 2 MB. Send `null` to remove the avatar. Returns the updated user.
    *
-   * @throws {422} The attachment is unknown, another user's upload, or not an image of at most 2 MB
+   * @throws {import('#attachments/exceptions/invalid_attachment_exception').default} The attachment is unknown, another user's upload, or not an image of at most 2 MB
    */
   async update({ request, auth, serialize }: HttpContext) {
     const { attachmentId } = await request.validateUsing(updateAvatarValidator)

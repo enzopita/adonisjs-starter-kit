@@ -16,7 +16,7 @@ export default class UserSuspensionsController {
    *
    * @throws {403} Not a platform admin
    * @throws {404} User not found
-   * @throws {409} The user is a platform admin
+   * @throws {import('#admin/exceptions/platform_admin_protected_exception').default} The user is a platform admin
    */
   async store(ctx: HttpContext) {
     return this.set(ctx, true)

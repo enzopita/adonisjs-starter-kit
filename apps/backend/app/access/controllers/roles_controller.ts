@@ -59,7 +59,7 @@ export default class RolesController {
    *
    * @throws {403} Lacks `roles.manage`
    * @throws {404} Role not found
-   * @throws {409} The change would leave no one able to manage members
+   * @throws {import('#access/exceptions/last_manager_exception').default} The change would leave no one able to manage members
    */
   async update({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.rolesManage)
@@ -83,7 +83,7 @@ export default class RolesController {
    *
    * @throws {403} Lacks `roles.manage`
    * @throws {404} Role not found
-   * @throws {409} The role is still assigned to a member
+   * @throws {import('#access/exceptions/role_in_use_exception').default} The role is still assigned to a member
    */
   async destroy({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.rolesManage)

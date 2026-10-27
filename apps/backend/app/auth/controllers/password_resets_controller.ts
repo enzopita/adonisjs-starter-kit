@@ -31,8 +31,8 @@ export default class PasswordResetsController {
    * Takes the token from the emailed reset link. Each token works once. Signs the user out of every
    * session, so they sign in again with the new password. Also marks the email as verified.
    *
-   * @throws {400} The token is invalid, expired, or already used
-   * @throws {403} The account is disabled
+   * @throws {import('#auth/exceptions/invalid_reset_token_exception').default} The token is invalid, expired, or already used
+   * @throws {import('#auth/exceptions/account_disabled_exception').default} The account is disabled
    * @throws {429} Too many attempts; retry after the Retry-After header
    */
   async update({ i18n, request, serialize }: HttpContext) {

@@ -19,7 +19,7 @@ export default class AccessTokensController {
    *
    * @tags Auth
    * @throws {400} The email or password is wrong
-   * @throws {403} The account is disabled, or must reset its password through the emailed link
+   * @throws {import('#auth/exceptions/account_disabled_exception').default | import('#auth/exceptions/password_reset_required_exception').default} The account is disabled, or must reset its password through the emailed link
    * @throws {429} Too many attempts; retry after the Retry-After header
    */
   async store({ request, serialize }: HttpContext) {

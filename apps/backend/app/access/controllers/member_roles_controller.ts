@@ -15,8 +15,8 @@ export default class MemberRolesController {
    * without one. Their individual permissions are kept.
    *
    * @throws {403} Lacks `members.manage`
-   * @throws {404} The user is not a member of the tenant
-   * @throws {409} The change would leave no one able to manage members
+   * @throws {import('#access/exceptions/member_not_found_exception').default} The user is not a member of the tenant
+   * @throws {import('#access/exceptions/last_manager_exception').default} The change would leave no one able to manage members
    */
   async update({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.membersManage)

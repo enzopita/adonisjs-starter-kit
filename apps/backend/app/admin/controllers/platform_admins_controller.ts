@@ -29,7 +29,7 @@ export default class PlatformAdminsController {
    *
    * @throws {403} Not a platform admin
    * @throws {404} User not found
-   * @throws {409} The caller tried to revoke their own access
+   * @throws {import('#admin/exceptions/cannot_revoke_self_exception').default} The caller tried to revoke their own access
    */
   async destroy(ctx: HttpContext) {
     return this.set(ctx, false)

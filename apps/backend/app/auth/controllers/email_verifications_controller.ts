@@ -27,7 +27,7 @@ export default class EmailVerificationsController {
    * Takes the token from the emailed verification link. Each token works once.
    *
    * @tags Auth
-   * @throws {400} The token is invalid, expired, or already used
+   * @throws {import('#auth/exceptions/invalid_verification_token_exception').default} The token is invalid, expired, or already used
    * @throws {429} Too many attempts; retry after the Retry-After header
    */
   async update({ i18n, request, serialize }: HttpContext) {

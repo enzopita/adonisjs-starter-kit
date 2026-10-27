@@ -18,7 +18,7 @@ export default class TwoFactorResetsController {
    *
    * @throws {403} Not a platform admin
    * @throws {404} User not found
-   * @throws {409} The user is a platform admin, is disabled, or has no two-factor enabled
+   * @throws {import('#admin/exceptions/platform_admin_protected_exception').default | import('#admin/exceptions/user_disabled_exception').default | import('#auth/exceptions/two_factor_not_enabled_exception').default} The user is a platform admin, is disabled, or has no two-factor enabled
    */
   async destroy({ bouncer, request, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.platformAdmin)

@@ -51,8 +51,8 @@ export default class TwoFactorController {
    * entry (`secret`). Calling it again replaces the pending secret. Nothing changes about signing
    * in until `POST /account/two-factor/confirmation` confirms it with a code.
    *
-   * @throws {403} The session is an admin acting as the user
-   * @throws {409} Two-factor authentication is already on
+   * @throws {ImpersonatingException} The session is an admin acting as the user
+   * @throws {import('#auth/exceptions/two_factor_already_enabled_exception').default} Two-factor authentication is already on
    */
   async store(ctx: HttpContext) {
     const user = ownUser(ctx)
@@ -66,9 +66,9 @@ export default class TwoFactorController {
    * Confirms the pending secret with the password and a code from the authenticator app. Returns
    * the recovery codes, the only time they are shown. Signs the user out of every other session.
    *
-   * @throws {400} The password or the code is wrong
-   * @throws {403} The session is an admin acting as the user
-   * @throws {409} Two-factor authentication is already on, or enrollment was not started
+   * @throws {import('#auth/exceptions/invalid_password_exception').default | import('#auth/exceptions/invalid_two_factor_code_exception').default} The password or the code is wrong
+   * @throws {ImpersonatingException} The session is an admin acting as the user
+   * @throws {import('#auth/exceptions/two_factor_already_enabled_exception').default | import('#auth/exceptions/two_factor_not_started_exception').default} Two-factor authentication is already on, or enrollment was not started
    * @throws {429} Too many attempts; retry after the Retry-After header
    */
   async confirm(ctx: HttpContext) {
@@ -90,9 +90,9 @@ export default class TwoFactorController {
    * Needs the password and either a code from the authenticator app or one recovery code. Deletes
    * the secret and every recovery code.
    *
-   * @throws {400} The password is wrong, or the code or recovery code is wrong
-   * @throws {403} The session is an admin acting as the user
-   * @throws {409} Two-factor authentication is off
+   * @throws {import('#auth/exceptions/invalid_password_exception').default | import('#auth/exceptions/invalid_two_factor_code_exception').default} The password is wrong, or the code or recovery code is wrong
+   * @throws {ImpersonatingException} The session is an admin acting as the user
+   * @throws {import('#auth/exceptions/two_factor_not_enabled_exception').default} Two-factor authentication is off
    * @throws {429} Too many attempts; retry after the Retry-After header
    */
   async destroy(ctx: HttpContext) {
@@ -110,9 +110,9 @@ export default class TwoFactorController {
    * Needs the password and a code from the authenticator app. Replaces every recovery code, used or
    * not, and returns the new ones, the only time they are shown.
    *
-   * @throws {400} The password or the code is wrong
-   * @throws {403} The session is an admin acting as the user
-   * @throws {409} Two-factor authentication is off
+   * @throws {import('#auth/exceptions/invalid_password_exception').default | import('#auth/exceptions/invalid_two_factor_code_exception').default} The password or the code is wrong
+   * @throws {ImpersonatingException} The session is an admin acting as the user
+   * @throws {import('#auth/exceptions/two_factor_not_enabled_exception').default} Two-factor authentication is off
    * @throws {429} Too many attempts; retry after the Retry-After header
    */
   async regenerateRecoveryCodes(ctx: HttpContext) {

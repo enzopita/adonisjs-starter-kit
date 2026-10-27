@@ -109,7 +109,7 @@ Every error the API sends is `{ code, message }`, except the `422` of a failed v
 - The `429` of a throttled route: `@throws {429} Reason`.
 - An exception thrown from code the generator doesn't follow, such as a function a package calls: `@throws {import('#access/exceptions/last_manager_exception').default}`. The controller doesn't import it.
 
-A `@throws {status} Reason` on a status the generator already derives replaces its standard text with the reason. Give one to every status the action can answer with, so a caller reads when it happens.
+Give a reason to every status the action can answer with, so a caller reads when it happens. On a status the generator already derives, name the exceptions instead of the status: `@throws {ImpersonatingException} Reason`, or `@throws {import('#auth/exceptions/invalid_password_exception').default | import('#auth/exceptions/invalid_two_factor_code_exception').default} Reason` for classes the controller doesn't import. The reason replaces the standard text. A `@throws {status}` also adds the body the handler sends for that status, such as `E_AUTHORIZATION_FAILURE` on a `403`, so keep it for the cases listed above.
 
 To generate the document, open `GET /docs` in development, or run `node ace openapi:generate` to write `openapi.json`. The command prints a warning for a route it skipped, such as a closure, and for a model returned without a transformer.
 

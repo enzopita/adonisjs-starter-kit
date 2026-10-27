@@ -35,7 +35,7 @@ export default class InvitationsController {
    * and the role and expiry are reset.
    *
    * @throws {403} Lacks `members.manage`
-   * @throws {409} The email already belongs to a member of the tenant
+   * @throws {import('#access/exceptions/already_member_exception').default} The email already belongs to a member of the tenant
    * @throws {429} Too many attempts; retry after the Retry-After header
    */
   async store({ bouncer, request, auth, tenant, i18n, serialize }: HttpContext) {

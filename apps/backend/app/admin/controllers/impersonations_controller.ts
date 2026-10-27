@@ -18,7 +18,7 @@ export default class ImpersonationsController {
    *
    * @throws {403} Not a platform admin
    * @throws {404} User not found
-   * @throws {409} The user is a platform admin or is disabled
+   * @throws {import('#admin/exceptions/platform_admin_protected_exception').default | import('#admin/exceptions/user_disabled_exception').default} The user is a platform admin or is disabled
    */
   async store({ auth, bouncer, request, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.platformAdmin)
