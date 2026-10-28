@@ -1,0 +1,3 @@
+# LF everywhere, on every OS: scripts, the Dockerfile and pnpm patches run on Linux,
+# where a CRLF checkout from Windows breaks them (`/bin/sh^M: bad interpreter`).
+* text=auto eol=lf
