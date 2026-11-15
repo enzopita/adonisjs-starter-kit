@@ -30,15 +30,15 @@
   "devDependencies": {
     "@monorepo/backend": "workspace:*",
     "@tailwindcss/vite": "^4",
-    "@tanstack/react-router-devtools": "^1.167.2",
-    "@tanstack/router-cli": "^1.167.46",
-    "@tanstack/router-plugin": "^1.168.48",
+    "@tanstack/react-router-devtools": "^1.167.3",
+    "@tanstack/router-cli": "^1.168.0",
+    "@tanstack/router-plugin": "^1.169.0",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react": "^6.1.2",
+    "@vitejs/plugin-react": "^6.3.0",
     "tailwindcss": "catalog:",
     "typescript": "catalog:",
-    "vite": "^8.3.5"
+    "vite": "^8.3.8"
   }
 }
