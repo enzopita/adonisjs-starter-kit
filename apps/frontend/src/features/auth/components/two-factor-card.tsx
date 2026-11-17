@@ -17,6 +17,7 @@ import {
   DialogTitle,
 } from '@monorepo/ui/components/dialog'
 import { Skeleton } from '@monorepo/ui/components/skeleton'
+import { FieldGroup } from '@monorepo/ui/components/field'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { CircleAlertIcon, ShieldCheckIcon } from 'lucide-react'
 import { useState } from 'react'
@@ -188,54 +189,56 @@ function DisableTwoFactorDialog({
           <DialogDescription>{t('auth.twoFactorCard.disableDescription')}</DialogDescription>
         </DialogHeader>
         <form.AppForm>
-          <form.Form className="flex flex-col gap-4">
-            <form.FormAlert />
-            <form.AppField name="password">
-              {field => (
-                <field.TextField
-                  label={t('auth.twoFactorCard.password')}
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                />
+          <form.Form>
+            <FieldGroup>
+              <form.FormAlert />
+              <form.AppField name="password">
+                {field => (
+                  <field.TextField
+                    label={t('auth.twoFactorCard.password')}
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                  />
+                )}
+              </form.AppField>
+              {useRecoveryCode ? (
+                <form.AppField name="recoveryCode">
+                  {field => (
+                    <field.TextField
+                      label={t('auth.twoFactorCard.recoveryCode')}
+                      autoComplete="off"
+                      required
+                    />
+                  )}
+                </form.AppField>
+              ) : (
+                <form.AppField name="code">
+                  {field => (
+                    <field.TextField
+                      label={t('auth.twoFactorCard.code')}
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
+                      required
+                    />
+                  )}
+                </form.AppField>
               )}
-            </form.AppField>
-            {useRecoveryCode ? (
-              <form.AppField name="recoveryCode">
-                {field => (
-                  <field.TextField
-                    label={t('auth.twoFactorCard.recoveryCode')}
-                    autoComplete="off"
-                    required
-                  />
-                )}
-              </form.AppField>
-            ) : (
-              <form.AppField name="code">
-                {field => (
-                  <field.TextField
-                    label={t('auth.twoFactorCard.code')}
-                    autoComplete="one-time-code"
-                    inputMode="numeric"
-                    required
-                  />
-                )}
-              </form.AppField>
-            )}
-            <button
-              type="button"
-              onClick={() => setUseRecoveryCode(value => !value)}
-              className="self-start text-xs text-muted-foreground underline underline-offset-4"
-            >
-              {useRecoveryCode
-                ? t('auth.twoFactorCard.useCode')
-                : t('auth.twoFactorCard.useRecoveryCode')}
-            </button>
-            <DialogFooter>
-              <form.SubmitButton variant="destructive">
-                {t('auth.twoFactorCard.disable')}
-              </form.SubmitButton>
-            </DialogFooter>
+              <button
+                type="button"
+                onClick={() => setUseRecoveryCode(value => !value)}
+                className="self-start text-xs text-muted-foreground underline underline-offset-4"
+              >
+                {useRecoveryCode
+                  ? t('auth.twoFactorCard.useCode')
+                  : t('auth.twoFactorCard.useRecoveryCode')}
+              </button>
+              <DialogFooter>
+                <form.SubmitButton variant="destructive">
+                  {t('auth.twoFactorCard.disable')}
+                </form.SubmitButton>
+              </DialogFooter>
+            </FieldGroup>
           </form.Form>
         </form.AppForm>
       </DialogContent>
@@ -273,31 +276,33 @@ function RegenerateRecoveryCodesDialog({
           <DialogDescription>{t('auth.twoFactorCard.regenerateDescription')}</DialogDescription>
         </DialogHeader>
         <form.AppForm>
-          <form.Form className="flex flex-col gap-4">
-            <form.FormAlert />
-            <form.AppField name="password">
-              {field => (
-                <field.TextField
-                  label={t('auth.twoFactorCard.password')}
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                />
-              )}
-            </form.AppField>
-            <form.AppField name="code">
-              {field => (
-                <field.TextField
-                  label={t('auth.twoFactorCard.code')}
-                  autoComplete="one-time-code"
-                  inputMode="numeric"
-                  required
-                />
-              )}
-            </form.AppField>
-            <DialogFooter>
-              <form.SubmitButton>{t('auth.twoFactorCard.regenerate')}</form.SubmitButton>
-            </DialogFooter>
+          <form.Form>
+            <FieldGroup>
+              <form.FormAlert />
+              <form.AppField name="password">
+                {field => (
+                  <field.TextField
+                    label={t('auth.twoFactorCard.password')}
+                    type="password"
+                    autoComplete="current-password"
+                    required
+                  />
+                )}
+              </form.AppField>
+              <form.AppField name="code">
+                {field => (
+                  <field.TextField
+                    label={t('auth.twoFactorCard.code')}
+                    autoComplete="one-time-code"
+                    inputMode="numeric"
+                    required
+                  />
+                )}
+              </form.AppField>
+              <DialogFooter>
+                <form.SubmitButton>{t('auth.twoFactorCard.regenerate')}</form.SubmitButton>
+              </DialogFooter>
+            </FieldGroup>
           </form.Form>
         </form.AppForm>
       </DialogContent>

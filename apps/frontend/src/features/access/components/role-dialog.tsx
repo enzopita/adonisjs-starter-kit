@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@monorepo/ui/components/dialog'
+import { FieldGroup } from '@monorepo/ui/components/field'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { PermissionPicker } from '@/features/access/components/permission-picker'
@@ -77,32 +78,34 @@ export function RoleDialog({
           </DialogDescription>
         </DialogHeader>
         <form.AppForm>
-          <form.Form className="flex flex-col gap-4">
-            <form.FormAlert />
-            <form.AppField name="name">
-              {field => (
-                <field.TextField
-                  label={t('access.roleDialog.roleName')}
-                  placeholder={t('access.roleDialog.roleNamePlaceholder')}
-                  required
-                  maxLength={255}
-                />
-              )}
-            </form.AppField>
-            <form.AppField name="permissions">
-              {field => (
-                <PermissionPicker
-                  groups={groups}
-                  value={new Set(field.state.value)}
-                  onChange={next => field.handleChange([...next])}
-                />
-              )}
-            </form.AppField>
-            <DialogFooter>
-              <form.SubmitButton>
-                {role ? t('access.roleDialog.save') : t('access.roleDialog.createRole')}
-              </form.SubmitButton>
-            </DialogFooter>
+          <form.Form>
+            <FieldGroup>
+              <form.FormAlert />
+              <form.AppField name="name">
+                {field => (
+                  <field.TextField
+                    label={t('access.roleDialog.roleName')}
+                    placeholder={t('access.roleDialog.roleNamePlaceholder')}
+                    required
+                    maxLength={255}
+                  />
+                )}
+              </form.AppField>
+              <form.AppField name="permissions">
+                {field => (
+                  <PermissionPicker
+                    groups={groups}
+                    value={new Set(field.state.value)}
+                    onChange={next => field.handleChange([...next])}
+                  />
+                )}
+              </form.AppField>
+              <DialogFooter>
+                <form.SubmitButton>
+                  {role ? t('access.roleDialog.save') : t('access.roleDialog.createRole')}
+                </form.SubmitButton>
+              </DialogFooter>
+            </FieldGroup>
           </form.Form>
         </form.AppForm>
       </DialogContent>

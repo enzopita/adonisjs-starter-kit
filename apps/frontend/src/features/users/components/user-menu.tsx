@@ -56,31 +56,35 @@ export function UserMenu({ user, children }: { user: Data.Users.User; children?:
           </DropdownMenuLabel>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem render={<Link to="/profile" />}>
-          <UserIcon />
-          {t('users.userMenu.profile')}
-        </DropdownMenuItem>
-        {children}
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger>
-            <SunMoonIcon />
-            {t('users.userMenu.theme')}
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-              {THEMES.map(option => (
-                <DropdownMenuRadioItem key={option.value} value={option.value}>
-                  {option.label}
-                </DropdownMenuRadioItem>
-              ))}
-            </DropdownMenuRadioGroup>
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        <DropdownMenuGroup>
+          <DropdownMenuItem render={<Link to="/profile" />}>
+            <UserIcon />
+            {t('users.userMenu.profile')}
+          </DropdownMenuItem>
+          {children}
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <SunMoonIcon />
+              {t('users.userMenu.theme')}
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+                {THEMES.map(option => (
+                  <DropdownMenuRadioItem key={option.value} value={option.value}>
+                    {option.label}
+                  </DropdownMenuRadioItem>
+                ))}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onLogOut}>
-          <LogOutIcon />
-          {t('users.userMenu.logOut')}
-        </DropdownMenuItem>
+        <DropdownMenuGroup>
+          <DropdownMenuItem onClick={onLogOut}>
+            <LogOutIcon />
+            {t('users.userMenu.logOut')}
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

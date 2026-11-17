@@ -6,10 +6,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@monorepo/ui/components/dialog'
-import { Field, FieldLabel } from '@monorepo/ui/components/field'
+import { Field, FieldGroup, FieldLabel } from '@monorepo/ui/components/field'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -78,46 +79,50 @@ export function InviteMemberDialog({
           <DialogDescription>{t('access.inviteMemberDialog.description')}</DialogDescription>
         </DialogHeader>
         <form.AppForm>
-          <form.Form className="flex flex-col gap-4">
-            <form.FormAlert />
-            <form.AppField name="email">
-              {field => (
-                <field.TextField
-                  label={t('access.inviteMemberDialog.email')}
-                  type="email"
-                  autoComplete="email"
-                  required
-                />
-              )}
-            </form.AppField>
-            <form.Field name="roleId">
-              {field => (
-                <Field>
-                  <FieldLabel htmlFor={roleFieldId}>
-                    {t('access.inviteMemberDialog.role')}
-                  </FieldLabel>
-                  <Select
-                    items={items}
-                    value={field.state.value}
-                    onValueChange={value => value && field.handleChange(value)}
-                  >
-                    <SelectTrigger id={roleFieldId}>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {items.map(item => (
-                        <SelectItem key={item.value} value={item.value}>
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              )}
-            </form.Field>
-            <DialogFooter>
-              <form.SubmitButton>{t('access.inviteMemberDialog.submit')}</form.SubmitButton>
-            </DialogFooter>
+          <form.Form>
+            <FieldGroup>
+              <form.FormAlert />
+              <form.AppField name="email">
+                {field => (
+                  <field.TextField
+                    label={t('access.inviteMemberDialog.email')}
+                    type="email"
+                    autoComplete="email"
+                    required
+                  />
+                )}
+              </form.AppField>
+              <form.Field name="roleId">
+                {field => (
+                  <Field>
+                    <FieldLabel htmlFor={roleFieldId}>
+                      {t('access.inviteMemberDialog.role')}
+                    </FieldLabel>
+                    <Select
+                      items={items}
+                      value={field.state.value}
+                      onValueChange={value => value && field.handleChange(value)}
+                    >
+                      <SelectTrigger id={roleFieldId}>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {items.map(item => (
+                            <SelectItem key={item.value} value={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                )}
+              </form.Field>
+              <DialogFooter>
+                <form.SubmitButton>{t('access.inviteMemberDialog.submit')}</form.SubmitButton>
+              </DialogFooter>
+            </FieldGroup>
           </form.Form>
         </form.AppForm>
       </DialogContent>

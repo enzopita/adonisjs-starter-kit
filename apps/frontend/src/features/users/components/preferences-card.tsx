@@ -9,6 +9,7 @@ import { Field, FieldGroup, FieldLabel } from '@monorepo/ui/components/field'
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -90,11 +91,13 @@ export function PreferencesCard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {LOCALES.map(value => (
-                  <SelectItem key={value} value={value}>
-                    {LOCALE_LABELS[value]}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  {LOCALES.map(value => (
+                    <SelectItem key={value} value={value}>
+                      {LOCALE_LABELS[value]}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </Field>
@@ -112,11 +115,13 @@ export function PreferencesCard() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                {TIME_ZONES.map(zone => (
-                  <SelectItem key={zone.value} value={zone.value}>
-                    {zone.label}
-                  </SelectItem>
-                ))}
+                <SelectGroup>
+                  {TIME_ZONES.map(zone => (
+                    <SelectItem key={zone.value} value={zone.value}>
+                      {zone.label}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
               </SelectContent>
             </Select>
           </Field>
