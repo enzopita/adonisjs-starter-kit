@@ -1,18 +1,22 @@
-import User from '#users/models/user'
-import { DateTime } from 'luxon'
-import db from '@adonisjs/lucid/services/db'
-import { audit } from '#core/audit/main'
-import type {} from '#auth/types/audit'
-import InvalidPasswordException from '#auth/exceptions/invalid_password_exception'
-import { replaceRecoveryCodes, verifySecondFactor } from '#auth/services/two_factor'
-import TwoFactorNotStartedException from '#auth/exceptions/two_factor_not_started_exception'
-import InvalidTwoFactorCodeException from '#auth/exceptions/invalid_two_factor_code_exception'
-import TwoFactorAlreadyEnabledException from '#auth/exceptions/two_factor_already_enabled_exception'
+import db from '@adonisjs/lucid/services/db';
+import { DateTime } from 'luxon';
+
+import InvalidPasswordException from '#auth/exceptions/invalid_password_exception';
+import InvalidTwoFactorCodeException from '#auth/exceptions/invalid_two_factor_code_exception';
+import TwoFactorAlreadyEnabledException from '#auth/exceptions/two_factor_already_enabled_exception';
+import TwoFactorNotStartedException from '#auth/exceptions/two_factor_not_started_exception';
+import {
+  replaceRecoveryCodes,
+  verifySecondFactor,
+} from '#auth/services/two_factor';
+import type {} from '#auth/types/audit';
+import { audit } from '#core/audit/main';
+import User from '#users/models/user';
 
 export interface ConfirmTwoFactorInput {
-  user: User
-  password: string
-  code: string
+  user: User;
+  password: string;
+  code: string;
 }
 
 /**
@@ -22,34 +26,36 @@ export interface ConfirmTwoFactorInput {
  */
 export default class ConfirmTwoFactor {
   async handle({ user, password, code }: ConfirmTwoFactorInput) {
-    if (!(await user.verifyPassword(password))) throw new InvalidPasswordException()
+    if (!(await user.verifyPassword(password)))
+      throw new InvalidPasswordException();
 
-    return db.transaction(async trx => {
+    return db.transaction(async (trx) => {
       const locked = await User.query({ client: trx })
         .where('id', user.id)
         .forUpdate()
-        .firstOrFail()
+        .firstOrFail();
 
-      if (locked.twoFactorConfirmedAt) throw new TwoFactorAlreadyEnabledException()
+      if (locked.twoFactorConfirmedAt)
+        throw new TwoFactorAlreadyEnabledException();
 
-      if (!locked.twoFactorSecret) throw new TwoFactorNotStartedException()
+      if (!locked.twoFactorSecret) throw new TwoFactorNotStartedException();
 
       if (!(await verifySecondFactor(trx, locked, { type: 'totp', code }))) {
-        throw new InvalidTwoFactorCodeException()
+        throw new InvalidTwoFactorCodeException();
       }
 
-      locked.twoFactorConfirmedAt = DateTime.now()
-      await locked.save()
+      locked.twoFactorConfirmedAt = DateTime.now();
+      await locked.save();
 
-      const recoveryCodes = await replaceRecoveryCodes(trx, locked.id)
+      const recoveryCodes = await replaceRecoveryCodes(trx, locked.id);
 
       await audit.record(trx, 'auth.two_factor_enabled', {
         tenantId: null,
         subject: { type: 'user', id: locked.id },
         data: { email: locked.email },
-      })
+      });
 
-      return recoveryCodes
-    })
+      return recoveryCodes;
+    });
   }
 }

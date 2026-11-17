@@ -5,6 +5,14 @@
   "attachments": ["core"],
   "tenancy": ["core", "users"],
   "access": ["core", "users", "tenancy"],
-  "audit": ["core", "users", "auth", "attachments", "tenancy", "access", "admin"],
+  "audit": [
+    "core",
+    "users",
+    "auth",
+    "attachments",
+    "tenancy",
+    "access",
+    "admin"
+  ],
   "admin": ["core", "users", "auth", "tenancy", "access"]
 }

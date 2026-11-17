@@ -1,5 +1,5 @@
-import { test } from '@japa/runner'
-import db from '@adonisjs/lucid/services/db'
+import db from '@adonisjs/lucid/services/db';
+import { test } from '@japa/runner';
 
 /**
  * attachments:prune deletes every attachment no foreign key references. A
@@ -9,7 +9,9 @@ import db from '@adonisjs/lucid/services/db'
 test('every *_attachment_id column has a single-column NO ACTION or RESTRICT FK to attachments', async ({
   assert,
 }) => {
-  const { rows } = await db.rawQuery<{ rows: { column: string; problem: string | null }[] }>(`
+  const { rows } = await db.rawQuery<{
+    rows: { column: string; problem: string | null }[];
+  }>(`
     SELECT col.table_name || '.' || col.column_name AS column,
       CASE
         WHEN fk.conname IS NULL THEN 'no single-column foreign key to attachments(id)'
@@ -27,11 +29,15 @@ test('every *_attachment_id column has a single-column NO ACTION or RESTRICT FK 
     WHERE col.table_schema = current_schema()
       AND col.table_name <> 'attachments'
       AND col.column_name LIKE '%attachment_id'
-  `)
+  `);
 
-  assert.isAbove(rows.length, 0, 'no *_attachment_id column found: the guard is checking nothing')
+  assert.isAbove(
+    rows.length,
+    0,
+    'no *_attachment_id column found: the guard is checking nothing'
+  );
   assert.deepEqual(
-    rows.filter(row => row.problem !== null),
-    [],
-  )
-})
+    rows.filter((row) => row.problem !== null),
+    []
+  );
+});

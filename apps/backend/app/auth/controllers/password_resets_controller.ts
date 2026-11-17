@@ -1,8 +1,12 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import ResetPassword from '#auth/actions/reset_password'
-import RevokeSessions from '#auth/actions/revoke_sessions'
-import RequestPasswordReset from '#auth/actions/request_password_reset'
-import { forgotPasswordValidator, resetPasswordValidator } from '#auth/validators/auth'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import RequestPasswordReset from '#auth/actions/request_password_reset';
+import ResetPassword from '#auth/actions/reset_password';
+import RevokeSessions from '#auth/actions/revoke_sessions';
+import {
+  forgotPasswordValidator,
+  resetPasswordValidator,
+} from '#auth/validators/auth';
 
 /**
  * @tags Auth
@@ -18,11 +22,11 @@ export default class PasswordResetsController {
    * @response {429} Too many attempts; retry after the Retry-After header
    */
   async store({ i18n, request, serialize }: HttpContext) {
-    const { email } = await request.validateUsing(forgotPasswordValidator)
+    const { email } = await request.validateUsing(forgotPasswordValidator);
 
-    await new RequestPasswordReset().handle({ email, locale: i18n.locale })
+    await new RequestPasswordReset().handle({ email, locale: i18n.locale });
 
-    return serialize({ message: i18n.t('auth.password_reset_requested') })
+    return serialize({ message: i18n.t('auth.password_reset_requested') });
   }
 
   /**
@@ -34,13 +38,15 @@ export default class PasswordResetsController {
    * @response {429} Too many attempts; retry after the Retry-After header
    */
   async update({ i18n, request, serialize }: HttpContext) {
-    const { token, password } = await request.validateUsing(resetPasswordValidator)
+    const { token, password } = await request.validateUsing(
+      resetPasswordValidator
+    );
 
-    const user = await new ResetPassword().handle({ token, password })
+    const user = await new ResetPassword().handle({ token, password });
 
     // Whoever knew the old password is signed out everywhere, including the one resetting it.
-    await new RevokeSessions().handle({ user })
+    await new RevokeSessions().handle({ user });
 
-    return serialize({ message: i18n.t('auth.password_reset') })
+    return serialize({ message: i18n.t('auth.password_reset') });
   }
 }

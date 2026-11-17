@@ -4,23 +4,28 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@monorepo/ui/components/empty'
-import { LockIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
-import { can, permissionLabel, usePermissions } from '@/features/access/permissions'
-import type { Permission } from '@/features/access/permissions'
-import { t } from '@/features/core/i18n'
+} from '@monorepo/ui/components/empty';
+import { LockIcon } from 'lucide-react';
+import type { ReactNode } from 'react';
+
+import {
+  can,
+  permissionLabel,
+  usePermissions,
+} from '@/features/access/permissions';
+import type { Permission } from '@/features/access/permissions';
+import { t } from '@/features/core/i18n';
 
 export function RequirePermission({
   permission,
   children,
 }: {
-  permission: Permission
-  children: ReactNode
+  permission: Permission;
+  children: ReactNode;
 }) {
-  const permissions = usePermissions()
+  const permissions = usePermissions();
 
-  if (can(permissions, permission)) return children
+  if (can(permissions, permission)) return children;
 
   return (
     <div className="rounded-xl border border-dashed">
@@ -40,5 +45,5 @@ export function RequirePermission({
         </EmptyHeader>
       </Empty>
     </div>
-  )
+  );
 }

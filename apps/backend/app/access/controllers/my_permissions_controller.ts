@@ -1,6 +1,7 @@
-import { can } from '#access/abilities'
-import type { HttpContext } from '@adonisjs/core/http'
-import { ALL_PERMISSIONS } from '#access/permissions'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import { can } from '#access/abilities';
+import { ALL_PERMISSIONS } from '#access/permissions';
 
 /**
  * @tags Permissions
@@ -14,9 +15,11 @@ export default class MyPermissionsController {
    */
   async show({ bouncer, serialize }: HttpContext) {
     const allowed = await Promise.all(
-      ALL_PERMISSIONS.map(permission => bouncer.allows(can, permission)),
-    )
+      ALL_PERMISSIONS.map((permission) => bouncer.allows(can, permission))
+    );
 
-    return serialize({ permissions: ALL_PERMISSIONS.filter((_, index) => allowed[index]) })
+    return serialize({
+      permissions: ALL_PERMISSIONS.filter((_, index) => allowed[index]),
+    });
   }
 }

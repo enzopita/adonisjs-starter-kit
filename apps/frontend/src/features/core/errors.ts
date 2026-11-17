@@ -1,5 +1,6 @@
-import type { TuyauError } from '@tuyau/core/client'
-import { t } from '@/features/core/i18n'
+import type { TuyauError } from '@tuyau/core/client';
+
+import { t } from '@/features/core/i18n';
 
 /** Codes the API returns for expected failures: every one carries a `code`. */
 const API_ERROR_CODES = [
@@ -20,61 +21,63 @@ const API_ERROR_CODES = [
   'E_TWO_FACTOR_REQUIRED',
   'E_IMPERSONATING',
   'E_PASSWORD_RESET_REQUIRED',
-] as const
+] as const;
 
-export type ApiErrorCode = (typeof API_ERROR_CODES)[number]
+export type ApiErrorCode = (typeof API_ERROR_CODES)[number];
 
-const KNOWN_CODES = new Set<string>(API_ERROR_CODES)
+const KNOWN_CODES = new Set<string>(API_ERROR_CODES);
 
 /**
  * Every error body the backend sends, merged: `{ code, message }` and the validation `errors`.
  * Its messages are already in the locale the request's Accept-Language asked for.
  */
 type ApiErrorBody = {
-  message?: string
-  code?: string
-  errors?: { field?: string; message: string }[]
-}
+  message?: string;
+  code?: string;
+  errors?: { field?: string; message: string }[];
+};
 
 /** What a form shows for a failed submit, in the shape TanStack Form's error map takes. */
 export type FormErrors = {
   /** First message per field name, from a 422. */
-  fields: Record<string, string>
+  fields: Record<string, string>;
   /** A message for the whole form, when the error isn't about one field. */
-  form?: string
-}
+  form?: string;
+};
 
 function errorBody(error: TuyauError): ApiErrorBody {
   // SAFETY: every non-2xx body this API sends is one of the shapes ApiErrorBody merges.
-  return (error.response ?? {}) as ApiErrorBody
+  return (error.response ?? {}) as ApiErrorBody;
 }
 
 function isKnownCode(code: string): code is ApiErrorCode {
-  return KNOWN_CODES.has(code)
+  return KNOWN_CODES.has(code);
 }
 
 export function apiErrorCode(error: TuyauError): ApiErrorCode | null {
-  const { code } = errorBody(error)
+  const { code } = errorBody(error);
 
-  return code !== undefined && isKnownCode(code) ? code : null
+  return code !== undefined && isKnownCode(code) ? code : null;
 }
 
 export function errorMessage(error: TuyauError): string {
-  if (error.kind === 'network') return t('core.errors.network')
+  if (error.kind === 'network') return t('core.errors.network');
 
-  const body = errorBody(error)
+  const body = errorBody(error);
 
-  return body.errors?.[0]?.message ?? body.message ?? t('core.errors.fallback')
+  return body.errors?.[0]?.message ?? body.message ?? t('core.errors.fallback');
 }
 
 export function formErrors(error: TuyauError): FormErrors {
-  const fields: Record<string, string> = {}
+  const fields: Record<string, string> = {};
 
   if (error.status === 422) {
     for (const { field, message } of errorBody(error).errors ?? []) {
-      if (field !== undefined && !(field in fields)) fields[field] = message
+      if (field !== undefined && !(field in fields)) fields[field] = message;
     }
   }
 
-  return Object.keys(fields).length > 0 ? { fields } : { fields, form: errorMessage(error) }
+  return Object.keys(fields).length > 0
+    ? { fields }
+    : { fields, form: errorMessage(error) };
 }

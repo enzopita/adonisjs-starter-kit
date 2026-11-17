@@ -6,14 +6,7 @@
 
 [English](README.md) · Português
 
-[![CI](https://github.com/enzopita/adonisjs-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/enzopita/adonisjs-starter-kit/actions/workflows/ci.yml)
-![Node 24](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white)
-![pnpm](https://img.shields.io/badge/pnpm-12-F69220?logo=pnpm&logoColor=white)
-![AdonisJS 7](https://img.shields.io/badge/AdonisJS-7-5A45FF?logo=adonisjs&logoColor=white)
-![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
-![Postgres 18](https://img.shields.io/badge/Postgres-18-4169E1?logo=postgresql&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
-![MIT](https://img.shields.io/badge/license-MIT-blue)
+[![CI](https://github.com/enzopita/adonisjs-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/enzopita/adonisjs-starter-kit/actions/workflows/ci.yml) ![Node 24](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white) ![pnpm](https://img.shields.io/badge/pnpm-12-F69220?logo=pnpm&logoColor=white) ![AdonisJS 7](https://img.shields.io/badge/AdonisJS-7-5A45FF?logo=adonisjs&logoColor=white) ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black) ![Postgres 18](https://img.shields.io/badge/Postgres-18-4169E1?logo=postgresql&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white) ![MIT](https://img.shields.io/badge/license-MIT-blue)
 
 </div>
 
@@ -26,13 +19,13 @@
 
 ## Capturas de tela
 
-|                                                                                                                      |                                                                                                                                               |
-| -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| ![Página de login](docs/images/sign-in.png) Login                                                                    | ![Página de login no tema escuro](docs/images/sign-in-dark.png) Login, tema escuro                                                            |
-| ![Visão geral do workspace](docs/images/workspace-overview.png) Visão geral do workspace                             | ![Convites](docs/images/invitations.png) Convites pendentes                                                                                   |
-| ![Papéis e permissões](docs/images/roles-permissions.png) Papéis e permissões                                        | ![Trilha de auditoria](docs/images/audit-trail.png) Trilha de auditoria                                                                       |
-| ![Configuração de dois fatores](docs/images/two-factor-setup.png) Configuração de dois fatores                       | ![Página de perfil em português](docs/images/profile-preferences.png) Perfil em português (pt-BR). Cada usuário escolhe idioma e fuso horário |
-| ![Administração da plataforma, workspaces](docs/images/admin-workspaces.png) Administração da plataforma, workspaces | ![Administração da plataforma, usuários](docs/images/admin-users.png) Administração da plataforma, usuários                                   |
+|  |  |
+| --- | --- |
+| ![Página de login](docs/images/sign-in.png) Login | ![Página de login no tema escuro](docs/images/sign-in-dark.png) Login, tema escuro |
+| ![Visão geral do workspace](docs/images/workspace-overview.png) Visão geral do workspace | ![Convites](docs/images/invitations.png) Convites pendentes |
+| ![Papéis e permissões](docs/images/roles-permissions.png) Papéis e permissões | ![Trilha de auditoria](docs/images/audit-trail.png) Trilha de auditoria |
+| ![Configuração de dois fatores](docs/images/two-factor-setup.png) Configuração de dois fatores | ![Página de perfil em português](docs/images/profile-preferences.png) Perfil em português (pt-BR). Cada usuário escolhe idioma e fuso horário |
+| ![Administração da plataforma, workspaces](docs/images/admin-workspaces.png) Administração da plataforma, workspaces | ![Administração da plataforma, usuários](docs/images/admin-users.png) Administração da plataforma, usuários |
 
 Para refazer estas capturas, rode `pnpm screenshots`. O script popula um banco separado, `starter_demo`, para que seus dados de desenvolvimento não apareçam nas imagens. Ele precisa do Docker, do [`agent-browser`](https://www.npmjs.com/package/agent-browser) no `PATH` e das portas 3333 e 5173 livres. Ele também apaga do Mailpit os e-mails dos endereços de demonstração.
 
@@ -56,33 +49,33 @@ flowchart LR
   API --> M[SMTP / Mailpit]
 ```
 
-| Workspace       | O que é                                                         |
-| --------------- | --------------------------------------------------------------- |
-| `apps/backend`  | AdonisJS 7 · Lucid · VineJS · auth · Drive/S3 · Mail · filas    |
-| `apps/frontend` | React 19 · Vite · TanStack Router · cliente Tuyau               |
-| `packages/ui`   | Design system compartilhado (shadcn sobre Base UI, Tailwind 4)  |
-| `tests/`        | Testes end-to-end (Playwright + agente)                         |
-| `docs/`         | [Arquitetura](docs/architecture.md) · [Testes](docs/testing.md) |
+| Workspace | O que é |
+| --- | --- |
+| `apps/backend` | AdonisJS 7 · Lucid · VineJS · auth · Drive/S3 · Mail · filas |
+| `apps/frontend` | React 19 · Vite · TanStack Router · cliente Tuyau |
+| `packages/ui` | Design system compartilhado (shadcn sobre Base UI, Tailwind 4) |
+| `tests/` | Testes end-to-end (Playwright + agente) |
+| `docs/` | [Arquitetura](docs/architecture.md) · [Testes](docs/testing.md) |
 
 ## O que vem pronto
 
-|     | Recurso                                                                               |
-| --- | ------------------------------------------------------------------------------------- |
-| 🔐  | Cadastro, login, verificação de e-mail, redefinição de senha, perfil e avatar         |
-| 🔑  | Autenticação em duas etapas (TOTP + códigos de recuperação) e sessões por dispositivo |
-| 🏢  | Multi-tenancy com workspaces e convites por e-mail                                    |
-| 🛡️  | Papéis e permissões granulares por workspace                                          |
-| 📜  | Trilha de auditoria de quem mudou o quê em um workspace, e quando                     |
-| 🛠️  | Área de administração da plataforma para todo workspace e usuário, protegida por 2FA  |
-| 🌐  | i18n (en-US, pt-BR) com idioma e fuso horário por usuário                             |
-| 📎  | Anexos no S3 com URLs assinadas e limpeza de órfãos                                   |
-| ✉️  | E-mail (Mailpit em dev) e filas no Redis                                              |
-| ❤️  | Health checks (`/health/live`, `/health/ready`)                                       |
-| 📖  | Documento OpenAPI gerado a partir das rotas, com página de docs em dev                |
-| 🧬  | Chaves primárias UUIDv7, env validado no boot                                         |
-| 🧪  | Testes unitários, funcionais e e2e                                                    |
-| 🧹  | oxlint + oxfmt, fronteiras de módulo no lint, Conventional Commits                    |
-| 🐳  | Dockerfile multi-stage e compose para Dokploy                                         |
+|  | Recurso |
+| --- | --- |
+| 🔐 | Cadastro, login, verificação de e-mail, redefinição de senha, perfil e avatar |
+| 🔑 | Autenticação em duas etapas (TOTP + códigos de recuperação) e sessões por dispositivo |
+| 🏢 | Multi-tenancy com workspaces e convites por e-mail |
+| 🛡️ | Papéis e permissões granulares por workspace |
+| 📜 | Trilha de auditoria de quem mudou o quê em um workspace, e quando |
+| 🛠️ | Área de administração da plataforma para todo workspace e usuário, protegida por 2FA |
+| 🌐 | i18n (en-US, pt-BR) com idioma e fuso horário por usuário |
+| 📎 | Anexos no S3 com URLs assinadas e limpeza de órfãos |
+| ✉️ | E-mail (Mailpit em dev) e filas no Redis |
+| ❤️ | Health checks (`/health/live`, `/health/ready`) |
+| 📖 | Documento OpenAPI gerado a partir das rotas, com página de docs em dev |
+| 🧬 | Chaves primárias UUIDv7, env validado no boot |
+| 🧪 | Testes unitários, funcionais e e2e |
+| 🧹 | oxlint + oxfmt, fronteiras de módulo no lint, Conventional Commits |
+| 🐳 | Dockerfile multi-stage e compose para Dokploy |
 
 ## Módulos
 

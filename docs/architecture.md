@@ -2,16 +2,16 @@
 
 `apps/backend/app/` = one folder per **module**: a bounded context owning its vocabulary, tables and routes (not 1:1 with tables). `start/`, `config/`, `database/`, `providers/`, `commands/`, `tests/` are wiring, not modules.
 
-| Module        | Owns                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------ |
-| `core`        | Exception handler, global middleware, `apiRoutes`, health checks, audit recorder.    |
-| `users`       | `User` identity: model, transformer, access tokens, profile, locale, timezone.       |
-| `auth`        | Sign-up, login, two-factor, sessions, password reset, email verification, `auth` mw. |
-| `attachments` | Uploads, signed URLs, the claim service, pruning.                                    |
-| `tenancy`     | Tenants, memberships, tenant scope on models, `tenant` mw.                           |
-| `access`      | Roles, grants, invitations, platform admins, the `can` Bouncer ability.              |
-| `audit`       | Reading and pruning the trail; which permission opens which history.                 |
-| `admin`       | Platform admin area: tenants, users, suspend, disable, impersonate.                  |
+| Module | Owns |
+| --- | --- |
+| `core` | Exception handler, global middleware, `apiRoutes`, health checks, audit recorder. |
+| `users` | `User` identity: model, transformer, access tokens, profile, locale, timezone. |
+| `auth` | Sign-up, login, two-factor, sessions, password reset, email verification, `auth` mw. |
+| `attachments` | Uploads, signed URLs, the claim service, pruning. |
+| `tenancy` | Tenants, memberships, tenant scope on models, `tenant` mw. |
+| `access` | Roles, grants, invitations, platform admins, the `can` Bouncer ability. |
+| `audit` | Reading and pruning the trail; which permission opens which history. |
+| `admin` | Platform admin area: tenants, users, suspend, disable, impersonate. |
 
 ## Starting a new module or feature
 
@@ -187,9 +187,10 @@ A `platform_admins` row **plus confirmed two-factor** passes every check everywh
 If the listener throws, the tenant exists without an Owner. Fix from `node ace repl`, with the creator's locale:
 
 ```ts
-await import('#access/actions/seed_tenant_owner').then(({ default: SeedTenantOwner }) =>
-  new SeedTenantOwner().handle({ tenantId, creatorId, locale: 'en-US' }),
-)
+await import('#access/actions/seed_tenant_owner').then(
+  ({ default: SeedTenantOwner }) =>
+    new SeedTenantOwner().handle({ tenantId, creatorId, locale: 'en-US' })
+);
 ```
 
 ## Mail
@@ -221,7 +222,7 @@ A 2xx `POST`/`PUT`/`PATCH`/`DELETE` without an event fails: 500 `E_UNAUDITED_WRI
   ```ts
   router
     .post('webhooks/provider/:kind', [ProviderWebhooks, 'store'])
-    .use(middleware.unaudited({ reason: 'provider_callback' }))
+    .use(middleware.unaudited({ reason: 'provider_callback' }));
   ```
 
   Reasons: `UnauditedReason` in `#core/audit/scope`. Add the route to the expected list in `unaudited_routes.spec.ts`; it must not sit behind `auth` or `tenant`.

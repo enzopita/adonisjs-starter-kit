@@ -1,26 +1,32 @@
-import { Button } from '@monorepo/ui/components/button'
-import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
-import { t } from '@/features/core/i18n'
+import { Button } from '@monorepo/ui/components/button';
+import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react';
 
-type Metadata = { currentPage: number; lastPage: number; perPage: number; total: number }
+import { t } from '@/features/core/i18n';
+
+type Metadata = {
+  currentPage: number;
+  lastPage: number;
+  perPage: number;
+  total: number;
+};
 
 export function Pagination({
   metadata,
   onPageChange,
 }: {
-  metadata: Metadata
-  onPageChange: (page: number) => void
+  metadata: Metadata;
+  onPageChange: (page: number) => void;
 }) {
-  const { currentPage, lastPage, perPage, total } = metadata
+  const { currentPage, lastPage, perPage, total } = metadata;
 
-  if (lastPage <= 1) return null
+  if (lastPage <= 1) return null;
 
   return (
     <nav
       aria-label={t('core.pagination.label')}
       className="flex flex-wrap items-center justify-between gap-3 border-t pt-3"
     >
-      <span className="text-xs text-muted-foreground">
+      <span className="text-muted-foreground text-xs">
         {t('core.pagination.range', {
           from: (currentPage - 1) * perPage + 1,
           to: Math.min(currentPage * perPage, total),
@@ -37,7 +43,7 @@ export function Pagination({
           <ChevronLeftIcon data-icon="inline-start" />
           {t('core.pagination.previous')}
         </Button>
-        <span className="text-xs text-muted-foreground">
+        <span className="text-muted-foreground text-xs">
           {t('core.pagination.page', { page: currentPage, pages: lastPage })}
         </span>
         <Button
@@ -51,5 +57,5 @@ export function Pagination({
         </Button>
       </div>
     </nav>
-  )
+  );
 }

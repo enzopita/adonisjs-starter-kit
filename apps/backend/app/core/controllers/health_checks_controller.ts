@@ -1,5 +1,6 @@
-import { healthChecks } from '#start/health'
-import type { HttpContext } from '@adonisjs/core/http'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import { healthChecks } from '#start/health';
 
 /**
  * @tags Health
@@ -11,7 +12,7 @@ export default class HealthChecksController {
    * Answers `200` as long as the process can serve requests. Checks no dependencies.
    */
   async live({ serialize }: HttpContext) {
-    return serialize({ status: 'ok' as const })
+    return serialize({ status: 'ok' as const });
   }
 
   /**
@@ -24,12 +25,12 @@ export default class HealthChecksController {
    * @response {401} The X-Monitoring-Secret header is missing or wrong
    */
   async ready({ response, serialize }: HttpContext) {
-    const report = await healthChecks.run()
+    const report = await healthChecks.run();
 
     if (!report.isHealthy) {
-      return response.serviceUnavailable(await serialize(report))
+      return response.serviceUnavailable(await serialize(report));
     }
 
-    return serialize(report)
+    return serialize(report);
   }
 }

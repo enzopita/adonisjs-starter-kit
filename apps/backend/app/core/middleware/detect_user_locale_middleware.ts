@@ -1,7 +1,7 @@
-import { I18n } from '@adonisjs/i18n'
-import i18nManager from '@adonisjs/i18n/services/main'
-import type { NextFn } from '@adonisjs/core/types/http'
-import { type HttpContext, RequestValidator } from '@adonisjs/core/http'
+import { type HttpContext, RequestValidator } from '@adonisjs/core/http';
+import type { NextFn } from '@adonisjs/core/types/http';
+import { I18n } from '@adonisjs/i18n';
+import i18nManager from '@adonisjs/i18n/services/main';
 
 /**
  * Answers each request in the supported locale that best matches its Accept-Language header,
@@ -10,23 +10,26 @@ import { type HttpContext, RequestValidator } from '@adonisjs/core/http'
  */
 export default class DetectUserLocaleMiddleware {
   static {
-    RequestValidator.messagesProvider = ctx => ctx.i18n.createMessagesProvider()
+    RequestValidator.messagesProvider = (ctx) =>
+      ctx.i18n.createMessagesProvider();
   }
 
   async handle(ctx: HttpContext, next: NextFn) {
     const locale = i18nManager.getSupportedLocaleFor(
-      ctx.request.languages().flatMap(language => [language, language.split('-')[0] ?? language]),
-    )
+      ctx.request
+        .languages()
+        .flatMap((language) => [language, language.split('-')[0] ?? language])
+    );
 
-    ctx.i18n = i18nManager.locale(locale ?? i18nManager.defaultLocale)
-    ctx.containerResolver.bindValue(I18n, ctx.i18n)
+    ctx.i18n = i18nManager.locale(locale ?? i18nManager.defaultLocale);
+    ctx.containerResolver.bindValue(I18n, ctx.i18n);
 
-    return next()
+    return next();
   }
 }
 
 declare module '@adonisjs/core/http' {
   export interface HttpContext {
-    i18n: I18n
+    i18n: I18n;
   }
 }

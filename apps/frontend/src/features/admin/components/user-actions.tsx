@@ -1,6 +1,6 @@
-import { Badge } from '@monorepo/ui/components/badge'
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { Badge } from '@monorepo/ui/components/badge';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { useNavigate } from '@tanstack/react-router';
 import {
   BanIcon,
   CircleCheckIcon,
@@ -8,115 +8,129 @@ import {
   ShieldMinusIcon,
   ShieldPlusIcon,
   VenetianMaskIcon,
-} from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { RowActionsMenu } from '@/features/admin/components/row-actions-menu'
-import type { RowAction } from '@/features/admin/components/row-actions-menu'
-import { queries } from '@/features/core/api'
-import { ConfirmDialog } from '@/features/core/components/confirm-dialog'
-import { displayName } from '@/features/core/display-name'
-import { errorMessage } from '@/features/core/errors'
-import { t } from '@/features/core/i18n'
-import { session } from '@/features/core/session'
-import { profileQuery } from '@/features/users/profile'
+} from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
+
+import { RowActionsMenu } from '@/features/admin/components/row-actions-menu';
+import type { RowAction } from '@/features/admin/components/row-actions-menu';
+import { queries } from '@/features/core/api';
+import { ConfirmDialog } from '@/features/core/components/confirm-dialog';
+import { displayName } from '@/features/core/display-name';
+import { errorMessage } from '@/features/core/errors';
+import { t } from '@/features/core/i18n';
+import { session } from '@/features/core/session';
+import { profileQuery } from '@/features/users/profile';
 
 export type AdminUserRow = {
-  user: { id: string; email: string; fullName: string | null; twoFactorEnabled: boolean }
-  disabledAt: string | null
-  platformAdmin: boolean
-}
+  user: {
+    id: string;
+    email: string;
+    fullName: string | null;
+    twoFactorEnabled: boolean;
+  };
+  disabledAt: string | null;
+  platformAdmin: boolean;
+};
 
 export function UserStatus({ row }: { row: AdminUserRow }) {
-  if (row.platformAdmin) return <Badge variant="secondary">{t('admin.userActions.admin')}</Badge>
+  if (row.platformAdmin)
+    return <Badge variant="secondary">{t('admin.userActions.admin')}</Badge>;
 
-  if (row.disabledAt) return <Badge variant="destructive">{t('admin.userActions.disabled')}</Badge>
+  if (row.disabledAt)
+    return (
+      <Badge variant="destructive">{t('admin.userActions.disabled')}</Badge>
+    );
 
-  return <Badge variant="outline">{t('admin.userActions.active')}</Badge>
+  return <Badge variant="outline">{t('admin.userActions.active')}</Badge>;
 }
 
 export function TwoFactorStatus({ row }: { row: AdminUserRow }) {
   if (row.user.twoFactorEnabled) {
-    return <Badge variant="outline">{t('admin.usersPage.twoFactorOn')}</Badge>
+    return <Badge variant="outline">{t('admin.usersPage.twoFactorOn')}</Badge>;
   }
 
-  return <span className="text-muted-foreground">{t('admin.usersPage.twoFactorOff')}</span>
+  return (
+    <span className="text-muted-foreground">
+      {t('admin.usersPage.twoFactorOff')}
+    </span>
+  );
 }
 
-type Confirming = 'disable' | 'grant' | 'revoke' | 'resetTwoFactor' | null
+type Confirming = 'disable' | 'grant' | 'revoke' | 'resetTwoFactor' | null;
 
 /** A platform admin can only lose the role, and never from themself: the API refuses the rest. */
 export function UserActions({ row }: { row: AdminUserRow }) {
-  const name = displayName(row.user)
-  const navigate = useNavigate()
-  const { data: me } = useSuspenseQuery(profileQuery())
-  const [confirming, setConfirming] = useState<Confirming>(null)
+  const name = displayName(row.user);
+  const navigate = useNavigate();
+  const { data: me } = useSuspenseQuery(profileQuery());
+  const [confirming, setConfirming] = useState<Confirming>(null);
 
   const closeDialog = (open: boolean) => {
-    if (!open) setConfirming(null)
-  }
+    if (!open) setConfirming(null);
+  };
 
   const impersonate = useMutation(
     queries.admin.impersonations.store.mutationOptions({
       onSuccess: async ({ data }) => {
-        session.impersonate(data.token)
-        await navigate({ to: '/' })
+        session.impersonate(data.token);
+        await navigate({ to: '/' });
       },
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   const enable = useMutation(
     queries.admin.userSuspensions.destroy.mutationOptions({
       onSuccess: () => toast.success(t('admin.userActions.enabled', { name })),
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   const disable = useMutation(
     queries.admin.userSuspensions.store.mutationOptions({
       onSuccess: () => {
-        setConfirming(null)
-        toast.success(t('admin.userActions.disabledToast', { name }))
+        setConfirming(null);
+        toast.success(t('admin.userActions.disabledToast', { name }));
       },
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   const grant = useMutation(
     queries.admin.platformAdmins.store.mutationOptions({
       onSuccess: () => {
-        setConfirming(null)
-        toast.success(t('admin.userActions.madeAdmin', { name }))
+        setConfirming(null);
+        toast.success(t('admin.userActions.madeAdmin', { name }));
       },
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   const revoke = useMutation(
     queries.admin.platformAdmins.destroy.mutationOptions({
       onSuccess: () => {
-        setConfirming(null)
-        toast.success(t('admin.userActions.removedAdmin', { name }))
+        setConfirming(null);
+        toast.success(t('admin.userActions.removedAdmin', { name }));
       },
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   const resetTwoFactor = useMutation(
     queries.admin.twoFactorResets.destroy.mutationOptions({
       onSuccess: () => {
-        setConfirming(null)
-        toast.success(t('admin.userActions.resetTwoFactorToast', { name }))
+        setConfirming(null);
+        toast.success(t('admin.userActions.resetTwoFactorToast', { name }));
       },
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
-  const params = { params: { id: row.user.id } }
-  const isSelf = row.user.id === me.data.id
+  const params = { params: { id: row.user.id } };
+  const isSelf = row.user.id === me.data.id;
 
-  if (row.platformAdmin && isSelf) return null
+  if (row.platformAdmin && isSelf) return null;
 
   // The API refuses a platform admin's (`node ace admin:reset-two-factor` covers them) and a
   // disabled user's.
@@ -130,7 +144,7 @@ export function UserActions({ row }: { row: AdminUserRow }) {
           onSelect: () => setConfirming('resetTwoFactor'),
         },
       ]
-    : []
+    : [];
 
   function rowActions(): RowAction[] {
     if (row.platformAdmin) {
@@ -142,7 +156,7 @@ export function UserActions({ row }: { row: AdminUserRow }) {
           destructive: true,
           onSelect: () => setConfirming('revoke'),
         },
-      ]
+      ];
     }
 
     if (row.disabledAt) {
@@ -154,7 +168,7 @@ export function UserActions({ row }: { row: AdminUserRow }) {
           disabled: enable.isPending,
           onSelect: () => enable.mutate(params),
         },
-      ]
+      ];
     }
 
     return [
@@ -179,14 +193,17 @@ export function UserActions({ row }: { row: AdminUserRow }) {
         destructive: true,
         onSelect: () => setConfirming('disable'),
       },
-    ]
+    ];
   }
 
-  const actions = rowActions()
+  const actions = rowActions();
 
   return (
     <div className="flex justify-end">
-      <RowActionsMenu label={t('admin.userActions.actionsFor', { name })} actions={actions} />
+      <RowActionsMenu
+        label={t('admin.userActions.actionsFor', { name })}
+        actions={actions}
+      />
 
       <ConfirmDialog
         open={confirming === 'revoke'}
@@ -225,5 +242,5 @@ export function UserActions({ row }: { row: AdminUserRow }) {
         onConfirm={() => disable.mutate(params)}
       />
     </div>
-  )
+  );
 }

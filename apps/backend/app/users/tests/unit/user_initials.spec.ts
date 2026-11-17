@@ -1,5 +1,6 @@
-import { test } from '@japa/runner'
-import User from '#users/models/user'
+import { test } from '@japa/runner';
+
+import User from '#users/models/user';
 
 // Regression: a user without a name shows the first letter of their email's domain.
 test.group('Users | initials', () => {
@@ -10,6 +11,6 @@ test.group('Users | initials', () => {
       { fullName: 'Ada', email: 'countess@example.com', initials: 'AD' },
     ])
     .run(({ assert }, { fullName, email, initials }) => {
-      assert.equal(new User().merge({ fullName, email }).initials, initials)
-    })
-})
+      assert.equal(new User().merge({ fullName, email }).initials, initials);
+    });
+});

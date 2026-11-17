@@ -1,13 +1,15 @@
-import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query'
-import { TuyauError } from '@tuyau/core/client'
-import { session } from '@/features/core/session'
+import { MutationCache, QueryCache, QueryClient } from '@tanstack/react-query';
+import { TuyauError } from '@tuyau/core/client';
+
+import { session } from '@/features/core/session';
 
 /**
  * A token the API no longer accepts (expired, revoked elsewhere) is a signed-out session. An
  * expired impersonation returns the admin to their own session instead.
  */
 function signOutOnUnauthorized(error: Error) {
-  if (error instanceof TuyauError && error.status === 401) session.stopImpersonating()
+  if (error instanceof TuyauError && error.status === 401)
+    session.stopImpersonating();
 }
 
 export const queryClient: QueryClient = new QueryClient({
@@ -21,4 +23,4 @@ export const queryClient: QueryClient = new QueryClient({
   defaultOptions: {
     queries: { staleTime: 30_000, retry: false },
   },
-})
+});

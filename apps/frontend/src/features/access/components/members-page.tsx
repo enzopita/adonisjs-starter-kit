@@ -1,5 +1,5 @@
-import { Badge } from '@monorepo/ui/components/badge'
-import { Button } from '@monorepo/ui/components/button'
+import { Badge } from '@monorepo/ui/components/badge';
+import { Button } from '@monorepo/ui/components/button';
 import {
   Table,
   TableBody,
@@ -7,49 +7,60 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@monorepo/ui/components/table'
-import { useSuspenseQueries } from '@tanstack/react-query'
-import { HistoryIcon, KeyRoundIcon } from 'lucide-react'
-import { useState } from 'react'
-import { MemberGrantsDialog } from '@/features/access/components/member-grants-dialog'
-import { MemberRoleSelect } from '@/features/access/components/member-role-select'
-import { RequirePermission } from '@/features/access/components/require-permission'
-import { permissionLabel } from '@/features/access/permissions'
-import { membersQuery, permissionCatalogQuery, rolesQuery } from '@/features/access/queries'
-import { AuditHistoryDialog } from '@/features/audit/components/audit-history-dialog'
-import type { api } from '@/features/core/api'
-import { PageHeader } from '@/features/core/components/page-header'
-import { displayName } from '@/features/core/display-name'
-import { t } from '@/features/core/i18n'
-import { useActiveTenant } from '@/features/tenancy/workspace'
-import { UserAvatar } from '@/features/users/components/user-avatar'
-import { profileQuery } from '@/features/users/profile'
+} from '@monorepo/ui/components/table';
+import { useSuspenseQueries } from '@tanstack/react-query';
+import { HistoryIcon, KeyRoundIcon } from 'lucide-react';
+import { useState } from 'react';
 
-type Member = Awaited<ReturnType<typeof api.access.members.index>>['data']['members'][number]
+import { MemberGrantsDialog } from '@/features/access/components/member-grants-dialog';
+import { MemberRoleSelect } from '@/features/access/components/member-role-select';
+import { RequirePermission } from '@/features/access/components/require-permission';
+import { permissionLabel } from '@/features/access/permissions';
+import {
+  membersQuery,
+  permissionCatalogQuery,
+  rolesQuery,
+} from '@/features/access/queries';
+import { AuditHistoryDialog } from '@/features/audit/components/audit-history-dialog';
+import type { api } from '@/features/core/api';
+import { PageHeader } from '@/features/core/components/page-header';
+import { displayName } from '@/features/core/display-name';
+import { t } from '@/features/core/i18n';
+import { useActiveTenant } from '@/features/tenancy/workspace';
+import { UserAvatar } from '@/features/users/components/user-avatar';
+import { profileQuery } from '@/features/users/profile';
+
+type Member = Awaited<
+  ReturnType<typeof api.access.members.index>
+>['data']['members'][number];
 
 export function MembersPage() {
   return (
     <RequirePermission permission="members.manage">
       <Members />
     </RequirePermission>
-  )
+  );
 }
 
 function Members() {
-  const { id: tenantId } = useActiveTenant()
+  const { id: tenantId } = useActiveTenant();
 
-  const [{ data: members }, { data: roles }, { data: catalog }, { data: user }] =
-    useSuspenseQueries({
-      queries: [
-        membersQuery(tenantId),
-        rolesQuery(tenantId),
-        permissionCatalogQuery(tenantId),
-        profileQuery(),
-      ],
-    })
+  const [
+    { data: members },
+    { data: roles },
+    { data: catalog },
+    { data: user },
+  ] = useSuspenseQueries({
+    queries: [
+      membersQuery(tenantId),
+      rolesQuery(tenantId),
+      permissionCatalogQuery(tenantId),
+      profileQuery(),
+    ],
+  });
 
-  const [editing, setEditing] = useState<Member | null>(null)
-  const [viewingHistory, setViewingHistory] = useState<Member | null>(null)
+  const [editing, setEditing] = useState<Member | null>(null);
+  const [viewingHistory, setViewingHistory] = useState<Member | null>(null);
 
   return (
     <>
@@ -70,8 +81,8 @@ function Members() {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {members.data.members.map(member => {
-            const name = displayName(member.user)
+          {members.data.members.map((member) => {
+            const name = displayName(member.user);
 
             return (
               <TableRow key={member.user.id}>
@@ -82,10 +93,14 @@ function Members() {
                       <span className="flex items-center gap-1.5 truncate font-medium">
                         {name}
                         {member.user.id === user.data.id && (
-                          <Badge variant="outline">{t('access.membersPage.you')}</Badge>
+                          <Badge variant="outline">
+                            {t('access.membersPage.you')}
+                          </Badge>
                         )}
                       </span>
-                      <span className="truncate text-muted-foreground">{member.user.email}</span>
+                      <span className="text-muted-foreground truncate">
+                        {member.user.email}
+                      </span>
                     </div>
                   </div>
                 </TableCell>
@@ -101,14 +116,18 @@ function Members() {
                 <TableCell>
                   {member.permissions.length > 0 ? (
                     <ul className="flex flex-wrap gap-1">
-                      {member.permissions.map(permission => (
+                      {member.permissions.map((permission) => (
                         <li key={permission}>
-                          <Badge variant="secondary">{permissionLabel(permission).label}</Badge>
+                          <Badge variant="secondary">
+                            {permissionLabel(permission).label}
+                          </Badge>
                         </li>
                       ))}
                     </ul>
                   ) : (
-                    <span className="text-muted-foreground">{t('access.membersPage.none')}</span>
+                    <span className="text-muted-foreground">
+                      {t('access.membersPage.none')}
+                    </span>
                   )}
                 </TableCell>
                 <TableCell>
@@ -124,7 +143,9 @@ function Members() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={t('access.membersPage.editPermissionsFor', { name })}
+                      aria-label={t('access.membersPage.editPermissionsFor', {
+                        name,
+                      })}
                       onClick={() => setEditing(member)}
                     >
                       <KeyRoundIcon />
@@ -132,7 +153,7 @@ function Members() {
                   </div>
                 </TableCell>
               </TableRow>
-            )
+            );
           })}
         </TableBody>
       </Table>
@@ -148,7 +169,7 @@ function Members() {
           groups={catalog.data.groups}
           tenantId={tenantId}
           open
-          onOpenChange={open => !open && setEditing(null)}
+          onOpenChange={(open) => !open && setEditing(null)}
         />
       )}
 
@@ -158,11 +179,11 @@ function Members() {
           subject={{ type: 'member', id: viewingHistory.user.id }}
           name={displayName(viewingHistory.user)}
           tenantId={tenantId}
-          permissionLabel={key => permissionLabel(key).label}
+          permissionLabel={(key) => permissionLabel(key).label}
           open
-          onOpenChange={open => !open && setViewingHistory(null)}
+          onOpenChange={(open) => !open && setViewingHistory(null)}
         />
       )}
     </>
-  )
+  );
 }

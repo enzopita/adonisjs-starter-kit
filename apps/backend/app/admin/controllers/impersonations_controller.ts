@@ -1,9 +1,10 @@
-import { can } from '#access/abilities'
-import { PERMISSIONS } from '#access/permissions'
-import type { HttpContext } from '@adonisjs/core/http'
-import { userParamsValidator } from '#admin/validators/user'
-import ImpersonateUser from '#admin/actions/impersonate_user'
-import UserTransformer from '#users/transformers/user_transformer'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import { can } from '#access/abilities';
+import { PERMISSIONS } from '#access/permissions';
+import ImpersonateUser from '#admin/actions/impersonate_user';
+import { userParamsValidator } from '#admin/validators/user';
+import UserTransformer from '#users/transformers/user_transformer';
 
 /**
  * @tags Admin
@@ -20,17 +21,17 @@ export default class ImpersonationsController {
    * @response {404} User not found
    */
   async store({ auth, bouncer, request, serialize }: HttpContext) {
-    await bouncer.authorize(can, PERMISSIONS.platformAdmin)
-    const { params } = await request.validateUsing(userParamsValidator)
+    await bouncer.authorize(can, PERMISSIONS.platformAdmin);
+    const { params } = await request.validateUsing(userParamsValidator);
 
     const { user, token } = await new ImpersonateUser().handle({
       id: params.id,
       impersonatorId: auth.getUserOrFail().id,
-    })
+    });
 
     return serialize({
       user: UserTransformer.transform(user),
       token: token.value!.release(),
-    })
+    });
   }
 }

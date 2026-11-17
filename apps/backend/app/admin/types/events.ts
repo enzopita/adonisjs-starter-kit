@@ -1,12 +1,12 @@
 export interface TwoFactorReset {
-  email: string
+  email: string;
   /** The raw password reset token, for the mailed link only. */
-  token: string
-  locale: string
+  token: string;
+  locale: string;
 }
 
 declare module '@adonisjs/core/types' {
   interface EventsList {
-    'admin:two_factor_reset': TwoFactorReset
+    'admin:two_factor_reset': TwoFactorReset;
   }
 }

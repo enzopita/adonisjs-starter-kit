@@ -6,7 +6,12 @@ services:
     image: ${APP_NAME}-backend:latest
     # queue:migrate upgrades the queue's Redis storage after a breaking @adonisjs/queue release, and is a
     # no-op otherwise. The backend fails to boot on schedules left in an older format.
-    command: ['sh', '-c', 'node ace migration:run --force && node ace queue:migrate --force']
+    command:
+      [
+        'sh',
+        '-c',
+        'node ace migration:run --force && node ace queue:migrate --force',
+      ]
     env_file: .env
     restart: 'no'
 

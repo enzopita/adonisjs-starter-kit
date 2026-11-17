@@ -1,8 +1,9 @@
-import Tenant from '#tenancy/models/tenant'
-import type { HttpContext } from '@adonisjs/core/http'
-import CreateTenant from '#tenancy/actions/create_tenant'
-import { createTenantValidator } from '#tenancy/validators/tenant'
-import TenantTransformer from '#tenancy/transformers/tenant_transformer'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import CreateTenant from '#tenancy/actions/create_tenant';
+import Tenant from '#tenancy/models/tenant';
+import TenantTransformer from '#tenancy/transformers/tenant_transformer';
+import { createTenantValidator } from '#tenancy/validators/tenant';
 
 /**
  * @tags Tenants
@@ -15,13 +16,15 @@ export default class TenantsController {
    * by name. Send a tenant's id in the X-Tenant-Id header to act inside it.
    */
   async index({ auth, serialize }: HttpContext) {
-    const userId = auth.getUserOrFail().id
+    const userId = auth.getUserOrFail().id;
 
     const tenants = await Tenant.query()
-      .whereHas('memberships', memberships => memberships.where('user_id', userId))
-      .orderBy('name')
+      .whereHas('memberships', (memberships) =>
+        memberships.where('user_id', userId)
+      )
+      .orderBy('name');
 
-    return serialize(TenantTransformer.transform(tenants))
+    return serialize(TenantTransformer.transform(tenants));
   }
 
   /**
@@ -31,14 +34,14 @@ export default class TenantsController {
    * permission, named in the request's language.
    */
   async store({ request, auth, i18n, serialize }: HttpContext) {
-    const { name } = await request.validateUsing(createTenantValidator)
+    const { name } = await request.validateUsing(createTenantValidator);
 
     const tenant = await new CreateTenant().handle({
       name,
       creatorId: auth.getUserOrFail().id,
       locale: i18n.locale,
-    })
+    });
 
-    return serialize(TenantTransformer.transform(tenant))
+    return serialize(TenantTransformer.transform(tenant));
   }
 }

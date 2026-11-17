@@ -1,13 +1,13 @@
-import { Alert, AlertDescription } from '@monorepo/ui/components/alert'
-import { Badge } from '@monorepo/ui/components/badge'
-import { Button } from '@monorepo/ui/components/button'
+import { Alert, AlertDescription } from '@monorepo/ui/components/alert';
+import { Badge } from '@monorepo/ui/components/badge';
+import { Button } from '@monorepo/ui/components/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@monorepo/ui/components/card'
+} from '@monorepo/ui/components/card';
 import {
   Dialog,
   DialogContent,
@@ -15,40 +15,42 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@monorepo/ui/components/dialog'
-import { Skeleton } from '@monorepo/ui/components/skeleton'
-import { useMutation, useQuery } from '@tanstack/react-query'
-import { CircleAlertIcon, ShieldCheckIcon } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { queries } from '@/features/core/api'
-import { PendingButton } from '@/features/core/components/pending-button'
-import { errorMessage } from '@/features/core/errors'
-import { t } from '@/features/core/i18n'
-import { useAppForm, withFormErrors } from '@/features/core/form'
-import { TwoFactorEnrollCard } from '@/features/auth/components/two-factor-enroll-card'
-import { TwoFactorRecoveryCodesCard } from '@/features/auth/components/two-factor-recovery-codes-card'
-import { twoFactorQuery } from '@/features/auth/two-factor'
+} from '@monorepo/ui/components/dialog';
+import { Skeleton } from '@monorepo/ui/components/skeleton';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { CircleAlertIcon, ShieldCheckIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-type Enrollment = { secret: string; uri: string }
+import { TwoFactorEnrollCard } from '@/features/auth/components/two-factor-enroll-card';
+import { TwoFactorRecoveryCodesCard } from '@/features/auth/components/two-factor-recovery-codes-card';
+import { twoFactorQuery } from '@/features/auth/two-factor';
+import { queries } from '@/features/core/api';
+import { PendingButton } from '@/features/core/components/pending-button';
+import { errorMessage } from '@/features/core/errors';
+import { useAppForm, withFormErrors } from '@/features/core/form';
+import { t } from '@/features/core/i18n';
+
+type Enrollment = { secret: string; uri: string };
 
 /** Shown once, right after confirming or regenerating; only confirming also signs out other sessions. */
-type RevealedRecoveryCodes = { codes: string[]; warnOtherSessions: boolean }
+type RevealedRecoveryCodes = { codes: string[]; warnOtherSessions: boolean };
 
 /** Two-factor status and its enroll, disable and regenerate flows, for the profile page. */
 export function TwoFactorCard() {
-  const status = useQuery(twoFactorQuery())
-  const [enrollment, setEnrollment] = useState<Enrollment | null>(null)
-  const [recoveryCodes, setRecoveryCodes] = useState<RevealedRecoveryCodes | null>(null)
-  const [disableOpen, setDisableOpen] = useState(false)
-  const [regenerateOpen, setRegenerateOpen] = useState(false)
+  const status = useQuery(twoFactorQuery());
+  const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
+  const [recoveryCodes, setRecoveryCodes] =
+    useState<RevealedRecoveryCodes | null>(null);
+  const [disableOpen, setDisableOpen] = useState(false);
+  const [regenerateOpen, setRegenerateOpen] = useState(false);
 
   const start = useMutation(
     queries.profile.twoFactor.store.mutationOptions({
       onSuccess: ({ data }) => setEnrollment(data),
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   if (recoveryCodes) {
     return (
@@ -57,7 +59,7 @@ export function TwoFactorCard() {
         warnOtherSessions={recoveryCodes.warnOtherSessions}
         onDone={() => setRecoveryCodes(null)}
       />
-    )
+    );
   }
 
   if (enrollment) {
@@ -65,13 +67,13 @@ export function TwoFactorCard() {
       <TwoFactorEnrollCard
         secret={enrollment.secret}
         uri={enrollment.uri}
-        onConfirmed={codes => {
-          setEnrollment(null)
-          setRecoveryCodes({ codes, warnOtherSessions: true })
+        onConfirmed={(codes) => {
+          setEnrollment(null);
+          setRecoveryCodes({ codes, warnOtherSessions: true });
         }}
         onCancel={() => setEnrollment(null)}
       />
-    )
+    );
   }
 
   return (
@@ -100,7 +102,7 @@ export function TwoFactorCard() {
                   <ShieldCheckIcon data-icon="inline-start" />
                   {t('auth.twoFactorCard.enabled')}
                 </Badge>
-                <span className="text-xs text-muted-foreground">
+                <span className="text-muted-foreground text-xs">
                   {t('auth.twoFactorCard.recoveryCodesLeft', {
                     count: status.data.data.recoveryCodesLeft,
                   })}
@@ -127,71 +129,83 @@ export function TwoFactorCard() {
             </div>
           ) : (
             <div className="flex flex-col gap-4">
-              <p className="text-xs text-muted-foreground">
+              <p className="text-muted-foreground text-xs">
                 {t('auth.twoFactorCard.offExplanation')}
               </p>
               <div>
-                <PendingButton pending={start.isPending} onClick={() => start.mutate({})}>
+                <PendingButton
+                  pending={start.isPending}
+                  onClick={() => start.mutate({})}
+                >
                   {t('auth.twoFactorCard.enable')}
                 </PendingButton>
               </div>
             </div>
           ))}
 
-        {disableOpen && <DisableTwoFactorDialog open onOpenChange={setDisableOpen} />}
+        {disableOpen && (
+          <DisableTwoFactorDialog open onOpenChange={setDisableOpen} />
+        )}
         {regenerateOpen && (
           <RegenerateRecoveryCodesDialog
             open
             onOpenChange={setRegenerateOpen}
-            onRegenerated={codes => {
-              setRegenerateOpen(false)
-              setRecoveryCodes({ codes, warnOtherSessions: false })
+            onRegenerated={(codes) => {
+              setRegenerateOpen(false);
+              setRecoveryCodes({ codes, warnOtherSessions: false });
             }}
           />
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 function DisableTwoFactorDialog({
   open,
   onOpenChange,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
-  const disable = useMutation(queries.profile.twoFactor.destroy.mutationOptions())
-  const [useRecoveryCode, setUseRecoveryCode] = useState(false)
+  const disable = useMutation(
+    queries.profile.twoFactor.destroy.mutationOptions()
+  );
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
   const form = useAppForm({
     defaultValues: { password: '', code: '', recoveryCode: '' },
     onSubmit: async ({ value, formApi }) => {
       const body = useRecoveryCode
         ? { password: value.password, recoveryCode: value.recoveryCode }
-        : { password: value.password, code: value.code }
+        : { password: value.password, code: value.code };
 
-      const disabled = await withFormErrors(formApi, disable.mutateAsync({ body }))
+      const disabled = await withFormErrors(
+        formApi,
+        disable.mutateAsync({ body })
+      );
 
-      if (!disabled) return
+      if (!disabled) return;
 
-      onOpenChange(false)
-      toast.success(t('auth.twoFactorCard.disabled'))
+      onOpenChange(false);
+      toast.success(t('auth.twoFactorCard.disabled'));
     },
-  })
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent closeLabel={t('auth.twoFactorCard.close')}>
         <DialogHeader>
           <DialogTitle>{t('auth.twoFactorCard.disableTitle')}</DialogTitle>
-          <DialogDescription>{t('auth.twoFactorCard.disableDescription')}</DialogDescription>
+          <DialogDescription>
+            {t('auth.twoFactorCard.disableDescription')}
+          </DialogDescription>
         </DialogHeader>
         <form.AppForm>
           <form.Form className="flex flex-col gap-4">
             <form.FormAlert />
             <form.AppField name="password">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.twoFactorCard.password')}
                   type="password"
@@ -202,7 +216,7 @@ function DisableTwoFactorDialog({
             </form.AppField>
             {useRecoveryCode ? (
               <form.AppField name="recoveryCode">
-                {field => (
+                {(field) => (
                   <field.TextField
                     label={t('auth.twoFactorCard.recoveryCode')}
                     autoComplete="off"
@@ -212,7 +226,7 @@ function DisableTwoFactorDialog({
               </form.AppField>
             ) : (
               <form.AppField name="code">
-                {field => (
+                {(field) => (
                   <field.TextField
                     label={t('auth.twoFactorCard.code')}
                     autoComplete="one-time-code"
@@ -224,8 +238,8 @@ function DisableTwoFactorDialog({
             )}
             <button
               type="button"
-              onClick={() => setUseRecoveryCode(value => !value)}
-              className="self-start text-xs text-muted-foreground underline underline-offset-4"
+              onClick={() => setUseRecoveryCode((value) => !value)}
+              className="text-muted-foreground self-start text-xs underline underline-offset-4"
             >
               {useRecoveryCode
                 ? t('auth.twoFactorCard.useCode')
@@ -240,7 +254,7 @@ function DisableTwoFactorDialog({
         </form.AppForm>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
 
 function RegenerateRecoveryCodesDialog({
@@ -248,35 +262,40 @@ function RegenerateRecoveryCodesDialog({
   onOpenChange,
   onRegenerated,
 }: {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  onRegenerated: (recoveryCodes: string[]) => void
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onRegenerated: (recoveryCodes: string[]) => void;
 }) {
   const regenerate = useMutation(
-    queries.profile.twoFactor.regenerateRecoveryCodes.mutationOptions(),
-  )
+    queries.profile.twoFactor.regenerateRecoveryCodes.mutationOptions()
+  );
 
   const form = useAppForm({
     defaultValues: { password: '', code: '' },
     onSubmit: async ({ value, formApi }) => {
-      const regenerated = await withFormErrors(formApi, regenerate.mutateAsync({ body: value }))
+      const regenerated = await withFormErrors(
+        formApi,
+        regenerate.mutateAsync({ body: value })
+      );
 
-      if (regenerated) onRegenerated(regenerated.data.recoveryCodes)
+      if (regenerated) onRegenerated(regenerated.data.recoveryCodes);
     },
-  })
+  });
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent closeLabel={t('auth.twoFactorCard.close')}>
         <DialogHeader>
           <DialogTitle>{t('auth.twoFactorCard.regenerateTitle')}</DialogTitle>
-          <DialogDescription>{t('auth.twoFactorCard.regenerateDescription')}</DialogDescription>
+          <DialogDescription>
+            {t('auth.twoFactorCard.regenerateDescription')}
+          </DialogDescription>
         </DialogHeader>
         <form.AppForm>
           <form.Form className="flex flex-col gap-4">
             <form.FormAlert />
             <form.AppField name="password">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.twoFactorCard.password')}
                   type="password"
@@ -286,7 +305,7 @@ function RegenerateRecoveryCodesDialog({
               )}
             </form.AppField>
             <form.AppField name="code">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.twoFactorCard.code')}
                   autoComplete="one-time-code"
@@ -296,11 +315,13 @@ function RegenerateRecoveryCodesDialog({
               )}
             </form.AppField>
             <DialogFooter>
-              <form.SubmitButton>{t('auth.twoFactorCard.regenerate')}</form.SubmitButton>
+              <form.SubmitButton>
+                {t('auth.twoFactorCard.regenerate')}
+              </form.SubmitButton>
             </DialogFooter>
           </form.Form>
         </form.AppForm>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

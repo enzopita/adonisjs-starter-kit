@@ -1,8 +1,9 @@
-import env from '#start/env'
-import { defineConfig } from '@enzopita/adonisjs-openapi'
+import { defineConfig } from '@enzopita/adonisjs-openapi';
+
+import env from '#start/env';
 
 const TENANT_HEADER =
-  'Every operation here runs inside the tenant named by the `X-Tenant-Id` header.'
+  'Every operation here runs inside the tenant named by the `X-Tenant-Id` header.';
 
 export default defineConfig({
   output: 'openapi.json',
@@ -17,27 +18,52 @@ export default defineConfig({
       ].join('\n\n'),
     },
     tags: [
-      { name: 'Auth', description: 'Sign up, sign in, and recover access to an account.' },
+      {
+        name: 'Auth',
+        description: 'Sign up, sign in, and recover access to an account.',
+      },
       {
         name: 'Account',
-        description: "The signed-in user's profile, avatar, email verification, and activity.",
+        description:
+          "The signed-in user's profile, avatar, email verification, and activity.",
       },
-      { name: 'Sessions', description: "The signed-in user's access tokens, one per device." },
+      {
+        name: 'Sessions',
+        description: "The signed-in user's access tokens, one per device.",
+      },
       {
         name: 'Two-factor',
         description:
           'Time-based one-time passwords (TOTP) and recovery codes for the signed-in user.',
       },
-      { name: 'Attachments', description: 'File uploads that other records reference by id.' },
-      { name: 'Tenants', description: 'The workspaces the signed-in user belongs to.' },
-      { name: 'Permissions', description: `What a member may do in a tenant. ${TENANT_HEADER}` },
-      { name: 'Roles', description: `Named sets of permissions in a tenant. ${TENANT_HEADER}` },
-      { name: 'Members', description: `The users of a tenant. ${TENANT_HEADER}` },
+      {
+        name: 'Attachments',
+        description: 'File uploads that other records reference by id.',
+      },
+      {
+        name: 'Tenants',
+        description: 'The workspaces the signed-in user belongs to.',
+      },
+      {
+        name: 'Permissions',
+        description: `What a member may do in a tenant. ${TENANT_HEADER}`,
+      },
+      {
+        name: 'Roles',
+        description: `Named sets of permissions in a tenant. ${TENANT_HEADER}`,
+      },
+      {
+        name: 'Members',
+        description: `The users of a tenant. ${TENANT_HEADER}`,
+      },
       {
         name: 'Invitations',
         description: `Invitations to join a tenant by email. ${TENANT_HEADER} Accepting an invitation is the exception: the tenant comes from the invitation.`,
       },
-      { name: 'Audit', description: `Who changed what in a tenant, and when. ${TENANT_HEADER}` },
+      {
+        name: 'Audit',
+        description: `Who changed what in a tenant, and when. ${TENANT_HEADER}`,
+      },
       {
         name: 'Admin',
         description:
@@ -45,7 +71,8 @@ export default defineConfig({
       },
       {
         name: 'Health',
-        description: 'Liveness and readiness probes for orchestrators and monitoring.',
+        description:
+          'Liveness and readiness probes for orchestrators and monitoring.',
       },
     ],
   },
@@ -66,4 +93,4 @@ export default defineConfig({
   },
   strict: true,
   rules: { summaryMaxLength: 60, summaryTrailingPeriod: false },
-})
+});

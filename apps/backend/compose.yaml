@@ -13,7 +13,8 @@ services:
       - '${DB_PORT}:5432'
     restart: unless-stopped
     healthcheck:
-      test: ['CMD', 'pg_isready', '-q', '-d', '${DB_DATABASE}', '-U', '${DB_USER}']
+      test:
+        ['CMD', 'pg_isready', '-q', '-d', '${DB_DATABASE}', '-U', '${DB_USER}']
       interval: 10s
       timeout: 5s
       retries: 3

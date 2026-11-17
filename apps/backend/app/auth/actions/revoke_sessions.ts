@@ -1,14 +1,15 @@
-import User from '#users/models/user'
-import db from '@adonisjs/lucid/services/db'
-import { audit } from '#core/audit/main'
-import type {} from '#auth/types/audit'
+import db from '@adonisjs/lucid/services/db';
+
+import type {} from '#auth/types/audit';
+import { audit } from '#core/audit/main';
+import User from '#users/models/user';
 
 export interface RevokeSessionsInput {
-  user: User
+  user: User;
   /** Only this session, instead of every one. */
-  sessionId?: string
+  sessionId?: string;
   /** The token to leave untouched, typically the one making the request. */
-  keepTokenId?: string
+  keepTokenId?: string;
 }
 
 /**
@@ -21,25 +22,25 @@ export default class RevokeSessions {
     const query = db
       .from('auth_access_tokens')
       .where('tokenable_id', user.id)
-      .whereNull('impersonator_id')
+      .whereNull('impersonator_id');
 
-    if (sessionId) query.where('id', sessionId)
+    if (sessionId) query.where('id', sessionId);
 
-    if (keepTokenId) query.whereNot('id', keepTokenId)
+    if (keepTokenId) query.whereNot('id', keepTokenId);
 
-    const rows: { id: string }[] = await query.select('id')
+    const rows: { id: string }[] = await query.select('id');
 
     for (const row of rows) {
-      await User.accessTokens.delete(user, row.id)
+      await User.accessTokens.delete(user, row.id);
 
       await audit.note('auth.session_revoked', {
         tenantId: null,
         subject: { type: 'user', id: user.id },
         sessionId: row.id,
         data: { email: user.email },
-      })
+      });
     }
 
-    return rows.length
+    return rows.length;
   }
 }

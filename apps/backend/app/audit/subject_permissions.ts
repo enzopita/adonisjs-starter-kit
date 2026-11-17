@@ -1,5 +1,5 @@
-import { PERMISSIONS, type Permission } from '#access/permissions'
-import type { TenantSubjectType } from '#core/audit/types'
+import { PERMISSIONS, type Permission } from '#access/permissions';
+import type { TenantSubjectType } from '#core/audit/types';
 
 /**
  * Who may read one subject's trail without audit.view: the permission of the feature that owns
@@ -12,4 +12,4 @@ export const SUBJECT_PERMISSIONS: ReadonlyMap<string, Permission> = new Map<
   ['role', PERMISSIONS.rolesManage],
   ['member', PERMISSIONS.membersManage],
   ['invitation', PERMISSIONS.membersManage],
-])
+]);

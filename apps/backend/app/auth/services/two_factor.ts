@@ -1,40 +1,47 @@
-import crypto from 'node:crypto'
-import * as OTPAuth from 'otpauth'
-import env from '#start/env'
-import type User from '#users/models/user'
-import encryption from '@adonisjs/core/services/encryption'
-import type { QueryClientContract, TransactionClientContract } from '@adonisjs/lucid/types/database'
-import TwoFactorRecoveryCode from '#auth/models/two_factor_recovery_code'
+import crypto from 'node:crypto';
+
+import encryption from '@adonisjs/core/services/encryption';
+import type {
+  QueryClientContract,
+  TransactionClientContract,
+} from '@adonisjs/lucid/types/database';
+import * as OTPAuth from 'otpauth';
+
+import TwoFactorRecoveryCode from '#auth/models/two_factor_recovery_code';
+import env from '#start/env';
+import type User from '#users/models/user';
 
 /** What a user offers as their second factor: a code from their app, or one recovery code. */
-export type SecondFactor = { type: 'totp'; code: string } | { type: 'recovery_code'; code: string }
+export type SecondFactor =
+  | { type: 'totp'; code: string }
+  | { type: 'recovery_code'; code: string };
 
-const SECRET_PURPOSE = 'two_factor_secret'
-const RECOVERY_CODE_PURPOSE = 'two_factor_recovery_code'
-const CHALLENGE_PURPOSE = 'two_factor_challenge'
+const SECRET_PURPOSE = 'two_factor_secret';
+const RECOVERY_CODE_PURPOSE = 'two_factor_recovery_code';
+const CHALLENGE_PURPOSE = 'two_factor_challenge';
 
-const RECOVERY_CODE_COUNT = 10
+const RECOVERY_CODE_COUNT = 10;
 
 // No 0/o, 1/i/l: a code is read off paper and typed by hand.
-const RECOVERY_CODE_ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz'
+const RECOVERY_CODE_ALPHABET = '23456789abcdefghjkmnpqrstuvwxyz';
 
 function totpOf(base32: string, label?: string) {
   return new OTPAuth.TOTP({
     issuer: env.get('APP_NAME'),
     label,
     secret: OTPAuth.Secret.fromBase32(base32),
-  })
+  });
 }
 
 /** A fresh secret: encrypted for the users row, and in clear for the authenticator app. */
 export function newTwoFactorSecret(email: string) {
-  const secret = new OTPAuth.Secret({ size: 20 })
+  const secret = new OTPAuth.Secret({ size: 20 });
 
   return {
     encrypted: encryption.encrypt(secret.base32, { purpose: SECRET_PURPOSE }),
     base32: secret.base32,
     uri: totpOf(secret.base32, email).toString(),
-  }
+  };
 }
 
 /**
@@ -43,89 +50,128 @@ export function newTwoFactorSecret(email: string) {
  * accepted is refused, and the conditional update makes two concurrent uses of one code race
  * for a single row, so only one wins.
  */
-async function acceptTotp(client: QueryClientContract, user: User, code: string) {
+async function acceptTotp(
+  client: QueryClientContract,
+  user: User,
+  code: string
+) {
   const base32 = user.twoFactorSecret
     ? encryption.decrypt<string>(user.twoFactorSecret, SECRET_PURPOSE)
-    : null
+    : null;
 
-  if (!base32) return false
+  if (!base32) return false;
 
-  const totp = totpOf(base32)
-  const timestamp = Date.now()
-  const delta = totp.validate({ token: code.replace(/\s/g, ''), timestamp, window: 1 })
+  const totp = totpOf(base32);
+  const timestamp = Date.now();
+  const delta = totp.validate({
+    token: code.replace(/\s/g, ''),
+    timestamp,
+    window: 1,
+  });
 
-  if (delta === null) return false
+  if (delta === null) return false;
 
-  const step = totp.counter({ timestamp }) + delta
+  const step = totp.counter({ timestamp }) + delta;
 
   const updated = await client
     .from('users')
     .where('id', user.id)
-    .where(query =>
-      query.whereNull('two_factor_last_step').orWhere('two_factor_last_step', '<', step),
+    .where((query) =>
+      query
+        .whereNull('two_factor_last_step')
+        .orWhere('two_factor_last_step', '<', step)
     )
-    .update({ two_factor_last_step: step })
+    .update({ two_factor_last_step: step });
 
-  return Number(updated) === 1
+  return Number(updated) === 1;
 }
 
 const recoveryCodeHash = (code: string) =>
-  encryption.blindIndex(code.toLowerCase().replace(/[^a-z0-9]/g, ''), RECOVERY_CODE_PURPOSE)
+  encryption.blindIndex(
+    code.toLowerCase().replace(/[^a-z0-9]/g, ''),
+    RECOVERY_CODE_PURPOSE
+  );
 
 function newRecoveryCode() {
   const chars = Array.from(
     { length: 10 },
-    () => RECOVERY_CODE_ALPHABET[crypto.randomInt(RECOVERY_CODE_ALPHABET.length)],
-  ).join('')
+    () =>
+      RECOVERY_CODE_ALPHABET[crypto.randomInt(RECOVERY_CODE_ALPHABET.length)]
+  ).join('');
 
-  return `${chars.slice(0, 5)}-${chars.slice(5)}`
+  return `${chars.slice(0, 5)}-${chars.slice(5)}`;
 }
 
 /** Replaces the user's recovery codes and returns the new ones, the only time they're in clear. */
-export async function replaceRecoveryCodes(client: QueryClientContract, userId: string) {
-  await TwoFactorRecoveryCode.query({ client }).where('user_id', userId).delete()
+export async function replaceRecoveryCodes(
+  client: QueryClientContract,
+  userId: string
+) {
+  await TwoFactorRecoveryCode.query({ client })
+    .where('user_id', userId)
+    .delete();
 
-  const codes = Array.from({ length: RECOVERY_CODE_COUNT }, newRecoveryCode)
+  const codes = Array.from({ length: RECOVERY_CODE_COUNT }, newRecoveryCode);
 
   await TwoFactorRecoveryCode.createMany(
-    codes.map(code => ({ userId, codeHash: recoveryCodeHash(code) })),
-    { client },
-  )
+    codes.map((code) => ({ userId, codeHash: recoveryCodeHash(code) })),
+    { client }
+  );
 
-  return codes
+  return codes;
 }
 
 /** Deletes the matching code, so two concurrent uses of it delete one row and only one wins. */
-async function consumeRecoveryCode(client: QueryClientContract, userId: string, code: string) {
+async function consumeRecoveryCode(
+  client: QueryClientContract,
+  userId: string,
+  code: string
+) {
   const deleted = await TwoFactorRecoveryCode.query({ client })
     .where('user_id', userId)
     .where('code_hash', recoveryCodeHash(code))
-    .delete()
+    .delete();
 
-  return Number(deleted) === 1
+  return Number(deleted) === 1;
 }
 
 /** Turns two-factor off: the secret, its last step and every recovery code. `user` is locked. */
-export async function clearTwoFactor(trx: TransactionClientContract, user: User) {
-  user.merge({ twoFactorSecret: null, twoFactorConfirmedAt: null, twoFactorLastStep: null })
-  await user.useTransaction(trx).save()
+export async function clearTwoFactor(
+  trx: TransactionClientContract,
+  user: User
+) {
+  user.merge({
+    twoFactorSecret: null,
+    twoFactorConfirmedAt: null,
+    twoFactorLastStep: null,
+  });
+  await user.useTransaction(trx).save();
 
-  await TwoFactorRecoveryCode.query({ client: trx }).where('user_id', user.id).delete()
+  await TwoFactorRecoveryCode.query({ client: trx })
+    .where('user_id', user.id)
+    .delete();
 }
 
-export function verifySecondFactor(client: QueryClientContract, user: User, factor: SecondFactor) {
+export function verifySecondFactor(
+  client: QueryClientContract,
+  user: User,
+  factor: SecondFactor
+) {
   return factor.type === 'totp'
     ? acceptTotp(client, user, factor.code)
-    : consumeRecoveryCode(client, user.id, factor.code)
+    : consumeRecoveryCode(client, user.id, factor.code);
 }
 
-export async function countRecoveryCodes(client: QueryClientContract, userId: string) {
+export async function countRecoveryCodes(
+  client: QueryClientContract,
+  userId: string
+) {
   const [row] = await client
     .from('two_factor_recovery_codes')
     .where('user_id', userId)
-    .count('* as total')
+    .count('* as total');
 
-  return Number(row.total)
+  return Number(row.total);
 }
 
 /**
@@ -133,7 +179,10 @@ export async function countRecoveryCodes(client: QueryClientContract, userId: st
  * Encrypted and authenticated with APP_KEY, so the client can neither read nor forge it.
  */
 export function issueTwoFactorChallenge(userId: string): string {
-  return encryption.encrypt({ userId }, { expiresIn: '5m', purpose: CHALLENGE_PURPOSE })
+  return encryption.encrypt(
+    { userId },
+    { expiresIn: '5m', purpose: CHALLENGE_PURPOSE }
+  );
 }
 
 /**
@@ -141,12 +190,18 @@ export function issueTwoFactorChallenge(userId: string): string {
  * authenticates it, so a payload that decrypts is one `issueTwoFactorChallenge` wrote.
  */
 export function readTwoFactorChallenge(challenge: string) {
-  return encryption.decrypt<{ userId: string }>(challenge, CHALLENGE_PURPOSE)?.userId ?? null
+  return (
+    encryption.decrypt<{ userId: string }>(challenge, CHALLENGE_PURPOSE)
+      ?.userId ?? null
+  );
 }
 
 /** The validators require one of the two; `code` wins when both are sent. */
-export function secondFactorOf(input: { code?: string; recoveryCode?: string }): SecondFactor {
+export function secondFactorOf(input: {
+  code?: string;
+  recoveryCode?: string;
+}): SecondFactor {
   return input.code === undefined
     ? { type: 'recovery_code', code: input.recoveryCode ?? '' }
-    : { type: 'totp', code: input.code }
+    : { type: 'totp', code: input.code };
 }

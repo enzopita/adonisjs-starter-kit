@@ -1,6 +1,7 @@
-import env from '#start/env'
-import { defineConfig } from '@adonisjs/redis'
-import type { InferConnections } from '@adonisjs/redis/types'
+import { defineConfig } from '@adonisjs/redis';
+import type { InferConnections } from '@adonisjs/redis/types';
+
+import env from '#start/env';
 
 const redisConfig = defineConfig({
   connection: 'main',
@@ -15,14 +16,16 @@ const redisConfig = defineConfig({
       // Never give up: ioredis stops for good on null, which would leave the queue worker and
       // the limiter store broken until a restart that the liveness probe never triggers.
       retryStrategy(times) {
-        return Math.min(times * 50, 2000)
+        return Math.min(times * 50, 2000);
       },
     },
   },
-})
+});
 
-export default redisConfig
+export default redisConfig;
 
 declare module '@adonisjs/redis/types' {
-  export interface RedisConnections extends InferConnections<typeof redisConfig> {}
+  export interface RedisConnections extends InferConnections<
+    typeof redisConfig
+  > {}
 }

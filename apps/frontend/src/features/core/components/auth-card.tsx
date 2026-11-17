@@ -5,9 +5,10 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from '@monorepo/ui/components/card'
-import type { ReactNode } from 'react'
-import { AppMark } from '@/features/core/components/app-mark'
+} from '@monorepo/ui/components/card';
+import type { ReactNode } from 'react';
+
+import { AppMark } from '@/features/core/components/app-mark';
 
 export function AuthCard({
   title,
@@ -15,13 +16,13 @@ export function AuthCard({
   children,
   footer,
 }: {
-  title: string
-  description: ReactNode
-  children: ReactNode
-  footer?: ReactNode
+  title: string;
+  description: ReactNode;
+  children: ReactNode;
+  footer?: ReactNode;
 }) {
   return (
-    <main className="flex min-h-svh flex-col items-center justify-center gap-6 bg-muted p-4">
+    <main className="bg-muted flex min-h-svh flex-col items-center justify-center gap-6 p-4">
       <AppMark />
       <Card className="w-full max-w-sm">
         <CardHeader>
@@ -34,5 +35,5 @@ export function AuthCard({
         {footer && <CardFooter className="justify-center">{footer}</CardFooter>}
       </Card>
     </main>
-  )
+  );
 }

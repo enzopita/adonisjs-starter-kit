@@ -1,5 +1,6 @@
-import env from '#start/env'
-import { defineConfig, drivers } from '@adonisjs/queue'
+import { defineConfig, drivers } from '@adonisjs/queue';
+
+import env from '#start/env';
 
 export default defineConfig({
   default: env.get('QUEUE_DRIVER'),
@@ -17,4 +18,4 @@ export default defineConfig({
   },
 
   locations: ['./app/*/jobs/**/*.{ts,js}'],
-})
+});

@@ -1,28 +1,31 @@
-import app from '@adonisjs/core/services/app'
-import router from '@adonisjs/core/services/router'
-import env from '#start/env'
-import { safeEqual } from '@adonisjs/core/helpers'
-import { controllers } from '#generated/controllers'
-import { openapiRoutes } from '@enzopita/adonisjs-openapi/routes'
+import { safeEqual } from '@adonisjs/core/helpers';
+import app from '@adonisjs/core/services/app';
+import router from '@adonisjs/core/services/router';
+import { openapiRoutes } from '@enzopita/adonisjs-openapi/routes';
 
-const { HealthChecks } = controllers.core
+import { controllers } from '#generated/controllers';
+import env from '#start/env';
 
-router.where('id', router.matchers.uuid())
+const { HealthChecks } = controllers.core;
 
-router.get('/health/live', [HealthChecks, 'live'])
+router.where('id', router.matchers.uuid());
 
-router.get('/health/ready', [HealthChecks, 'ready']).use(({ request, response, i18n }, next) => {
-  const secret = request.header('x-monitoring-secret') ?? ''
+router.get('/health/live', [HealthChecks, 'live']);
 
-  if (safeEqual(secret, env.get('MONITORING_SECRET').release())) {
-    return next()
-  }
+router
+  .get('/health/ready', [HealthChecks, 'ready'])
+  .use(({ request, response, i18n }, next) => {
+    const secret = request.header('x-monitoring-secret') ?? '';
 
-  return response.unauthorized({
-    code: 'E_UNAUTHORIZED_ACCESS' as const,
-    message: i18n.t('errors.E_UNAUTHORIZED_ACCESS'),
-  })
-})
+    if (safeEqual(secret, env.get('MONITORING_SECRET').release())) {
+      return next();
+    }
+
+    return response.unauthorized({
+      code: 'E_UNAUTHORIZED_ACCESS' as const,
+      message: i18n.t('errors.E_UNAUTHORIZED_ACCESS'),
+    });
+  });
 
 // Generated live from the TypeScript sources, which a production build does not ship.
-if (!app.inProduction) openapiRoutes()
+if (!app.inProduction) openapiRoutes();

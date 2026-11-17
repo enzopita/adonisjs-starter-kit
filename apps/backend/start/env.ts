@@ -1,4 +1,4 @@
-import { Env } from '@adonisjs/core/env'
+import { Env } from '@adonisjs/core/env';
 
 export default await Env.create(new URL('../', import.meta.url), {
   // Node
@@ -14,31 +14,35 @@ export default await Env.create(new URL('../', import.meta.url), {
   MONITORING_SECRET: Env.schema.secret(),
   // @adonisjs/cors compares origins with ===, so 'https://a.com, https://b.com/' would only allow a.
   CORS_ORIGIN: (key: string, value?: string) => {
-    if (value === undefined || value === '') return undefined
+    if (value === undefined || value === '') return undefined;
 
     return value
       .split(',')
-      .map(entry => entry.trim())
+      .map((entry) => entry.trim())
       .filter(Boolean)
-      .map(entry => {
+      .map((entry) => {
         if (!URL.canParse(entry)) {
-          throw new Error(`Invalid value for "${key}": "${entry}" is not an origin URL`)
+          throw new Error(
+            `Invalid value for "${key}": "${entry}" is not an origin URL`
+          );
         }
 
-        return new URL(entry).origin
-      })
+        return new URL(entry).origin;
+      });
   },
   // At least a day: 0 or less would delete the whole audit trail on the next prune.
   AUDIT_RETENTION_DAYS: (key: string, value?: string) => {
-    if (value === undefined || value === '') return undefined
+    if (value === undefined || value === '') return undefined;
 
-    const days = Number(value)
+    const days = Number(value);
 
     if (!Number.isInteger(days) || days < 1) {
-      throw new Error(`Invalid value for "${key}": expected a whole number of days, 1 or more`)
+      throw new Error(
+        `Invalid value for "${key}": expected a whole number of days, 1 or more`
+      );
     }
 
-    return days
+    return days;
   },
 
   // Database
@@ -74,4 +78,4 @@ export default await Env.create(new URL('../', import.meta.url), {
 
   // Limiter
   LIMITER_STORE: Env.schema.enum(['redis', 'memory'] as const),
-})
+});

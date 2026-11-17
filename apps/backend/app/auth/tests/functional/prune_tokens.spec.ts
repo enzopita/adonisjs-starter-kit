@@ -1,12 +1,13 @@
-import { test } from '@japa/runner'
-import { sessionIdOf, signUp } from '#tests/accounts'
-import db from '@adonisjs/lucid/services/db'
-import AuditEvent from '#core/models/audit_event'
-import testUtils from '@adonisjs/core/services/test_utils'
-import PruneExpiredTokens from '#auth/actions/prune_expired_tokens'
+import testUtils from '@adonisjs/core/services/test_utils';
+import db from '@adonisjs/lucid/services/db';
+import { test } from '@japa/runner';
 
-test.group('Auth | prune tokens', group => {
-  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
+import PruneExpiredTokens from '#auth/actions/prune_expired_tokens';
+import AuditEvent from '#core/models/audit_event';
+import { sessionIdOf, signUp } from '#tests/accounts';
+
+test.group('Auth | prune tokens', (group) => {
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction());
 
   // Regression: an idle access token, or an unused emailed one, stays in the tables forever
   // instead of being deleted once past its own expiry.
@@ -14,34 +15,46 @@ test.group('Auth | prune tokens', group => {
     client,
     assert,
   }) => {
-    const expiredToken = await signUp(client, 'ada@example.com')
-    const liveToken = await signUp(client, 'grace@example.com')
+    const expiredToken = await signUp(client, 'ada@example.com');
+    const liveToken = await signUp(client, 'grace@example.com');
     await db
       .from('auth_access_tokens')
       .where('id', sessionIdOf(expiredToken))
-      .update({ expires_at: new Date(Date.now() - 1000) })
+      .update({ expires_at: new Date(Date.now() - 1000) });
 
-    const ada = await db.from('users').where('email', 'ada@example.com').first()
+    const ada = await db
+      .from('users')
+      .where('email', 'ada@example.com')
+      .first();
     await db.table('user_tokens').insert({
       user_id: ada.id,
       purpose: 'password_reset',
       token_hash: 'expired-hash',
       expires_at: new Date(Date.now() - 1000),
       created_at: new Date(),
-    })
+    });
 
-    const { accessTokens, userTokens } = await new PruneExpiredTokens().handle()
+    const { accessTokens, userTokens } =
+      await new PruneExpiredTokens().handle();
 
-    assert.equal(accessTokens, 1)
-    assert.equal(userTokens, 1)
+    assert.equal(accessTokens, 1);
+    assert.equal(userTokens, 1);
     assert.isNull(
-      await db.from('auth_access_tokens').where('id', sessionIdOf(expiredToken)).first(),
-    )
-    assert.isNull(await db.from('user_tokens').where('token_hash', 'expired-hash').first())
+      await db
+        .from('auth_access_tokens')
+        .where('id', sessionIdOf(expiredToken))
+        .first()
+    );
+    assert.isNull(
+      await db.from('user_tokens').where('token_hash', 'expired-hash').first()
+    );
     assert.isNotNull(
-      await db.from('auth_access_tokens').where('id', sessionIdOf(liveToken)).first(),
-    )
-  })
+      await db
+        .from('auth_access_tokens')
+        .where('id', sessionIdOf(liveToken))
+        .first()
+    );
+  });
 
   // Regression: a run leaves no trace of what it deleted, or a run that deletes nothing (a
   // second run, a concurrent one) adds an event anyway.
@@ -49,18 +62,22 @@ test.group('Auth | prune tokens', group => {
     client,
     assert,
   }) => {
-    const token = await signUp(client, 'ada@example.com')
+    const token = await signUp(client, 'ada@example.com');
     await db
       .from('auth_access_tokens')
       .where('id', sessionIdOf(token))
-      .update({ expires_at: new Date(Date.now() - 1000) })
+      .update({ expires_at: new Date(Date.now() - 1000) });
 
-    await new PruneExpiredTokens().handle()
-    await new PruneExpiredTokens().handle()
+    await new PruneExpiredTokens().handle();
+    await new PruneExpiredTokens().handle();
 
-    const pruned = await AuditEvent.query().where('type', 'auth.tokens_pruned')
-    assert.lengthOf(pruned, 1)
-    assert.deepInclude(pruned[0]?.toJSON(), { tenantId: null, actorId: null, subjectId: null })
-    assert.deepEqual(pruned[0]?.data, { accessTokens: 1, userTokens: 0 })
-  })
-})
+    const pruned = await AuditEvent.query().where('type', 'auth.tokens_pruned');
+    assert.lengthOf(pruned, 1);
+    assert.deepInclude(pruned[0]?.toJSON(), {
+      tenantId: null,
+      actorId: null,
+      subjectId: null,
+    });
+    assert.deepEqual(pruned[0]?.data, { accessTokens: 1, userTokens: 0 });
+  });
+});

@@ -4,9 +4,10 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@monorepo/ui/components/empty'
-import { CirclePauseIcon } from 'lucide-react'
-import { t } from '@/features/core/i18n'
+} from '@monorepo/ui/components/empty';
+import { CirclePauseIcon } from 'lucide-react';
+
+import { t } from '@/features/core/i18n';
 
 /** The switcher in the header stays usable, so a member of other workspaces moves on from here. */
 export function SuspendedWorkspacePage({ name }: { name: string }) {
@@ -21,10 +22,12 @@ export function SuspendedWorkspacePage({ name }: { name: string }) {
             <EmptyTitle>
               <h1>{t('tenancy.suspendedPage.title', { name })}</h1>
             </EmptyTitle>
-            <EmptyDescription>{t('tenancy.suspendedPage.description')}</EmptyDescription>
+            <EmptyDescription>
+              {t('tenancy.suspendedPage.description')}
+            </EmptyDescription>
           </EmptyHeader>
         </Empty>
       </div>
     </main>
-  )
+  );
 }

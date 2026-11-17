@@ -1,5 +1,6 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import { PERMISSION_GROUPS } from '#access/permissions'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import { PERMISSION_GROUPS } from '#access/permissions';
 
 /**
  * @tags Permissions
@@ -12,6 +13,6 @@ export default class PermissionCatalogController {
    * hold, grouped by area, for rendering role and permission editors.
    */
   async show({ serialize }: HttpContext) {
-    return serialize({ groups: PERMISSION_GROUPS })
+    return serialize({ groups: PERMISSION_GROUPS });
   }
 }

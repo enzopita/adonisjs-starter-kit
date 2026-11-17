@@ -1,10 +1,20 @@
-import { HistoryIcon, LayoutDashboardIcon, MailIcon, ShieldIcon, UsersIcon } from 'lucide-react'
-import { can } from '@/features/access/permissions'
-import type { Permission } from '@/features/access/permissions'
-import type { SideNavItem } from '@/features/core/components/side-nav'
-import { t } from '@/features/core/i18n'
+import {
+  HistoryIcon,
+  LayoutDashboardIcon,
+  MailIcon,
+  ShieldIcon,
+  UsersIcon,
+} from 'lucide-react';
 
-type NavItem = SideNavItem & { description: string; requires: Permission | null }
+import { can } from '@/features/access/permissions';
+import type { Permission } from '@/features/access/permissions';
+import type { SideNavItem } from '@/features/core/components/side-nav';
+import { t } from '@/features/core/i18n';
+
+type NavItem = SideNavItem & {
+  description: string;
+  requires: Permission | null;
+};
 
 /** The workspace sections, in sidebar order. The sidebar and the overview cards both render from it. */
 const TENANT_NAV: readonly NavItem[] = [
@@ -43,8 +53,10 @@ const TENANT_NAV: readonly NavItem[] = [
     icon: HistoryIcon,
     requires: 'audit.view',
   },
-]
+];
 
 export function reachableNav(permissions: readonly Permission[]) {
-  return TENANT_NAV.filter(item => item.requires === null || can(permissions, item.requires))
+  return TENANT_NAV.filter(
+    (item) => item.requires === null || can(permissions, item.requires)
+  );
 }

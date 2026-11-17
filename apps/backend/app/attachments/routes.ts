@@ -1,16 +1,17 @@
-import router from '@adonisjs/core/services/router'
-import { middleware } from '#start/kernel'
-import { apiRoutes } from '#core/api_routes'
-import { controllers } from '#generated/controllers'
+import router from '@adonisjs/core/services/router';
 
-const { Attachments } = controllers.attachments
+import { apiRoutes } from '#core/api_routes';
+import { controllers } from '#generated/controllers';
+import { middleware } from '#start/kernel';
+
+const { Attachments } = controllers.attachments;
 
 apiRoutes(() => {
   router
     .group(() => {
-      router.post('/', [Attachments, 'store'])
+      router.post('/', [Attachments, 'store']);
     })
     .prefix('attachments')
     .as('attachments')
-    .use(middleware.auth())
-})
+    .use(middleware.auth());
+});

@@ -1,24 +1,27 @@
-import { FieldGroup } from '@monorepo/ui/components/field'
-import { useMutation } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { AuthCard } from '@/features/core/components/auth-card'
-import { queries } from '@/features/core/api'
-import { useAppForm, withFormErrors } from '@/features/core/form'
-import { t } from '@/features/core/i18n'
+import { FieldGroup } from '@monorepo/ui/components/field';
+import { useMutation } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+
+import { queries } from '@/features/core/api';
+import { AuthCard } from '@/features/core/components/auth-card';
+import { useAppForm, withFormErrors } from '@/features/core/form';
+import { t } from '@/features/core/i18n';
 
 /**
  * The server answers the same message whether or not the email exists, so the form itself must
  * never branch on the result either: success just replaces the form with that message.
  */
 export function ForgotPasswordPage() {
-  const requestReset = useMutation(queries.auth.passwordResets.store.mutationOptions())
+  const requestReset = useMutation(
+    queries.auth.passwordResets.store.mutationOptions()
+  );
 
   const form = useAppForm({
     defaultValues: { email: '' },
     onSubmit: async ({ value, formApi }) => {
-      await withFormErrors(formApi, requestReset.mutateAsync({ body: value }))
+      await withFormErrors(formApi, requestReset.mutateAsync({ body: value }));
     },
-  })
+  });
 
   if (requestReset.isSuccess) {
     return (
@@ -26,11 +29,14 @@ export function ForgotPasswordPage() {
         title={t('auth.forgotPasswordPage.title')}
         description={requestReset.data.data.message}
       >
-        <Link to="/login" className="text-sm text-foreground underline underline-offset-4">
+        <Link
+          to="/login"
+          className="text-foreground text-sm underline underline-offset-4"
+        >
           {t('auth.forgotPasswordPage.backToLogin')}
         </Link>
       </AuthCard>
-    )
+    );
   }
 
   return (
@@ -43,7 +49,7 @@ export function ForgotPasswordPage() {
           <FieldGroup>
             <form.FormAlert />
             <form.AppField name="email">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.forgotPasswordPage.email')}
                   type="email"
@@ -52,10 +58,12 @@ export function ForgotPasswordPage() {
                 />
               )}
             </form.AppField>
-            <form.SubmitButton size="lg">{t('auth.forgotPasswordPage.submit')}</form.SubmitButton>
+            <form.SubmitButton size="lg">
+              {t('auth.forgotPasswordPage.submit')}
+            </form.SubmitButton>
           </FieldGroup>
         </form.Form>
       </form.AppForm>
     </AuthCard>
-  )
+  );
 }

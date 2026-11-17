@@ -1,11 +1,12 @@
-import { audit } from '#core/audit/main'
-import ListSessions from '#auth/queries/list_sessions'
-import type { HttpContext } from '@adonisjs/core/http'
-import RevokeSessions from '#auth/actions/revoke_sessions'
-import ImpersonatingException from '#auth/exceptions/impersonating_exception'
-import SessionTransformer from '#auth/transformers/session_transformer'
-import { sessionParamsValidator } from '#auth/validators/session'
-import SessionNotFoundException from '#auth/exceptions/session_not_found_exception'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import RevokeSessions from '#auth/actions/revoke_sessions';
+import ImpersonatingException from '#auth/exceptions/impersonating_exception';
+import SessionNotFoundException from '#auth/exceptions/session_not_found_exception';
+import ListSessions from '#auth/queries/list_sessions';
+import SessionTransformer from '#auth/transformers/session_transformer';
+import { sessionParamsValidator } from '#auth/validators/session';
+import { audit } from '#core/audit/main';
 
 /**
  * @tags Sessions
@@ -19,12 +20,15 @@ export default class SessionsController {
    * not listed.
    */
   async index({ auth, serialize }: HttpContext) {
-    const user = auth.getUserOrFail()
-    const currentTokenId = String(user.currentAccessToken!.identifier)
+    const user = auth.getUserOrFail();
+    const currentTokenId = String(user.currentAccessToken!.identifier);
 
-    const rows = await new ListSessions().handle({ userId: user.id, currentTokenId })
+    const rows = await new ListSessions().handle({
+      userId: user.id,
+      currentTokenId,
+    });
 
-    return serialize(SessionTransformer.transform(rows))
+    return serialize(SessionTransformer.transform(rows));
   }
 
   /**
@@ -33,17 +37,21 @@ export default class SessionsController {
    * Signs that session out. It can be the current one.
    */
   async destroy({ auth, i18n, request, serialize }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.getUserOrFail();
 
-    if (user.currentAccessToken?.impersonatorId) throw new ImpersonatingException()
+    if (user.currentAccessToken?.impersonatorId)
+      throw new ImpersonatingException();
 
-    const { params } = await request.validateUsing(sessionParamsValidator)
+    const { params } = await request.validateUsing(sessionParamsValidator);
 
-    const revoked = await new RevokeSessions().handle({ user, sessionId: params.id })
+    const revoked = await new RevokeSessions().handle({
+      user,
+      sessionId: params.id,
+    });
 
-    if (!revoked) throw new SessionNotFoundException()
+    if (!revoked) throw new SessionNotFoundException();
 
-    return serialize({ message: i18n.t('auth.session_revoked') })
+    return serialize({ message: i18n.t('auth.session_revoked') });
   }
 
   /**
@@ -53,15 +61,16 @@ export default class SessionsController {
    * sessions were signed out.
    */
   async destroyAll({ auth, serialize }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.getUserOrFail();
 
-    if (user.currentAccessToken?.impersonatorId) throw new ImpersonatingException()
+    if (user.currentAccessToken?.impersonatorId)
+      throw new ImpersonatingException();
 
-    const keepTokenId = String(user.currentAccessToken!.identifier)
-    const revoked = await new RevokeSessions().handle({ user, keepTokenId })
+    const keepTokenId = String(user.currentAccessToken!.identifier);
+    const revoked = await new RevokeSessions().handle({ user, keepTokenId });
 
-    if (!revoked) audit.unchanged()
+    if (!revoked) audit.unchanged();
 
-    return serialize({ revoked })
+    return serialize({ revoked });
   }
 }

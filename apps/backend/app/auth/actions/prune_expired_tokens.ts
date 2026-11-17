@@ -1,8 +1,9 @@
-import db from '@adonisjs/lucid/services/db'
-import { audit } from '#core/audit/main'
-import type {} from '#auth/types/audit'
+import db from '@adonisjs/lucid/services/db';
 
-const BATCH_SIZE = 1000
+import type {} from '#auth/types/audit';
+import { audit } from '#core/audit/main';
+
+const BATCH_SIZE = 1000;
 
 /**
  * Deletes expired rows from `auth_access_tokens` (the sliding 30-day idle timeout, and
@@ -12,23 +13,23 @@ const BATCH_SIZE = 1000
  */
 export default class PruneExpiredTokens {
   async handle() {
-    const accessTokens = await pruneTable('auth_access_tokens')
-    const userTokens = await pruneTable('user_tokens')
+    const accessTokens = await pruneTable('auth_access_tokens');
+    const userTokens = await pruneTable('user_tokens');
 
     if (accessTokens > 0 || userTokens > 0) {
       await audit.note('auth.tokens_pruned', {
         tenantId: null,
         subject: null,
         data: { accessTokens, userTokens },
-      })
+      });
     }
 
-    return { accessTokens, userTokens }
+    return { accessTokens, userTokens };
   }
 }
 
 async function pruneTable(table: string) {
-  let deleted = 0
+  let deleted = 0;
 
   while (true) {
     const { rowCount } = await db.rawQuery<{ rowCount: number }>(
@@ -38,13 +39,13 @@ async function pruneTable(table: string) {
         ORDER BY expires_at LIMIT :limit FOR UPDATE SKIP LOCKED
       )
       `,
-      { limit: BATCH_SIZE },
-    )
+      { limit: BATCH_SIZE }
+    );
 
-    deleted += rowCount
+    deleted += rowCount;
 
-    if (rowCount < BATCH_SIZE) break
+    if (rowCount < BATCH_SIZE) break;
   }
 
-  return deleted
+  return deleted;
 }

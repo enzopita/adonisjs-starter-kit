@@ -1,26 +1,28 @@
-import type User from '#users/models/user'
-import db from '@adonisjs/lucid/services/db'
-import type { HttpContext } from '@adonisjs/core/http'
-import RevokeSessions from '#auth/actions/revoke_sessions'
-import ConfirmTwoFactor from '#auth/actions/confirm_two_factor'
-import DisableTwoFactor from '#auth/actions/disable_two_factor'
-import RegenerateRecoveryCodes from '#auth/actions/regenerate_recovery_codes'
-import StartTwoFactorEnrollment from '#auth/actions/start_two_factor_enrollment'
-import { countRecoveryCodes, secondFactorOf } from '#auth/services/two_factor'
-import ImpersonatingException from '#auth/exceptions/impersonating_exception'
+import type { HttpContext } from '@adonisjs/core/http';
+import db from '@adonisjs/lucid/services/db';
+
+import ConfirmTwoFactor from '#auth/actions/confirm_two_factor';
+import DisableTwoFactor from '#auth/actions/disable_two_factor';
+import RegenerateRecoveryCodes from '#auth/actions/regenerate_recovery_codes';
+import RevokeSessions from '#auth/actions/revoke_sessions';
+import StartTwoFactorEnrollment from '#auth/actions/start_two_factor_enrollment';
+import ImpersonatingException from '#auth/exceptions/impersonating_exception';
+import { countRecoveryCodes, secondFactorOf } from '#auth/services/two_factor';
 import {
   confirmTwoFactorValidator,
   disableTwoFactorValidator,
   regenerateRecoveryCodesValidator,
-} from '#auth/validators/two_factor'
+} from '#auth/validators/two_factor';
+import type User from '#users/models/user';
 
 /** An admin acting as the user never changes how the user signs in. */
 function ownUser({ auth }: HttpContext): User {
-  const user = auth.getUserOrFail()
+  const user = auth.getUserOrFail();
 
-  if (user.currentAccessToken?.impersonatorId) throw new ImpersonatingException()
+  if (user.currentAccessToken?.impersonatorId)
+    throw new ImpersonatingException();
 
-  return user
+  return user;
 }
 
 /**
@@ -34,14 +36,14 @@ export default class TwoFactorController {
    * is off.
    */
   async show({ auth, serialize }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.getUserOrFail();
 
     return serialize({
       enabled: user.twoFactorConfirmedAt !== null,
       recoveryCodesLeft: user.twoFactorConfirmedAt
         ? await countRecoveryCodes(db.connection(), user.id)
         : 0,
-    })
+    });
   }
 
   /**
@@ -52,9 +54,9 @@ export default class TwoFactorController {
    * in until `POST /account/two-factor/confirmation` confirms it with a code.
    */
   async store(ctx: HttpContext) {
-    const user = ownUser(ctx)
+    const user = ownUser(ctx);
 
-    return ctx.serialize(await new StartTwoFactorEnrollment().handle({ user }))
+    return ctx.serialize(await new StartTwoFactorEnrollment().handle({ user }));
   }
 
   /**
@@ -66,16 +68,22 @@ export default class TwoFactorController {
    * @response {429} Too many attempts; retry after the Retry-After header
    */
   async confirm(ctx: HttpContext) {
-    const user = ownUser(ctx)
-    const { password, code } = await ctx.request.validateUsing(confirmTwoFactorValidator)
+    const user = ownUser(ctx);
+    const { password, code } = await ctx.request.validateUsing(
+      confirmTwoFactorValidator
+    );
 
-    const recoveryCodes = await new ConfirmTwoFactor().handle({ user, password, code })
+    const recoveryCodes = await new ConfirmTwoFactor().handle({
+      user,
+      password,
+      code,
+    });
 
     // Every session must have passed a second factor: only this one, which just did, stays.
-    const keepTokenId = String(user.currentAccessToken!.identifier)
-    await new RevokeSessions().handle({ user, keepTokenId })
+    const keepTokenId = String(user.currentAccessToken!.identifier);
+    await new RevokeSessions().handle({ user, keepTokenId });
 
-    return ctx.serialize({ recoveryCodes })
+    return ctx.serialize({ recoveryCodes });
   }
 
   /**
@@ -87,12 +95,18 @@ export default class TwoFactorController {
    * @response {429} Too many attempts; retry after the Retry-After header
    */
   async destroy(ctx: HttpContext) {
-    const user = ownUser(ctx)
-    const { password, ...factor } = await ctx.request.validateUsing(disableTwoFactorValidator)
+    const user = ownUser(ctx);
+    const { password, ...factor } = await ctx.request.validateUsing(
+      disableTwoFactorValidator
+    );
 
-    await new DisableTwoFactor().handle({ user, password, factor: secondFactorOf(factor) })
+    await new DisableTwoFactor().handle({
+      user,
+      password,
+      factor: secondFactorOf(factor),
+    });
 
-    return ctx.serialize({ message: ctx.i18n.t('auth.two_factor_disabled') })
+    return ctx.serialize({ message: ctx.i18n.t('auth.two_factor_disabled') });
   }
 
   /**
@@ -104,11 +118,17 @@ export default class TwoFactorController {
    * @response {429} Too many attempts; retry after the Retry-After header
    */
   async regenerateRecoveryCodes(ctx: HttpContext) {
-    const user = ownUser(ctx)
-    const { password, code } = await ctx.request.validateUsing(regenerateRecoveryCodesValidator)
+    const user = ownUser(ctx);
+    const { password, code } = await ctx.request.validateUsing(
+      regenerateRecoveryCodesValidator
+    );
 
-    const recoveryCodes = await new RegenerateRecoveryCodes().handle({ user, password, code })
+    const recoveryCodes = await new RegenerateRecoveryCodes().handle({
+      user,
+      password,
+      code,
+    });
 
-    return ctx.serialize({ recoveryCodes })
+    return ctx.serialize({ recoveryCodes });
   }
 }

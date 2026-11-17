@@ -4,9 +4,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@monorepo/ui/components/card'
-import { t } from '@/features/core/i18n'
-import { CreateWorkspaceForm } from '@/features/tenancy/components/create-workspace-form'
+} from '@monorepo/ui/components/card';
+
+import { t } from '@/features/core/i18n';
+import { CreateWorkspaceForm } from '@/features/tenancy/components/create-workspace-form';
 
 export function OnboardingPage() {
   return (
@@ -16,12 +17,14 @@ export function OnboardingPage() {
           <CardTitle>
             <h1>{t('tenancy.onboardingPage.title')}</h1>
           </CardTitle>
-          <CardDescription>{t('tenancy.onboardingPage.description')}</CardDescription>
+          <CardDescription>
+            {t('tenancy.onboardingPage.description')}
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <CreateWorkspaceForm />
         </CardContent>
       </Card>
     </main>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import { Button } from '@monorepo/ui/components/button'
-import { Loader2Icon } from 'lucide-react'
-import type { ComponentProps } from 'react'
+import { Button } from '@monorepo/ui/components/button';
+import { Loader2Icon } from 'lucide-react';
+import type { ComponentProps } from 'react';
 
 export function PendingButton({
   pending,
@@ -9,8 +9,10 @@ export function PendingButton({
 }: ComponentProps<typeof Button> & { pending: boolean }) {
   return (
     <Button disabled={pending} {...props}>
-      {pending && <Loader2Icon data-icon="inline-start" className="animate-spin" />}
+      {pending && (
+        <Loader2Icon data-icon="inline-start" className="animate-spin" />
+      )}
       {children}
     </Button>
-  )
+  );
 }

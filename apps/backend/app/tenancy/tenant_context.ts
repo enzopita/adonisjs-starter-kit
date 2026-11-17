@@ -1,13 +1,16 @@
-import { AsyncLocalStorage } from 'node:async_hooks'
-import MissingTenantContextException from '#tenancy/exceptions/missing_tenant_context_exception'
+import { AsyncLocalStorage } from 'node:async_hooks';
 
-export type TenantContext = { kind: 'tenant'; tenantId: string } | { kind: 'system' }
+import MissingTenantContextException from '#tenancy/exceptions/missing_tenant_context_exception';
 
-const storage = new AsyncLocalStorage<TenantContext>()
+export type TenantContext =
+  | { kind: 'tenant'; tenantId: string }
+  | { kind: 'system' };
+
+const storage = new AsyncLocalStorage<TenantContext>();
 
 /** Runs `fn` with every tenant-scoped query restricted to `tenantId`. */
 export function runInTenant<T>(tenantId: string, fn: () => T): T {
-  return storage.run({ kind: 'tenant', tenantId }, fn)
+  return storage.run({ kind: 'tenant', tenantId }, fn);
 }
 
 /**
@@ -17,16 +20,16 @@ export function runInTenant<T>(tenantId: string, fn: () => T): T {
  * runs outside this context, where it throws or sees only the caller's tenant.
  */
 export function runAsSystem<T>(fn: () => T): T {
-  return storage.run({ kind: 'system' }, fn)
+  return storage.run({ kind: 'system' }, fn);
 }
 
 /** Throws outside runInTenant() and runAsSystem(): a missing context never means unscoped. */
 export function currentTenantContext(): TenantContext {
-  const context = storage.getStore()
+  const context = storage.getStore();
 
-  if (!context) throw new MissingTenantContextException()
+  if (!context) throw new MissingTenantContextException();
 
-  return context
+  return context;
 }
 
 /**
@@ -34,7 +37,7 @@ export function currentTenantContext(): TenantContext {
  * so it can't scope tenant queries: it is for authorization, which denies outside a tenant.
  */
 export function currentTenantId(): string | null {
-  const context = storage.getStore()
+  const context = storage.getStore();
 
-  return context?.kind === 'tenant' ? context.tenantId : null
+  return context?.kind === 'tenant' ? context.tenantId : null;
 }

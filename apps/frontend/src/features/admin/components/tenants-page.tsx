@@ -1,4 +1,4 @@
-import { Badge } from '@monorepo/ui/components/badge'
+import { Badge } from '@monorepo/ui/components/badge';
 import {
   Table,
   TableBody,
@@ -6,40 +6,43 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@monorepo/ui/components/table'
-import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { CirclePauseIcon, CirclePlayIcon, PencilIcon } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { RenameTenantDialog } from '@/features/admin/components/rename-tenant-dialog'
-import { RowActionsMenu } from '@/features/admin/components/row-actions-menu'
-import type { RowAction } from '@/features/admin/components/row-actions-menu'
-import { SearchInput } from '@/features/admin/components/search-input'
-import { adminTenantsQuery } from '@/features/admin/queries'
-import type { AdminSearch } from '@/features/admin/queries'
-import { queries } from '@/features/core/api'
-import type { api } from '@/features/core/api'
-import { ConfirmDialog } from '@/features/core/components/confirm-dialog'
-import { PageHeader } from '@/features/core/components/page-header'
-import { Pagination } from '@/features/core/components/pagination'
-import { DATE_MEDIUM, formatDate, useTimeZone } from '@/features/core/datetime'
-import { errorMessage } from '@/features/core/errors'
-import { t } from '@/features/core/i18n'
+} from '@monorepo/ui/components/table';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { CirclePauseIcon, CirclePlayIcon, PencilIcon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-type Tenant = Awaited<ReturnType<typeof api.admin.tenants.index>>['data'][number]
+import { RenameTenantDialog } from '@/features/admin/components/rename-tenant-dialog';
+import { RowActionsMenu } from '@/features/admin/components/row-actions-menu';
+import type { RowAction } from '@/features/admin/components/row-actions-menu';
+import { SearchInput } from '@/features/admin/components/search-input';
+import { adminTenantsQuery } from '@/features/admin/queries';
+import type { AdminSearch } from '@/features/admin/queries';
+import { queries } from '@/features/core/api';
+import type { api } from '@/features/core/api';
+import { ConfirmDialog } from '@/features/core/components/confirm-dialog';
+import { PageHeader } from '@/features/core/components/page-header';
+import { Pagination } from '@/features/core/components/pagination';
+import { DATE_MEDIUM, formatDate, useTimeZone } from '@/features/core/datetime';
+import { errorMessage } from '@/features/core/errors';
+import { t } from '@/features/core/i18n';
+
+type Tenant = Awaited<
+  ReturnType<typeof api.admin.tenants.index>
+>['data'][number];
 
 export function TenantsPage({
   search,
   onSearchChange,
 }: {
-  search: AdminSearch
-  onSearchChange: (search: AdminSearch) => void
+  search: AdminSearch;
+  onSearchChange: (search: AdminSearch) => void;
 }) {
-  const { data: tenants } = useSuspenseQuery(adminTenantsQuery(search))
-  const timeZone = useTimeZone()
-  const [renaming, setRenaming] = useState<Tenant | null>(null)
-  const [suspending, setSuspending] = useState<Tenant | null>(null)
+  const { data: tenants } = useSuspenseQuery(adminTenantsQuery(search));
+  const timeZone = useTimeZone();
+  const [renaming, setRenaming] = useState<Tenant | null>(null);
+  const [suspending, setSuspending] = useState<Tenant | null>(null);
 
   return (
     <>
@@ -52,11 +55,13 @@ export function TenantsPage({
         key={search.search}
         label={t('admin.tenantsPage.search')}
         value={search.search}
-        onApply={next => onSearchChange({ search: next })}
+        onApply={(next) => onSearchChange({ search: next })}
       />
 
       {tenants.data.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{t('admin.tenantsPage.empty')}</p>
+        <p className="text-muted-foreground text-xs">
+          {t('admin.tenantsPage.empty')}
+        </p>
       ) : (
         <Table>
           <TableHeader>
@@ -66,12 +71,14 @@ export function TenantsPage({
               <TableHead>{t('admin.tenantsPage.created')}</TableHead>
               <TableHead>{t('admin.tenantsPage.status')}</TableHead>
               <TableHead>
-                <span className="sr-only">{t('admin.tenantsPage.actions')}</span>
+                <span className="sr-only">
+                  {t('admin.tenantsPage.actions')}
+                </span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {tenants.data.map(tenant => (
+            {tenants.data.map((tenant) => (
               <TableRow key={tenant.id}>
                 <TableCell>
                   <Link
@@ -83,7 +90,9 @@ export function TenantsPage({
                   </Link>
                 </TableCell>
                 <TableCell>{tenant.memberCount}</TableCell>
-                <TableCell>{formatDate(tenant.createdAt, DATE_MEDIUM, timeZone)}</TableCell>
+                <TableCell>
+                  {formatDate(tenant.createdAt, DATE_MEDIUM, timeZone)}
+                </TableCell>
                 <TableCell>
                   <TenantStatus suspendedAt={tenant.suspendedAt} />
                 </TableCell>
@@ -102,7 +111,7 @@ export function TenantsPage({
 
       <Pagination
         metadata={tenants.metadata}
-        onPageChange={page => onSearchChange({ ...search, page })}
+        onPageChange={(page) => onSearchChange({ ...search, page })}
       />
 
       {renaming && (
@@ -110,7 +119,7 @@ export function TenantsPage({
           key={renaming.id}
           tenant={renaming}
           open
-          onOpenChange={open => !open && setRenaming(null)}
+          onOpenChange={(open) => !open && setRenaming(null)}
         />
       )}
 
@@ -119,11 +128,11 @@ export function TenantsPage({
           key={suspending.id}
           tenant={suspending}
           open
-          onOpenChange={open => !open && setSuspending(null)}
+          onOpenChange={(open) => !open && setSuspending(null)}
         />
       )}
     </>
-  )
+  );
 }
 
 export function TenantStatus({ suspendedAt }: { suspendedAt: string | null }) {
@@ -131,7 +140,7 @@ export function TenantStatus({ suspendedAt }: { suspendedAt: string | null }) {
     <Badge variant="destructive">{t('admin.tenantsPage.suspended')}</Badge>
   ) : (
     <Badge variant="outline">{t('admin.tenantsPage.active')}</Badge>
-  )
+  );
 }
 
 /** Reactivating gives access back, which needs no second thought, unlike suspending. */
@@ -140,19 +149,27 @@ function TenantRowActions({
   onRename,
   onSuspend,
 }: {
-  tenant: Tenant
-  onRename: () => void
-  onSuspend: () => void
+  tenant: Tenant;
+  onRename: () => void;
+  onSuspend: () => void;
 }) {
   const reactivate = useMutation(
     queries.admin.tenantSuspensions.destroy.mutationOptions({
-      onSuccess: () => toast.success(t('admin.tenantsPage.reactivated', { name: tenant.name })),
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onSuccess: () =>
+        toast.success(
+          t('admin.tenantsPage.reactivated', { name: tenant.name })
+        ),
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   const actions: RowAction[] = [
-    { key: 'rename', label: t('admin.tenantsPage.rename'), icon: PencilIcon, onSelect: onRename },
+    {
+      key: 'rename',
+      label: t('admin.tenantsPage.rename'),
+      icon: PencilIcon,
+      onSelect: onRename,
+    },
     tenant.suspendedAt
       ? {
           key: 'reactivate',
@@ -168,7 +185,7 @@ function TenantRowActions({
           destructive: true,
           onSelect: onSuspend,
         },
-  ]
+  ];
 
   return (
     <div className="flex justify-end">
@@ -177,7 +194,7 @@ function TenantRowActions({
         actions={actions}
       />
     </div>
-  )
+  );
 }
 
 function SuspendTenantDialog({
@@ -185,19 +202,21 @@ function SuspendTenantDialog({
   open,
   onOpenChange,
 }: {
-  tenant: Tenant
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  tenant: Tenant;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const suspend = useMutation(
     queries.admin.tenantSuspensions.store.mutationOptions({
       onSuccess: () => {
-        onOpenChange(false)
-        toast.success(t('admin.tenantsPage.suspendedToast', { name: tenant.name }))
+        onOpenChange(false);
+        toast.success(
+          t('admin.tenantsPage.suspendedToast', { name: tenant.name })
+        );
       },
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   return (
     <ConfirmDialog
@@ -209,5 +228,5 @@ function SuspendTenantDialog({
       pending={suspend.isPending}
       onConfirm={() => suspend.mutate({ params: { id: tenant.id } })}
     />
-  )
+  );
 }

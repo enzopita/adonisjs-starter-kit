@@ -1,4 +1,5 @@
-import { Button } from '@monorepo/ui/components/button'
+import type { Data } from '@monorepo/backend/data';
+import { Button } from '@monorepo/ui/components/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,38 +13,48 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
-} from '@monorepo/ui/components/dropdown-menu'
-import type { Data } from '@monorepo/backend/data'
-import { Link, useRouter } from '@tanstack/react-router'
-import { LogOutIcon, SunMoonIcon, UserIcon } from 'lucide-react'
-import { useTheme } from 'next-themes'
-import type { ReactNode } from 'react'
-import { logOut } from '@/features/core/api'
-import { displayName } from '@/features/core/display-name'
-import { t } from '@/features/core/i18n'
-import { UserAvatar } from '@/features/users/components/user-avatar'
+} from '@monorepo/ui/components/dropdown-menu';
+import { Link, useRouter } from '@tanstack/react-router';
+import { LogOutIcon, SunMoonIcon, UserIcon } from 'lucide-react';
+import { useTheme } from 'next-themes';
+import type { ReactNode } from 'react';
+
+import { logOut } from '@/features/core/api';
+import { displayName } from '@/features/core/display-name';
+import { t } from '@/features/core/i18n';
+import { UserAvatar } from '@/features/users/components/user-avatar';
 
 const THEMES = [
   { value: 'light', label: t('users.userMenu.light') },
   { value: 'dark', label: t('users.userMenu.dark') },
   { value: 'system', label: t('users.userMenu.system') },
-]
+];
 
 /** `children` are extra menu items other features add, composed by the route. */
-export function UserMenu({ user, children }: { user: Data.Users.User; children?: ReactNode }) {
-  const router = useRouter()
-  const { theme, setTheme } = useTheme()
+export function UserMenu({
+  user,
+  children,
+}: {
+  user: Data.Users.User;
+  children?: ReactNode;
+}) {
+  const router = useRouter();
+  const { theme, setTheme } = useTheme();
 
   const onLogOut = async () => {
-    await logOut()
-    await router.navigate({ to: '/login' })
-  }
+    await logOut();
+    await router.navigate({ to: '/login' });
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon-lg" aria-label={t('users.userMenu.accountMenu')} />
+          <Button
+            variant="ghost"
+            size="icon-lg"
+            aria-label={t('users.userMenu.accountMenu')}
+          />
         }
       >
         <UserAvatar user={user} />
@@ -51,7 +62,9 @@ export function UserMenu({ user, children }: { user: Data.Users.User; children?:
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex flex-col">
-            <span className="truncate font-medium text-foreground">{displayName(user)}</span>
+            <span className="text-foreground truncate font-medium">
+              {displayName(user)}
+            </span>
             {user.fullName && <span className="truncate">{user.email}</span>}
           </DropdownMenuLabel>
         </DropdownMenuGroup>
@@ -68,7 +81,7 @@ export function UserMenu({ user, children }: { user: Data.Users.User; children?:
           </DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
             <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
-              {THEMES.map(option => (
+              {THEMES.map((option) => (
                 <DropdownMenuRadioItem key={option.value} value={option.value}>
                   {option.label}
                 </DropdownMenuRadioItem>
@@ -83,5 +96,5 @@ export function UserMenu({ user, children }: { user: Data.Users.User; children?:
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
-  )
+  );
 }

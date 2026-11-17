@@ -1,7 +1,8 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import type { NextFn } from '@adonisjs/core/types/http'
-import PlatformAdmin from '#access/models/platform_admin'
-import TwoFactorRequiredException from '#admin/exceptions/two_factor_required_exception'
+import type { HttpContext } from '@adonisjs/core/http';
+import type { NextFn } from '@adonisjs/core/types/http';
+
+import PlatformAdmin from '#access/models/platform_admin';
+import TwoFactorRequiredException from '#admin/exceptions/two_factor_required_exception';
 
 /**
  * A platform admin without confirmed two-factor authentication can't use the admin area. Anyone
@@ -12,12 +13,15 @@ import TwoFactorRequiredException from '#admin/exceptions/two_factor_required_ex
  */
 export default class RequireTwoFactorMiddleware {
   async handle({ auth }: HttpContext, next: NextFn) {
-    const user = auth.getUserOrFail()
+    const user = auth.getUserOrFail();
 
-    if (!user.twoFactorConfirmedAt && (await PlatformAdmin.findBy('userId', user.id))) {
-      throw new TwoFactorRequiredException()
+    if (
+      !user.twoFactorConfirmedAt &&
+      (await PlatformAdmin.findBy('userId', user.id))
+    ) {
+      throw new TwoFactorRequiredException();
     }
 
-    return next()
+    return next();
   }
 }

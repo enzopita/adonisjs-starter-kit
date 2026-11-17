@@ -1,10 +1,10 @@
-import { AttachmentSchema } from '#database/schema'
-import type { AttachmentExtname } from '#attachments/rules'
+import type { AttachmentExtname } from '#attachments/rules';
+import { AttachmentSchema } from '#database/schema';
 
 export default class Attachment extends AttachmentSchema {
-  declare extname: AttachmentExtname
+  declare extname: AttachmentExtname;
 
   get key() {
-    return `attachments/${this.id}`
+    return `attachments/${this.id}`;
   }
 }

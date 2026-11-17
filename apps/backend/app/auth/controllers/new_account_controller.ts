@@ -1,7 +1,8 @@
-import SignUp from '#auth/actions/sign_up'
-import { signupValidator } from '#auth/validators/auth'
-import type { HttpContext } from '@adonisjs/core/http'
-import UserTransformer from '#users/transformers/user_transformer'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import SignUp from '#auth/actions/sign_up';
+import { signupValidator } from '#auth/validators/auth';
+import UserTransformer from '#users/transformers/user_transformer';
 
 /**
  * @tags Auth
@@ -17,7 +18,8 @@ export default class NewAccountController {
    * @response {429} Too many attempts; retry after the Retry-After header
    */
   async store({ i18n, request, serialize }: HttpContext) {
-    const { locale, timezone, ...account } = await request.validateUsing(signupValidator)
+    const { locale, timezone, ...account } =
+      await request.validateUsing(signupValidator);
 
     const { user, token } = await new SignUp().handle({
       ...account,
@@ -25,11 +27,11 @@ export default class NewAccountController {
       timezone: timezone ?? null,
       userAgent: request.header('user-agent'),
       ipAddress: request.ip(),
-    })
+    });
 
     return serialize({
       user: UserTransformer.transform(user),
       token: token.value!.release(),
-    })
+    });
   }
 }

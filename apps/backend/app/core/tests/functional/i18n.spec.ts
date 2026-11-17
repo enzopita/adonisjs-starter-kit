@@ -1,11 +1,15 @@
-import { test } from '@japa/runner'
-import { signUp } from '#tests/accounts'
-import testUtils from '@adonisjs/core/services/test_utils'
+import testUtils from '@adonisjs/core/services/test_utils';
+import { test } from '@japa/runner';
 
-const wrongCredentials = { email: 'nobody@example.com', password: 'wrong-password' }
+import { signUp } from '#tests/accounts';
 
-test.group('Core | i18n', group => {
-  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
+const wrongCredentials = {
+  email: 'nobody@example.com',
+  password: 'wrong-password',
+};
+
+test.group('Core | i18n', (group) => {
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction());
 
   test('answers framework and validation errors in the Accept-Language locale', async ({
     client,
@@ -13,13 +17,13 @@ test.group('Core | i18n', group => {
     const signIn = await client
       .visit('auth.access_tokens.store')
       .header('accept-language', 'pt-PT,pt;q=0.9')
-      .json(wrongCredentials)
+      .json(wrongCredentials);
 
-    signIn.assertStatus(400)
+    signIn.assertStatus(400);
     signIn.assertBodyContains({
       code: 'E_INVALID_CREDENTIALS',
       message: 'E-mail ou senha inválidos.',
-    })
+    });
 
     const signUp = await client
       .visit('auth.new_account.store')
@@ -29,39 +33,49 @@ test.group('Core | i18n', group => {
         email: 'ada@example.com',
         password: 'short',
         passwordConfirmation: 'short',
-      })
+      });
 
-    signUp.assertStatus(422)
+    signUp.assertStatus(422);
     signUp.assertBodyContains({
-      errors: [{ field: 'password', rule: 'minLength', message: 'Use pelo menos 8 caracteres.' }],
-    })
-  })
+      errors: [
+        {
+          field: 'password',
+          rule: 'minLength',
+          message: 'Use pelo menos 8 caracteres.',
+        },
+      ],
+    });
+  });
 
-  test('translates an exception by its code and keeps the code', async ({ client }) => {
-    const token = await signUp(client, 'ada@example.com')
+  test('translates an exception by its code and keeps the code', async ({
+    client,
+  }) => {
+    const token = await signUp(client, 'ada@example.com');
 
     const response = await client
       .visit('invitation_accept.store')
       .header('accept-language', 'pt-BR')
       .bearerToken(token)
-      .json({ token: 'unknown' })
+      .json({ token: 'unknown' });
 
-    response.assertStatus(404)
+    response.assertStatus(404);
     response.assertBodyContains({
       code: 'E_INVITATION_NOT_FOUND',
       message: 'Este convite não existe ou expirou.',
-    })
-  })
+    });
+  });
 
-  test('answers in en-US when no Accept-Language locale is supported', async ({ client }) => {
+  test('answers in en-US when no Accept-Language locale is supported', async ({
+    client,
+  }) => {
     const response = await client
       .visit('auth.access_tokens.store')
       .header('accept-language', 'fr-FR,de;q=0.5')
-      .json(wrongCredentials)
+      .json(wrongCredentials);
 
     response.assertBodyContains({
       code: 'E_INVALID_CREDENTIALS',
       message: 'Invalid email or password.',
-    })
-  })
-})
+    });
+  });
+});

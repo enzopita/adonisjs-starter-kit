@@ -1,17 +1,18 @@
-import router from '@adonisjs/core/services/router'
-import { middleware } from '#start/kernel'
-import { apiRoutes } from '#core/api_routes'
-import { controllers } from '#generated/controllers'
+import router from '@adonisjs/core/services/router';
 
-const { Tenants } = controllers.tenancy
+import { apiRoutes } from '#core/api_routes';
+import { controllers } from '#generated/controllers';
+import { middleware } from '#start/kernel';
+
+const { Tenants } = controllers.tenancy;
 
 apiRoutes(() => {
   router
     .group(() => {
-      router.get('/', [Tenants, 'index'])
-      router.post('/', [Tenants, 'store'])
+      router.get('/', [Tenants, 'index']);
+      router.post('/', [Tenants, 'store']);
     })
     .prefix('tenants')
     .as('tenants')
-    .use(middleware.auth())
-})
+    .use(middleware.auth());
+});

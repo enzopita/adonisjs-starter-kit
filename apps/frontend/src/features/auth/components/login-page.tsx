@@ -1,49 +1,57 @@
-import { FieldGroup } from '@monorepo/ui/components/field'
-import { useMutation } from '@tanstack/react-query'
-import { getRouteApi, Link } from '@tanstack/react-router'
-import { TuyauError } from '@tuyau/core/client'
-import { useState } from 'react'
-import { AuthCard } from '@/features/core/components/auth-card'
-import { queries } from '@/features/core/api'
-import { apiErrorCode, errorMessage, formErrors } from '@/features/core/errors'
-import { useAppForm, withFormErrors } from '@/features/core/form'
-import { t } from '@/features/core/i18n'
-import { session } from '@/features/core/session'
+import { FieldGroup } from '@monorepo/ui/components/field';
+import { useMutation } from '@tanstack/react-query';
+import { getRouteApi, Link } from '@tanstack/react-router';
+import { TuyauError } from '@tuyau/core/client';
+import { useState } from 'react';
 
-const route = getRouteApi('/login')
+import { queries } from '@/features/core/api';
+import { AuthCard } from '@/features/core/components/auth-card';
+import { apiErrorCode, errorMessage, formErrors } from '@/features/core/errors';
+import { useAppForm, withFormErrors } from '@/features/core/form';
+import { t } from '@/features/core/i18n';
+import { session } from '@/features/core/session';
+
+const route = getRouteApi('/login');
 
 /** Signing in reruns the route guards, which send the user on to `?redirect=`. */
 export function LoginPage() {
-  const { redirect: redirectTo } = route.useSearch()
-  const createToken = useMutation(queries.auth.accessTokens.store.mutationOptions())
-  const [challenge, setChallenge] = useState<string | null>(null)
+  const { redirect: redirectTo } = route.useSearch();
+  const createToken = useMutation(
+    queries.auth.accessTokens.store.mutationOptions()
+  );
+  const [challenge, setChallenge] = useState<string | null>(null);
 
   // The alert shows the server's message; this adds the way to a fresh link once the mailed one expired.
   const passwordResetRequired =
     createToken.error instanceof TuyauError &&
-    apiErrorCode(createToken.error) === 'E_PASSWORD_RESET_REQUIRED'
+    apiErrorCode(createToken.error) === 'E_PASSWORD_RESET_REQUIRED';
 
   const form = useAppForm({
     defaultValues: { email: '', password: '' },
     onSubmit: async ({ value, formApi }) => {
-      const created = await withFormErrors(formApi, createToken.mutateAsync({ body: value }))
+      const created = await withFormErrors(
+        formApi,
+        createToken.mutateAsync({ body: value })
+      );
 
-      if (created && !created.data.twoFactorRequired) session.signIn(created.data.token)
+      if (created && !created.data.twoFactorRequired)
+        session.signIn(created.data.token);
 
-      if (created && created.data.twoFactorRequired) setChallenge(created.data.challenge)
+      if (created && created.data.twoFactorRequired)
+        setChallenge(created.data.challenge);
     },
-  })
+  });
 
   if (challenge) {
     return (
       <TwoFactorStep
         challenge={challenge}
-        onChallengeExpired={message => {
-          setChallenge(null)
-          form.setErrorMap({ onSubmit: { fields: {}, form: message } })
+        onChallengeExpired={(message) => {
+          setChallenge(null);
+          form.setErrorMap({ onSubmit: { fields: {}, form: message } });
         }}
       />
-    )
+    );
   }
 
   return (
@@ -51,7 +59,7 @@ export function LoginPage() {
       title={t('auth.loginPage.title')}
       description={t('auth.loginPage.description')}
       footer={
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           {t('auth.loginPage.noAccount')}{' '}
           <Link
             to="/signup"
@@ -70,13 +78,13 @@ export function LoginPage() {
             {passwordResetRequired && (
               <Link
                 to="/forgot-password"
-                className="text-sm text-foreground underline underline-offset-4"
+                className="text-foreground text-sm underline underline-offset-4"
               >
                 {t('auth.loginPage.requestResetLink')}
               </Link>
             )}
             <form.AppField name="email">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.loginPage.email')}
                   type="email"
@@ -86,7 +94,7 @@ export function LoginPage() {
               )}
             </form.AppField>
             <form.AppField name="password">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.loginPage.password')}
                   type="password"
@@ -97,16 +105,18 @@ export function LoginPage() {
             </form.AppField>
             <Link
               to="/forgot-password"
-              className="self-end text-xs text-muted-foreground underline underline-offset-4"
+              className="text-muted-foreground self-end text-xs underline underline-offset-4"
             >
               {t('auth.loginPage.forgotPassword')}
             </Link>
-            <form.SubmitButton size="lg">{t('auth.loginPage.submit')}</form.SubmitButton>
+            <form.SubmitButton size="lg">
+              {t('auth.loginPage.submit')}
+            </form.SubmitButton>
           </FieldGroup>
         </form.Form>
       </form.AppForm>
     </AuthCard>
-  )
+  );
 }
 
 /**
@@ -117,36 +127,38 @@ function TwoFactorStep({
   challenge,
   onChallengeExpired,
 }: {
-  challenge: string
-  onChallengeExpired: (message: string) => void
+  challenge: string;
+  onChallengeExpired: (message: string) => void;
 }) {
-  const verify = useMutation(queries.auth.twoFactorLogins.store.mutationOptions())
-  const [useRecoveryCode, setUseRecoveryCode] = useState(false)
+  const verify = useMutation(
+    queries.auth.twoFactorLogins.store.mutationOptions()
+  );
+  const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
   const form = useAppForm({
     defaultValues: { code: '', recoveryCode: '' },
     onSubmit: async ({ value, formApi }) => {
       const body = useRecoveryCode
         ? { challenge, recoveryCode: value.recoveryCode }
-        : { challenge, code: value.code }
+        : { challenge, code: value.code };
 
       try {
-        const { data } = await verify.mutateAsync({ body })
+        const { data } = await verify.mutateAsync({ body });
 
-        session.signIn(data.token)
+        session.signIn(data.token);
       } catch (error) {
-        if (!(error instanceof TuyauError)) throw error
+        if (!(error instanceof TuyauError)) throw error;
 
         if (apiErrorCode(error) === 'E_INVALID_TWO_FACTOR_CHALLENGE') {
-          onChallengeExpired(errorMessage(error))
+          onChallengeExpired(errorMessage(error));
 
-          return
+          return;
         }
 
-        formApi.setErrorMap({ onSubmit: formErrors(error) })
+        formApi.setErrorMap({ onSubmit: formErrors(error) });
       }
     },
-  })
+  });
 
   return (
     <AuthCard
@@ -159,7 +171,7 @@ function TwoFactorStep({
             <form.FormAlert />
             {useRecoveryCode ? (
               <form.AppField name="recoveryCode">
-                {field => (
+                {(field) => (
                   <field.TextField
                     label={t('auth.loginPage.recoveryCode')}
                     autoComplete="off"
@@ -169,7 +181,7 @@ function TwoFactorStep({
               </form.AppField>
             ) : (
               <form.AppField name="code">
-                {field => (
+                {(field) => (
                   <field.TextField
                     label={t('auth.loginPage.code')}
                     autoComplete="one-time-code"
@@ -181,15 +193,19 @@ function TwoFactorStep({
             )}
             <button
               type="button"
-              onClick={() => setUseRecoveryCode(value => !value)}
-              className="self-end text-xs text-muted-foreground underline underline-offset-4"
+              onClick={() => setUseRecoveryCode((value) => !value)}
+              className="text-muted-foreground self-end text-xs underline underline-offset-4"
             >
-              {useRecoveryCode ? t('auth.loginPage.useCode') : t('auth.loginPage.useRecoveryCode')}
+              {useRecoveryCode
+                ? t('auth.loginPage.useCode')
+                : t('auth.loginPage.useRecoveryCode')}
             </button>
-            <form.SubmitButton size="lg">{t('auth.loginPage.twoFactorSubmit')}</form.SubmitButton>
+            <form.SubmitButton size="lg">
+              {t('auth.loginPage.twoFactorSubmit')}
+            </form.SubmitButton>
           </FieldGroup>
         </form.Form>
       </form.AppForm>
     </AuthCard>
-  )
+  );
 }

@@ -11,7 +11,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
-  NODE_VERSION: "26.13.1"
+  NODE_VERSION: '26.13.1'
 
 jobs:
   lint:
@@ -42,44 +42,32 @@ jobs:
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -q -d starter -U postgres"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "pg_isready -q -d starter -U postgres" --health-interval 10s --health-timeout 5s --health-retries 5
       redis:
         image: redis:8-alpine
         ports:
           - 6379:6379
         options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "redis-cli ping" --health-interval 10s --health-timeout 5s --health-retries 5
       mailpit:
         image: axllent/mailpit:latest
         ports:
           - 1025:1025
           - 8025:8025
         options: >-
-          --health-cmd "/mailpit readyz"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "/mailpit readyz" --health-interval 10s --health-timeout 5s --health-retries 5
       rustfs:
         image: rustfs/rustfs:latest
         env:
           RUSTFS_VOLUMES: /data
           RUSTFS_ACCESS_KEY: rustfsadmin
           RUSTFS_SECRET_KEY: rustfsadmin
-          RUSTFS_CONSOLE_ENABLE: "true"
+          RUSTFS_CONSOLE_ENABLE: 'true'
         ports:
           - 9000:9000
           - 9001:9001
         options: >-
-          --health-cmd "curl -fsS http://127.0.0.1:9000/health"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+          --health-cmd "curl -fsS http://127.0.0.1:9000/health" --health-interval 10s --health-timeout 5s --health-retries 5
     env:
       TZ: UTC
       PORT: 3334
@@ -110,7 +98,7 @@ jobs:
       AWS_REGION: us-east-1
       S3_BUCKET: starter
       S3_ENDPOINT: http://127.0.0.1:9000
-      S3_FORCE_PATH_STYLE: "true"
+      S3_FORCE_PATH_STYLE: 'true'
       RUSTFS_CONSOLE_PORT: 9001
       REDIS_HOST: 127.0.0.1
       REDIS_PORT: 6379

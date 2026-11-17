@@ -8,12 +8,14 @@
     <!-- next-themes applies the theme only once React mounts; before that the page paints white. -->
     <script>
       try {
-        const stored = localStorage.getItem('theme')
-        const system = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-        const theme = stored === 'light' || stored === 'dark' ? stored : system
+        const stored = localStorage.getItem('theme');
+        const system = matchMedia('(prefers-color-scheme: dark)').matches
+          ? 'dark'
+          : 'light';
+        const theme = stored === 'light' || stored === 'dark' ? stored : system;
 
-        document.documentElement.classList.add(theme)
-        document.documentElement.style.colorScheme = theme
+        document.documentElement.classList.add(theme);
+        document.documentElement.style.colorScheme = theme;
       } catch {}
     </script>
   </head>

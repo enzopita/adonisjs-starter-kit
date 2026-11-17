@@ -1,6 +1,7 @@
-import drive from '@adonisjs/drive/services/main'
-import { BaseTransformer } from '@adonisjs/core/transformers'
-import type Attachment from '#attachments/models/attachment'
+import { BaseTransformer } from '@adonisjs/core/transformers';
+import drive from '@adonisjs/drive/services/main';
+
+import type Attachment from '#attachments/models/attachment';
 
 export default class AttachmentTransformer extends BaseTransformer<Attachment> {
   /**
@@ -9,13 +10,20 @@ export default class AttachmentTransformer extends BaseTransformer<Attachment> {
    */
   async toObject() {
     return {
-      ...this.pick(this.resource, ['id', 'name', 'extname', 'mimeType', 'size', 'createdAt']),
+      ...this.pick(this.resource, [
+        'id',
+        'name',
+        'extname',
+        'mimeType',
+        'size',
+        'createdAt',
+      ]),
       url: await drive.use().getSignedUrl(this.resource.key, {
         expiresIn: '1h',
         contentType: this.resource.mimeType,
         contentDisposition: `inline; filename*=UTF-8''${encodeRfc5987(this.resource.name)}`,
       }),
-    }
+    };
   }
 }
 
@@ -23,6 +31,6 @@ export default class AttachmentTransformer extends BaseTransformer<Attachment> {
 function encodeRfc5987(value: string) {
   return encodeURIComponent(value).replace(
     /['()*!]/g,
-    char => `%${char.charCodeAt(0).toString(16).toUpperCase()}`,
-  )
+    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`
+  );
 }

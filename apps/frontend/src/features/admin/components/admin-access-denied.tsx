@@ -4,9 +4,10 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@monorepo/ui/components/empty'
-import { LockIcon } from 'lucide-react'
-import { t } from '@/features/core/i18n'
+} from '@monorepo/ui/components/empty';
+import { LockIcon } from 'lucide-react';
+
+import { t } from '@/features/core/i18n';
 
 export function AdminAccessDenied() {
   return (
@@ -19,9 +20,11 @@ export function AdminAccessDenied() {
           <EmptyTitle>
             <h1>{t('admin.accessDenied.title')}</h1>
           </EmptyTitle>
-          <EmptyDescription>{t('admin.accessDenied.description')}</EmptyDescription>
+          <EmptyDescription>
+            {t('admin.accessDenied.description')}
+          </EmptyDescription>
         </EmptyHeader>
       </Empty>
     </div>
-  )
+  );
 }

@@ -1,3 +1,3 @@
-import { queries } from '@/features/core/api'
+import { queries } from '@/features/core/api';
 
-export const profileQuery = () => queries.profile.profile.show.queryOptions()
+export const profileQuery = () => queries.profile.profile.show.queryOptions();

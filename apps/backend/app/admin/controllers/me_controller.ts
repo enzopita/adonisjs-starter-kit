@@ -1,5 +1,6 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import PlatformAdmin from '#access/models/platform_admin'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import PlatformAdmin from '#access/models/platform_admin';
 
 /**
  * @tags Admin
@@ -13,14 +14,16 @@ export default class MeController {
    * authentication: every other admin route refuses them until they do.
    */
   async show({ auth, serialize }: HttpContext) {
-    const user = auth.getUserOrFail()
+    const user = auth.getUserOrFail();
     // Reads `platform_admins` rather than the `can` ability, which denies an admin without
     // two-factor.
-    const platformAdmin = Boolean(await PlatformAdmin.findBy('userId', user.id))
+    const platformAdmin = Boolean(
+      await PlatformAdmin.findBy('userId', user.id)
+    );
 
     return serialize({
       platformAdmin,
       twoFactorRequired: platformAdmin && !user.twoFactorConfirmedAt,
-    })
+    });
   }
 }

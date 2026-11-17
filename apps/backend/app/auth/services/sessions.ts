@@ -1,38 +1,48 @@
-import db from '@adonisjs/lucid/services/db'
-import User, { SESSION_IDLE_TIMEOUT_DAYS } from '#users/models/user'
-import AccountDisabledException from '#auth/exceptions/account_disabled_exception'
-import PasswordResetRequiredException from '#auth/exceptions/password_reset_required_exception'
+import db from '@adonisjs/lucid/services/db';
+
+import AccountDisabledException from '#auth/exceptions/account_disabled_exception';
+import PasswordResetRequiredException from '#auth/exceptions/password_reset_required_exception';
+import User, { SESSION_IDLE_TIMEOUT_DAYS } from '#users/models/user';
 
 export interface OpenSessionInput {
-  user: User
-  userAgent: string | undefined
-  ipAddress: string
+  user: User;
+  userAgent: string | undefined;
+  ipAddress: string;
 }
 
 /**
  * Issues an access token for a real sign-in, recording the device it was issued to. Refreshes
  * `user` afterwards, so the caller sees any state committed while the token was being created.
  */
-export async function openSession({ user, userAgent, ipAddress }: OpenSessionInput) {
+export async function openSession({
+  user,
+  userAgent,
+  ipAddress,
+}: OpenSessionInput) {
   const token = await User.accessTokens.create(user, ['*'], {
     expiresIn: `${SESSION_IDLE_TIMEOUT_DAYS}d`,
-  })
+  });
 
   // The provider's insert takes no extra columns, so the device info follows as its own write.
   await db
     .from('auth_access_tokens')
     .where('id', String(token.identifier))
-    .update({ user_agent: userAgent?.slice(0, 512) ?? null, ip_address: ipAddress })
+    .update({
+      user_agent: userAgent?.slice(0, 512) ?? null,
+      ip_address: ipAddress,
+    });
 
   // A disable or an admin two-factor reset committing since the caller's check may have deleted
   // the tokens before this one existed.
-  await user.refresh()
+  await user.refresh();
 
   if (user.disabledAt || user.passwordResetRequiredAt) {
-    await User.accessTokens.delete(user, token.identifier)
+    await User.accessTokens.delete(user, token.identifier);
 
-    throw user.disabledAt ? new AccountDisabledException() : new PasswordResetRequiredException()
+    throw user.disabledAt
+      ? new AccountDisabledException()
+      : new PasswordResetRequiredException();
   }
 
-  return token
+  return token;
 }

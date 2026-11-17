@@ -1,21 +1,22 @@
-import { Button } from '@monorepo/ui/components/button'
+import { Button } from '@monorepo/ui/components/button';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@monorepo/ui/components/card'
-import { Field, FieldLabel } from '@monorepo/ui/components/field'
-import { Input } from '@monorepo/ui/components/input'
-import { useMutation } from '@tanstack/react-query'
-import { CopyIcon } from 'lucide-react'
-import { QRCodeSVG } from 'qrcode.react'
-import { useId } from 'react'
-import { toast } from 'sonner'
-import { queries } from '@/features/core/api'
-import { useAppForm, withFormErrors } from '@/features/core/form'
-import { t } from '@/features/core/i18n'
+} from '@monorepo/ui/components/card';
+import { Field, FieldLabel } from '@monorepo/ui/components/field';
+import { Input } from '@monorepo/ui/components/input';
+import { useMutation } from '@tanstack/react-query';
+import { CopyIcon } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
+import { useId } from 'react';
+import { toast } from 'sonner';
+
+import { queries } from '@/features/core/api';
+import { useAppForm, withFormErrors } from '@/features/core/form';
+import { t } from '@/features/core/i18n';
 
 /** The pending secret from `POST /account/two-factor`: a QR code, its text, and a code to confirm. */
 export function TwoFactorEnrollCard({
@@ -24,31 +25,36 @@ export function TwoFactorEnrollCard({
   onConfirmed,
   onCancel,
 }: {
-  secret: string
-  uri: string
-  onConfirmed: (recoveryCodes: string[]) => void
-  onCancel: () => void
+  secret: string;
+  uri: string;
+  onConfirmed: (recoveryCodes: string[]) => void;
+  onCancel: () => void;
 }) {
-  const confirm = useMutation(queries.profile.twoFactor.confirm.mutationOptions())
-  const secretId = useId()
+  const confirm = useMutation(
+    queries.profile.twoFactor.confirm.mutationOptions()
+  );
+  const secretId = useId();
 
   const form = useAppForm({
     defaultValues: { password: '', code: '' },
     onSubmit: async ({ value, formApi }) => {
-      const confirmed = await withFormErrors(formApi, confirm.mutateAsync({ body: value }))
+      const confirmed = await withFormErrors(
+        formApi,
+        confirm.mutateAsync({ body: value })
+      );
 
-      if (confirmed) onConfirmed(confirmed.data.recoveryCodes)
+      if (confirmed) onConfirmed(confirmed.data.recoveryCodes);
     },
-  })
+  });
 
   const copySecret = async () => {
     try {
-      await navigator.clipboard.writeText(secret)
-      toast.success(t('auth.twoFactorCard.secretCopied'))
+      await navigator.clipboard.writeText(secret);
+      toast.success(t('auth.twoFactorCard.secretCopied'));
     } catch {
-      toast.error(t('core.errors.fallback'))
+      toast.error(t('core.errors.fallback'));
     }
-  }
+  };
 
   return (
     <Card>
@@ -56,7 +62,9 @@ export function TwoFactorEnrollCard({
         <CardTitle>
           <h2>{t('auth.twoFactorCard.enrollTitle')}</h2>
         </CardTitle>
-        <CardDescription>{t('auth.twoFactorCard.enrollDescription')}</CardDescription>
+        <CardDescription>
+          {t('auth.twoFactorCard.enrollDescription')}
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
@@ -64,13 +72,15 @@ export function TwoFactorEnrollCard({
             <QRCodeSVG value={uri} size={176} />
           </div>
           <Field>
-            <FieldLabel htmlFor={secretId}>{t('auth.twoFactorCard.manualSecret')}</FieldLabel>
+            <FieldLabel htmlFor={secretId}>
+              {t('auth.twoFactorCard.manualSecret')}
+            </FieldLabel>
             <div className="flex items-center gap-2">
               <Input
                 id={secretId}
                 readOnly
                 value={secret}
-                onFocus={event => event.target.select()}
+                onFocus={(event) => event.target.select()}
               />
               <Button
                 type="button"
@@ -87,7 +97,7 @@ export function TwoFactorEnrollCard({
             <form.Form className="flex flex-col gap-4">
               <form.FormAlert />
               <form.AppField name="password">
-                {field => (
+                {(field) => (
                   <field.TextField
                     label={t('auth.twoFactorCard.password')}
                     type="password"
@@ -97,7 +107,7 @@ export function TwoFactorEnrollCard({
                 )}
               </form.AppField>
               <form.AppField name="code">
-                {field => (
+                {(field) => (
                   <field.TextField
                     label={t('auth.twoFactorCard.code')}
                     autoComplete="one-time-code"
@@ -107,7 +117,9 @@ export function TwoFactorEnrollCard({
                 )}
               </form.AppField>
               <div className="flex gap-2">
-                <form.SubmitButton>{t('auth.twoFactorCard.confirm')}</form.SubmitButton>
+                <form.SubmitButton>
+                  {t('auth.twoFactorCard.confirm')}
+                </form.SubmitButton>
                 <Button type="button" variant="ghost" onClick={onCancel}>
                   {t('auth.twoFactorCard.cancel')}
                 </Button>
@@ -117,5 +129,5 @@ export function TwoFactorEnrollCard({
         </div>
       </CardContent>
     </Card>
-  )
+  );
 }

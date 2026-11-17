@@ -1,4 +1,4 @@
-import { buttonVariants } from '@monorepo/ui/components/button'
+import { buttonVariants } from '@monorepo/ui/components/button';
 import {
   Table,
   TableBody,
@@ -6,30 +6,38 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@monorepo/ui/components/table'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
-import { ArrowLeftIcon } from 'lucide-react'
-import { TenantStatus } from '@/features/admin/components/tenants-page'
-import { UserActions, UserStatus } from '@/features/admin/components/user-actions'
-import { adminTenantQuery } from '@/features/admin/queries'
-import { PageHeader } from '@/features/core/components/page-header'
-import { displayName } from '@/features/core/display-name'
-import { t } from '@/features/core/i18n'
-import { UserAvatar } from '@/features/users/components/user-avatar'
+} from '@monorepo/ui/components/table';
+import { useSuspenseQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
+import { ArrowLeftIcon } from 'lucide-react';
+
+import { TenantStatus } from '@/features/admin/components/tenants-page';
+import {
+  UserActions,
+  UserStatus,
+} from '@/features/admin/components/user-actions';
+import { adminTenantQuery } from '@/features/admin/queries';
+import { PageHeader } from '@/features/core/components/page-header';
+import { displayName } from '@/features/core/display-name';
+import { t } from '@/features/core/i18n';
+import { UserAvatar } from '@/features/users/components/user-avatar';
 
 export function TenantPage({ tenantId }: { tenantId: string }) {
   const {
     data: {
       data: { tenant, members },
     },
-  } = useSuspenseQuery(adminTenantQuery(tenantId))
+  } = useSuspenseQuery(adminTenantQuery(tenantId));
 
   return (
     <>
       <Link
         to="/admin"
-        className={buttonVariants({ variant: 'ghost', size: 'sm', className: 'w-fit' })}
+        className={buttonVariants({
+          variant: 'ghost',
+          size: 'sm',
+          className: 'w-fit',
+        })}
       >
         <ArrowLeftIcon data-icon="inline-start" />
         {t('admin.tenantPage.back')}
@@ -53,20 +61,26 @@ export function TenantPage({ tenantId }: { tenantId: string }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {members.map(member => (
+          {members.map((member) => (
             <TableRow key={member.user.id}>
               <TableCell>
                 <div className="flex items-center gap-2">
                   <UserAvatar user={member.user} className="size-7" />
                   <div className="flex min-w-0 flex-col">
-                    <span className="truncate font-medium">{displayName(member.user)}</span>
-                    <span className="truncate text-muted-foreground">{member.user.email}</span>
+                    <span className="truncate font-medium">
+                      {displayName(member.user)}
+                    </span>
+                    <span className="text-muted-foreground truncate">
+                      {member.user.email}
+                    </span>
                   </div>
                 </div>
               </TableCell>
               <TableCell>
                 {member.role ?? (
-                  <span className="text-muted-foreground">{t('admin.tenantPage.noRole')}</span>
+                  <span className="text-muted-foreground">
+                    {t('admin.tenantPage.noRole')}
+                  </span>
                 )}
               </TableCell>
               <TableCell>
@@ -80,5 +94,5 @@ export function TenantPage({ tenantId }: { tenantId: string }) {
         </TableBody>
       </Table>
     </>
-  )
+  );
 }

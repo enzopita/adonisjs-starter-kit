@@ -1,6 +1,6 @@
-import type { E2EConfig } from 'e2e'
-import { web } from '@e2e-dev/web'
-import { claudeCode } from '@e2e-dev/acp'
+import { claudeCode } from '@e2e-dev/acp';
+import { web } from '@e2e-dev/web';
+import type { E2EConfig } from 'e2e';
 
 export default {
   // agent.* steps run on Claude Code over ACP with its own login (`claude`), or ANTHROPIC_API_KEY when set.
@@ -48,4 +48,4 @@ export default {
       },
     },
   ],
-} satisfies E2EConfig
+} satisfies E2EConfig;

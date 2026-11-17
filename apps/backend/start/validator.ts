@@ -1,11 +1,11 @@
-import { DateTime } from 'luxon'
-import { VineDate } from '@vinejs/vine'
+import { VineDate } from '@vinejs/vine';
+import { DateTime } from 'luxon';
 
 declare module '@vinejs/vine/types' {
   interface VineGlobalTransforms {
-    date: DateTime
+    date: DateTime;
   }
 }
 
 /** Validated dates come out as Luxon DateTime, the type Lucid models expect. */
-VineDate.transform(value => DateTime.fromJSDate(value))
+VineDate.transform((value) => DateTime.fromJSDate(value));

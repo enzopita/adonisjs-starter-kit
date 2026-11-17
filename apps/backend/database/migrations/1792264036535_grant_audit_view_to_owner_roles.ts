@@ -1,14 +1,14 @@
-import { BaseSchema } from '@adonisjs/lucid/schema'
+import { BaseSchema } from '@adonisjs/lucid/schema';
 
 /**
  * Owner roles seeded before audit.view existed hold every permission of that time but not it.
  * The list is frozen here: a permission added to the catalog later must not widen this grant.
  */
-const OWNER_PERMISSIONS = ['roles.manage', 'members.manage']
+const OWNER_PERMISSIONS = ['roles.manage', 'members.manage'];
 
 export default class extends BaseSchema {
   override async up() {
-    this.defer(db =>
+    this.defer((db) =>
       db.rawQuery(
         `
         WITH granted AS (
@@ -26,9 +26,9 @@ export default class extends BaseSchema {
           now()
         FROM granted
         `,
-        { owner: OWNER_PERMISSIONS },
-      ),
-    )
+        { owner: OWNER_PERMISSIONS }
+      )
+    );
   }
 
   /**

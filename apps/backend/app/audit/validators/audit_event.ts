@@ -1,7 +1,8 @@
-import vine from '@vinejs/vine'
-import { pagination } from '#core/validators/pagination'
+import vine from '@vinejs/vine';
 
-const date = () => vine.date({ formats: ['iso8601'] })
+import { pagination } from '#core/validators/pagination';
+
+const date = () => vine.date({ formats: ['iso8601'] });
 
 export const listAuditEventsValidator = vine.create({
   ...pagination(),
@@ -11,6 +12,6 @@ export const listAuditEventsValidator = vine.create({
   subjectId: vine.string().uuid().optional(),
   from: date().optional(),
   to: date().optional(),
-})
+});
 
-export const listAccountActivityValidator = vine.create(pagination())
+export const listAccountActivityValidator = vine.create(pagination());

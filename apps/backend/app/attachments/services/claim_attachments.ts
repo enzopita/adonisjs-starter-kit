@@ -1,12 +1,13 @@
-import Attachment from '#attachments/models/attachment'
-import type { AttachmentRule } from '#attachments/rules'
-import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
-import InvalidAttachmentException from '#attachments/exceptions/invalid_attachment_exception'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database';
+
+import InvalidAttachmentException from '#attachments/exceptions/invalid_attachment_exception';
+import Attachment from '#attachments/models/attachment';
+import type { AttachmentRule } from '#attachments/rules';
 
 export interface ClaimAttachmentsInput {
-  ids: readonly string[]
-  uploaderId: string
-  rule: AttachmentRule
+  ids: readonly string[];
+  uploaderId: string;
+  rule: AttachmentRule;
 }
 
 export class ClaimAttachments {
@@ -17,17 +18,20 @@ export class ClaimAttachments {
    *
    * Returns the attachments in the order of `ids`.
    */
-  async handle(trx: TransactionClientContract, { ids, uploaderId, rule }: ClaimAttachmentsInput) {
-    if (ids.length === 0) return []
+  async handle(
+    trx: TransactionClientContract,
+    { ids, uploaderId, rule }: ClaimAttachmentsInput
+  ) {
+    if (ids.length === 0) return [];
 
     const rows = await Attachment.query({ client: trx })
       .whereIn('id', [...ids])
-      .forShare()
+      .forShare();
 
-    const byId = new Map(rows.map(row => [row.id, row]))
+    const byId = new Map(rows.map((row) => [row.id, row]));
 
-    return ids.map(id => {
-      const attachment = byId.get(id)
+    return ids.map((id) => {
+      const attachment = byId.get(id);
 
       if (
         !attachment ||
@@ -35,10 +39,10 @@ export class ClaimAttachments {
         !rule.extnames.includes(attachment.extname) ||
         attachment.size > rule.maxBytes
       ) {
-        throw new InvalidAttachmentException()
+        throw new InvalidAttachmentException();
       }
 
-      return attachment
-    })
+      return attachment;
+    });
   }
 }

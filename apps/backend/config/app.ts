@@ -1,10 +1,11 @@
-import env from '#start/env'
-import app from '@adonisjs/core/services/app'
-import proxyAddr from 'proxy-addr'
-import { defineConfig } from '@adonisjs/core/http'
+import { defineConfig } from '@adonisjs/core/http';
+import app from '@adonisjs/core/services/app';
+import proxyAddr from 'proxy-addr';
+
+import env from '#start/env';
 
 /** How many days an audit event is kept before the daily prune deletes it. */
-export const auditRetentionDays = env.get('AUDIT_RETENTION_DAYS', 365)
+export const auditRetentionDays = env.get('AUDIT_RETENTION_DAYS', 365);
 
 export const http = defineConfig({
   generateRequestId: true,
@@ -35,4 +36,4 @@ export const http = defineConfig({
     secure: app.inProduction,
     sameSite: 'lax',
   },
-})
+});

@@ -1,17 +1,24 @@
-import { z } from 'zod'
-import { AUDIT_AREAS, AUDIT_EVENT_TYPES, areaOf } from '@/features/audit/event-text'
-import type { AuditSubject } from '@/features/audit/event-text'
-import { queries, tenantHeaders } from '@/features/core/api'
-import { zonedDayBoundary } from '@/features/core/datetime'
-import { preferences } from '@/features/core/preferences'
+import { z } from 'zod';
 
-const PER_PAGE = 20
+import {
+  AUDIT_AREAS,
+  AUDIT_EVENT_TYPES,
+  areaOf,
+} from '@/features/audit/event-text';
+import type { AuditSubject } from '@/features/audit/event-text';
+import { queries, tenantHeaders } from '@/features/core/api';
+import { zonedDayBoundary } from '@/features/core/datetime';
+import { preferences } from '@/features/core/preferences';
+
+const PER_PAGE = 20;
 
 /** For a trail embedded in a card or a dialog, where 20 rows push the pagination out of reach. */
-export const EMBEDDED_PER_PAGE = 10
+export const EMBEDDED_PER_PAGE = 10;
 
 export const accountActivityQuery = (page: number) =>
-  queries.audit.accountActivity.index.queryOptions({ query: { page, perPage: EMBEDDED_PER_PAGE } })
+  queries.audit.accountActivity.index.queryOptions({
+    query: { page, perPage: EMBEDDED_PER_PAGE },
+  });
 
 /**
  * The audit page's filters, as its URL holds them. `event` is an area (`role`) or one event type
@@ -27,14 +34,19 @@ export const auditSearchSchema = z.object({
   actor: z.uuid().optional().catch(undefined),
   from: z.iso.date().optional().catch(undefined),
   to: z.iso.date().optional().catch(undefined),
-})
+});
 
-export type AuditSearch = z.infer<typeof auditSearchSchema>
+export type AuditSearch = z.infer<typeof auditSearchSchema>;
 
-export type AuditFilters = AuditSearch & { subject?: AuditSubject; perPage?: number }
+export type AuditFilters = AuditSearch & {
+  subject?: AuditSubject;
+  perPage?: number;
+};
 
 function eventTypes(event: NonNullable<AuditSearch['event']>) {
-  return event.includes('.') ? [event] : AUDIT_EVENT_TYPES.filter(type => areaOf(type) === event)
+  return event.includes('.')
+    ? [event]
+    : AUDIT_EVENT_TYPES.filter((type) => areaOf(type) === event);
 }
 
 /**
@@ -43,9 +55,10 @@ function eventTypes(event: NonNullable<AuditSearch['event']>) {
  * viewer sees there, not the day in the browser's own zone.
  */
 function dayBound(day: string, edge: 'start' | 'end') {
-  const timeZone = preferences.timeZone() ?? Intl.DateTimeFormat().resolvedOptions().timeZone
+  const timeZone =
+    preferences.timeZone() ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-  return zonedDayBoundary(day, timeZone, edge).toISOString()
+  return zonedDayBoundary(day, timeZone, edge).toISOString();
 }
 
 export const auditEventsQuery = (tenantId: string, filters: AuditFilters) =>
@@ -61,4 +74,4 @@ export const auditEventsQuery = (tenantId: string, filters: AuditFilters) =>
       to: filters.to && dayBound(filters.to, 'end'),
     },
     ...tenantHeaders(tenantId),
-  })
+  });

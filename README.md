@@ -6,14 +6,7 @@
 
 English · [Português](README.pt-BR.md)
 
-[![CI](https://github.com/enzopita/adonisjs-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/enzopita/adonisjs-starter-kit/actions/workflows/ci.yml)
-![Node 24](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white)
-![pnpm](https://img.shields.io/badge/pnpm-12-F69220?logo=pnpm&logoColor=white)
-![AdonisJS 7](https://img.shields.io/badge/AdonisJS-7-5A45FF?logo=adonisjs&logoColor=white)
-![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)
-![Postgres 18](https://img.shields.io/badge/Postgres-18-4169E1?logo=postgresql&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white)
-![MIT](https://img.shields.io/badge/license-MIT-blue)
+[![CI](https://github.com/enzopita/adonisjs-starter-kit/actions/workflows/ci.yml/badge.svg)](https://github.com/enzopita/adonisjs-starter-kit/actions/workflows/ci.yml) ![Node 24](https://img.shields.io/badge/node-24-339933?logo=nodedotjs&logoColor=white) ![pnpm](https://img.shields.io/badge/pnpm-12-F69220?logo=pnpm&logoColor=white) ![AdonisJS 7](https://img.shields.io/badge/AdonisJS-7-5A45FF?logo=adonisjs&logoColor=white) ![React 19](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black) ![Postgres 18](https://img.shields.io/badge/Postgres-18-4169E1?logo=postgresql&logoColor=white) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6?logo=typescript&logoColor=white) ![MIT](https://img.shields.io/badge/license-MIT-blue)
 
 </div>
 
@@ -26,13 +19,13 @@ English · [Português](README.pt-BR.md)
 
 ## Screenshots
 
-|                                                                                            |                                                                                                                                            |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| ![Sign-in page](docs/images/sign-in.png) Sign-in                                           | ![Sign-in page in the dark theme](docs/images/sign-in-dark.png) Sign-in, dark theme                                                        |
-| ![Workspace overview](docs/images/workspace-overview.png) Workspace overview               | ![Invitations](docs/images/invitations.png) Pending invitations                                                                            |
-| ![Roles and permissions](docs/images/roles-permissions.png) Roles and permissions          | ![Audit trail](docs/images/audit-trail.png) Audit trail                                                                                    |
-| ![Two-factor setup](docs/images/two-factor-setup.png) Two-factor setup                     | ![Profile page in Portuguese](docs/images/profile-preferences.png) Profile in Portuguese (pt-BR). Each user picks a language and time zone |
-| ![Platform admin, workspaces](docs/images/admin-workspaces.png) Platform admin, workspaces | ![Platform admin, users](docs/images/admin-users.png) Platform admin, users                                                                |
+|  |  |
+| --- | --- |
+| ![Sign-in page](docs/images/sign-in.png) Sign-in | ![Sign-in page in the dark theme](docs/images/sign-in-dark.png) Sign-in, dark theme |
+| ![Workspace overview](docs/images/workspace-overview.png) Workspace overview | ![Invitations](docs/images/invitations.png) Pending invitations |
+| ![Roles and permissions](docs/images/roles-permissions.png) Roles and permissions | ![Audit trail](docs/images/audit-trail.png) Audit trail |
+| ![Two-factor setup](docs/images/two-factor-setup.png) Two-factor setup | ![Profile page in Portuguese](docs/images/profile-preferences.png) Profile in Portuguese (pt-BR). Each user picks a language and time zone |
+| ![Platform admin, workspaces](docs/images/admin-workspaces.png) Platform admin, workspaces | ![Platform admin, users](docs/images/admin-users.png) Platform admin, users |
 
 To retake these screenshots, run `pnpm screenshots`. The script seeds a separate `starter_demo` database, so your dev data stays out of the pictures. It needs Docker, [`agent-browser`](https://www.npmjs.com/package/agent-browser) on the `PATH`, and free ports 3333 and 5173. It also deletes the demo addresses' mail from Mailpit.
 
@@ -56,33 +49,33 @@ flowchart LR
   API --> M[SMTP / Mailpit]
 ```
 
-| Workspace       | What                                                              |
-| --------------- | ----------------------------------------------------------------- |
-| `apps/backend`  | AdonisJS 7 · Lucid · VineJS · auth · Drive/S3 · Mail · queues     |
-| `apps/frontend` | React 19 · Vite · TanStack Router · Tuyau client                  |
-| `packages/ui`   | Shared design system (shadcn on Base UI, Tailwind 4)              |
-| `tests/`        | End-to-end tests (Playwright + agent)                             |
-| `docs/`         | [Architecture](docs/architecture.md) · [Testing](docs/testing.md) |
+| Workspace | What |
+| --- | --- |
+| `apps/backend` | AdonisJS 7 · Lucid · VineJS · auth · Drive/S3 · Mail · queues |
+| `apps/frontend` | React 19 · Vite · TanStack Router · Tuyau client |
+| `packages/ui` | Shared design system (shadcn on Base UI, Tailwind 4) |
+| `tests/` | End-to-end tests (Playwright + agent) |
+| `docs/` | [Architecture](docs/architecture.md) · [Testing](docs/testing.md) |
 
 ## Included
 
-|     | Feature                                                                   |
-| --- | ------------------------------------------------------------------------- |
-| 🔐  | Signup, login, email verification, password reset, profile and avatar     |
-| 🔑  | Two-factor authentication (TOTP + recovery codes) and per-device sessions |
-| 🏢  | Multi-tenancy with workspaces and invitations by email                    |
-| 🛡️  | Roles and fine-grained permissions per workspace                          |
-| 📜  | Audit trail of who changed what in a workspace, and when                  |
-| 🛠️  | Platform admin area for every workspace and user, behind 2FA              |
-| 🌐  | i18n (en-US, pt-BR) with per-user language and time zone preferences      |
-| 📎  | Attachments on S3 with signed URLs and orphan cleanup                     |
-| ✉️  | Mail (Mailpit in dev) and Redis queues                                    |
-| ❤️  | Health checks (`/health/live`, `/health/ready`)                           |
-| 📖  | OpenAPI document generated from the routes, with a docs page in dev       |
-| 🧬  | UUIDv7 primary keys, env validated at boot                                |
-| 🧪  | Unit, functional and e2e tests                                            |
-| 🧹  | oxlint + oxfmt, module boundaries enforced, Conventional Commits          |
-| 🐳  | Multi-stage Dockerfile and a Dokploy compose file                         |
+|  | Feature |
+| --- | --- |
+| 🔐 | Signup, login, email verification, password reset, profile and avatar |
+| 🔑 | Two-factor authentication (TOTP + recovery codes) and per-device sessions |
+| 🏢 | Multi-tenancy with workspaces and invitations by email |
+| 🛡️ | Roles and fine-grained permissions per workspace |
+| 📜 | Audit trail of who changed what in a workspace, and when |
+| 🛠️ | Platform admin area for every workspace and user, behind 2FA |
+| 🌐 | i18n (en-US, pt-BR) with per-user language and time zone preferences |
+| 📎 | Attachments on S3 with signed URLs and orphan cleanup |
+| ✉️ | Mail (Mailpit in dev) and Redis queues |
+| ❤️ | Health checks (`/health/live`, `/health/ready`) |
+| 📖 | OpenAPI document generated from the routes, with a docs page in dev |
+| 🧬 | UUIDv7 primary keys, env validated at boot |
+| 🧪 | Unit, functional and e2e tests |
+| 🧹 | oxlint + oxfmt, module boundaries enforced, Conventional Commits |
+| 🐳 | Multi-stage Dockerfile and a Dokploy compose file |
 
 ## Modules
 

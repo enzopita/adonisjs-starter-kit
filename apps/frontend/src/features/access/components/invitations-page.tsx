@@ -1,5 +1,5 @@
-import { Badge } from '@monorepo/ui/components/badge'
-import { Button } from '@monorepo/ui/components/button'
+import { Badge } from '@monorepo/ui/components/badge';
+import { Button } from '@monorepo/ui/components/button';
 import {
   Empty,
   EmptyContent,
@@ -7,7 +7,7 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from '@monorepo/ui/components/empty'
+} from '@monorepo/ui/components/empty';
 import {
   Table,
   TableBody,
@@ -15,38 +15,46 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@monorepo/ui/components/table'
-import { useMutation, useSuspenseQueries } from '@tanstack/react-query'
-import { MailIcon, MailPlusIcon, Trash2Icon } from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
-import { InviteMemberDialog } from '@/features/access/components/invite-member-dialog'
-import { RequirePermission } from '@/features/access/components/require-permission'
-import { invitationsQuery, rolesQuery } from '@/features/access/queries'
-import { queries, tenantHeaders } from '@/features/core/api'
-import type { api } from '@/features/core/api'
-import { ConfirmDialog } from '@/features/core/components/confirm-dialog'
-import { PageHeader } from '@/features/core/components/page-header'
-import { DATE_MEDIUM, formatDate, useTimeZone } from '@/features/core/datetime'
-import { errorMessage } from '@/features/core/errors'
-import { t } from '@/features/core/i18n'
-import { useActiveTenant } from '@/features/tenancy/workspace'
+} from '@monorepo/ui/components/table';
+import { useMutation, useSuspenseQueries } from '@tanstack/react-query';
+import { MailIcon, MailPlusIcon, Trash2Icon } from 'lucide-react';
+import { useState } from 'react';
+import { toast } from 'sonner';
 
-type Invitation = Awaited<ReturnType<typeof api.access.invitations.index>>['data'][number]
+import { InviteMemberDialog } from '@/features/access/components/invite-member-dialog';
+import { RequirePermission } from '@/features/access/components/require-permission';
+import { invitationsQuery, rolesQuery } from '@/features/access/queries';
+import { queries, tenantHeaders } from '@/features/core/api';
+import type { api } from '@/features/core/api';
+import { ConfirmDialog } from '@/features/core/components/confirm-dialog';
+import { PageHeader } from '@/features/core/components/page-header';
+import { DATE_MEDIUM, formatDate, useTimeZone } from '@/features/core/datetime';
+import { errorMessage } from '@/features/core/errors';
+import { t } from '@/features/core/i18n';
+import { useActiveTenant } from '@/features/tenancy/workspace';
 
-type Role = Awaited<ReturnType<typeof api.access.roles.index>>['data'][number]
+type Invitation = Awaited<
+  ReturnType<typeof api.access.invitations.index>
+>['data'][number];
+
+type Role = Awaited<ReturnType<typeof api.access.roles.index>>['data'][number];
 
 function roleName(roles: readonly Role[], roleId: string | null) {
-  return roleId ? (roles.find(role => role.id === roleId)?.name ?? null) : null
+  return roleId
+    ? (roles.find((role) => role.id === roleId)?.name ?? null)
+    : null;
 }
 
 /** The API always sets both dates; the nullable type here only reflects the column's general shape. */
 function isExpired(expiresAt: string | null) {
-  return expiresAt !== null && new Date(expiresAt).getTime() <= Date.now()
+  return expiresAt !== null && new Date(expiresAt).getTime() <= Date.now();
 }
 
 function formattedDate(value: string | null, timeZone: string | undefined) {
-  return formatDate(value, DATE_MEDIUM, timeZone) ?? t('access.invitationsPage.noDate')
+  return (
+    formatDate(value, DATE_MEDIUM, timeZone) ??
+    t('access.invitationsPage.noDate')
+  );
 }
 
 export function InvitationsPage() {
@@ -54,19 +62,19 @@ export function InvitationsPage() {
     <RequirePermission permission="members.manage">
       <Invitations />
     </RequirePermission>
-  )
+  );
 }
 
 function Invitations() {
-  const { id: tenantId } = useActiveTenant()
-  const timeZone = useTimeZone()
+  const { id: tenantId } = useActiveTenant();
+  const timeZone = useTimeZone();
 
   const [{ data: invitations }, { data: roles }] = useSuspenseQueries({
     queries: [invitationsQuery(tenantId), rolesQuery(tenantId)],
-  })
+  });
 
-  const [inviting, setInviting] = useState(false)
-  const [revoking, setRevoking] = useState<Invitation | null>(null)
+  const [inviting, setInviting] = useState(false);
+  const [revoking, setRevoking] = useState<Invitation | null>(null);
 
   return (
     <>
@@ -115,18 +123,22 @@ function Invitations() {
               <TableHead>{t('access.invitationsPage.expires')}</TableHead>
               <TableHead>{t('access.invitationsPage.status')}</TableHead>
               <TableHead>
-                <span className="sr-only">{t('access.invitationsPage.actions')}</span>
+                <span className="sr-only">
+                  {t('access.invitationsPage.actions')}
+                </span>
               </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {invitations.data.map(invitation => {
-              const expired = isExpired(invitation.expiresAt)
-              const name = roleName(roles.data, invitation.roleId)
+            {invitations.data.map((invitation) => {
+              const expired = isExpired(invitation.expiresAt);
+              const name = roleName(roles.data, invitation.roleId);
 
               return (
                 <TableRow key={invitation.id}>
-                  <TableCell className="break-all">{invitation.email}</TableCell>
+                  <TableCell className="break-all">
+                    {invitation.email}
+                  </TableCell>
                   <TableCell>
                     {name ? (
                       <Badge variant="secondary">{name}</Badge>
@@ -157,16 +169,19 @@ function Invitations() {
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={t('access.invitationsPage.revokeInvitationTo', {
-                        email: invitation.email,
-                      })}
+                      aria-label={t(
+                        'access.invitationsPage.revokeInvitationTo',
+                        {
+                          email: invitation.email,
+                        }
+                      )}
                       onClick={() => setRevoking(invitation)}
                     >
                       <Trash2Icon />
                     </Button>
                   </TableCell>
                 </TableRow>
-              )
+              );
             })}
           </TableBody>
         </Table>
@@ -188,11 +203,11 @@ function Invitations() {
           invitation={revoking}
           tenantId={tenantId}
           open
-          onOpenChange={open => !open && setRevoking(null)}
+          onOpenChange={(open) => !open && setRevoking(null)}
         />
       )}
     </>
-  )
+  );
 }
 
 function RevokeInvitationDialog({
@@ -201,32 +216,39 @@ function RevokeInvitationDialog({
   open,
   onOpenChange,
 }: {
-  invitation: Invitation
-  tenantId: string
-  open: boolean
-  onOpenChange: (open: boolean) => void
+  invitation: Invitation;
+  tenantId: string;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const revokeInvitation = useMutation(
     queries.access.invitations.destroy.mutationOptions({
       onSuccess: () => {
-        onOpenChange(false)
-        toast.success(t('access.invitationsPage.revoked', { email: invitation.email }))
+        onOpenChange(false);
+        toast.success(
+          t('access.invitationsPage.revoked', { email: invitation.email })
+        );
       },
-      onError: error => toast.error(errorMessage(error)),
-    }),
-  )
+      onError: (error) => toast.error(errorMessage(error)),
+    })
+  );
 
   return (
     <ConfirmDialog
       open={open}
       onOpenChange={onOpenChange}
-      title={t('access.invitationsPage.revokeTitle', { email: invitation.email })}
+      title={t('access.invitationsPage.revokeTitle', {
+        email: invitation.email,
+      })}
       description={t('access.invitationsPage.revokeDescription')}
       confirmLabel={t('access.invitationsPage.revokeConfirm')}
       pending={revokeInvitation.isPending}
       onConfirm={() =>
-        revokeInvitation.mutate({ params: { id: invitation.id }, ...tenantHeaders(tenantId) })
+        revokeInvitation.mutate({
+          params: { id: invitation.id },
+          ...tenantHeaders(tenantId),
+        })
       }
     />
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { defineConfig } from '@adonisjs/shield'
+import { defineConfig } from '@adonisjs/shield';
 
 const shieldConfig = defineConfig({
   csp: {
@@ -24,6 +24,6 @@ const shieldConfig = defineConfig({
   contentTypeSniffing: {
     enabled: true,
   },
-})
+});
 
-export default shieldConfig
+export default shieldConfig;

@@ -1,8 +1,12 @@
-import { type SchemaRules } from '@adonisjs/lucid/types/schema_generator'
+import { type SchemaRules } from '@adonisjs/lucid/types/schema_generator';
 
 export default {
   tables: {
-    roles: { columns: { permissions: { decorators: [{ name: '@column' }], tsType: 'string[]' } } },
+    roles: {
+      columns: {
+        permissions: { decorators: [{ name: '@column' }], tsType: 'string[]' },
+      },
+    },
     user_tokens: {
       columns: {
         purpose: {
@@ -20,4 +24,4 @@ export default {
       },
     },
   },
-} satisfies SchemaRules
+} satisfies SchemaRules;

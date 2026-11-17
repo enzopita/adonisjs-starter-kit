@@ -1,26 +1,33 @@
-import User from '#users/models/user'
-import { hashToken, newToken } from '#core/tokens'
-import { DateTime, type DurationLikeObject } from 'luxon'
-import UserToken, { type UserTokenPurpose } from '#auth/models/user_token'
-import type { TransactionClientContract } from '@adonisjs/lucid/types/database'
+import type { TransactionClientContract } from '@adonisjs/lucid/types/database';
+import { DateTime, type DurationLikeObject } from 'luxon';
+
+import UserToken, { type UserTokenPurpose } from '#auth/models/user_token';
+import { hashToken, newToken } from '#core/tokens';
+import User from '#users/models/user';
 
 export const USER_TOKEN_EXPIRY = {
   password_reset: { minutes: 60 },
   email_verification: { hours: 24 },
-} satisfies Record<UserTokenPurpose, DurationLikeObject>
+} satisfies Record<UserTokenPurpose, DurationLikeObject>;
 
 /** Replaces the user's token of this purpose and returns the raw one, for the mailed link only. */
 export async function issueUserToken(
   trx: TransactionClientContract,
   userId: string,
-  purpose: UserTokenPurpose,
+  purpose: UserTokenPurpose
 ) {
   // Two concurrent issues would both delete nothing, then collide on unique (user_id, purpose).
-  await User.query({ client: trx }).where('id', userId).forUpdate().firstOrFail()
+  await User.query({ client: trx })
+    .where('id', userId)
+    .forUpdate()
+    .firstOrFail();
 
-  await UserToken.query({ client: trx }).where('user_id', userId).where('purpose', purpose).delete()
+  await UserToken.query({ client: trx })
+    .where('user_id', userId)
+    .where('purpose', purpose)
+    .delete();
 
-  const { raw: token, hash: tokenHash } = newToken()
+  const { raw: token, hash: tokenHash } = newToken();
 
   await UserToken.create(
     {
@@ -29,10 +36,10 @@ export async function issueUserToken(
       tokenHash,
       expiresAt: DateTime.now().plus(USER_TOKEN_EXPIRY[purpose]),
     },
-    { client: trx },
-  )
+    { client: trx }
+  );
 
-  return token
+  return token;
 }
 
 /**
@@ -42,17 +49,17 @@ export async function issueUserToken(
 export async function consumeUserToken(
   trx: TransactionClientContract,
   purpose: UserTokenPurpose,
-  token: string,
+  token: string
 ) {
   const row = await UserToken.query({ client: trx })
     .where('token_hash', hashToken(token))
     .where('purpose', purpose)
     .forUpdate()
-    .first()
+    .first();
 
-  if (!row || row.expiresAt < DateTime.now()) return null
+  if (!row || row.expiresAt < DateTime.now()) return null;
 
-  await row.delete()
+  await row.delete();
 
-  return User.findOrFail(row.userId, { client: trx })
+  return User.findOrFail(row.userId, { client: trx });
 }

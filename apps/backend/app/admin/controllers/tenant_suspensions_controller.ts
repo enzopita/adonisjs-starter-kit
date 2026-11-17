@@ -1,9 +1,10 @@
-import { can } from '#access/abilities'
-import { PERMISSIONS } from '#access/permissions'
-import type { HttpContext } from '@adonisjs/core/http'
-import { tenantParamsValidator } from '#admin/validators/tenant'
-import SetTenantSuspension from '#admin/actions/set_tenant_suspension'
-import TenantTransformer from '#tenancy/transformers/tenant_transformer'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import { can } from '#access/abilities';
+import { PERMISSIONS } from '#access/permissions';
+import SetTenantSuspension from '#admin/actions/set_tenant_suspension';
+import { tenantParamsValidator } from '#admin/validators/tenant';
+import TenantTransformer from '#tenancy/transformers/tenant_transformer';
 
 /**
  * @tags Admin
@@ -20,7 +21,7 @@ export default class TenantSuspensionsController {
    * @response {404} Tenant not found
    */
   async store(ctx: HttpContext) {
-    return this.set(ctx, true)
+    return this.set(ctx, true);
   }
 
   /**
@@ -32,15 +33,21 @@ export default class TenantSuspensionsController {
    * @response {404} Tenant not found
    */
   async destroy(ctx: HttpContext) {
-    return this.set(ctx, false)
+    return this.set(ctx, false);
   }
 
-  private async set({ bouncer, request, serialize }: HttpContext, suspended: boolean) {
-    await bouncer.authorize(can, PERMISSIONS.platformAdmin)
-    const { params } = await request.validateUsing(tenantParamsValidator)
+  private async set(
+    { bouncer, request, serialize }: HttpContext,
+    suspended: boolean
+  ) {
+    await bouncer.authorize(can, PERMISSIONS.platformAdmin);
+    const { params } = await request.validateUsing(tenantParamsValidator);
 
-    const tenant = await new SetTenantSuspension().handle({ id: params.id, suspended })
+    const tenant = await new SetTenantSuspension().handle({
+      id: params.id,
+      suspended,
+    });
 
-    return serialize(TenantTransformer.transform(tenant))
+    return serialize(TenantTransformer.transform(tenant));
   }
 }

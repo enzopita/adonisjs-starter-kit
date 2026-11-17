@@ -1,3 +1,4 @@
-import { queries } from '@/features/core/api'
+import { queries } from '@/features/core/api';
 
-export const twoFactorQuery = () => queries.profile.twoFactor.show.queryOptions()
+export const twoFactorQuery = () =>
+  queries.profile.twoFactor.show.queryOptions();

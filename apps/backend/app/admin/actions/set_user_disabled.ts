@@ -1,13 +1,14 @@
-import { DateTime } from 'luxon'
-import User from '#users/models/user'
-import db from '@adonisjs/lucid/services/db'
-import { audit } from '#core/audit/main'
-import type {} from '#admin/types/audit'
-import { ensureNotPlatformAdmin } from '#admin/services/protect_platform_admins'
+import db from '@adonisjs/lucid/services/db';
+import { DateTime } from 'luxon';
+
+import { ensureNotPlatformAdmin } from '#admin/services/protect_platform_admins';
+import type {} from '#admin/types/audit';
+import { audit } from '#core/audit/main';
+import User from '#users/models/user';
 
 export interface SetUserDisabledInput {
-  id: string
-  disabled: boolean
+  id: string;
+  disabled: boolean;
 }
 
 export default class SetUserDisabled {
@@ -17,30 +18,41 @@ export default class SetUserDisabled {
    * can still be enabled.
    */
   async handle({ id, disabled }: SetUserDisabledInput) {
-    const user = await db.transaction(async trx => {
-      const user = await User.findOrFail(id, { client: trx })
+    const user = await db.transaction(async (trx) => {
+      const user = await User.findOrFail(id, { client: trx });
 
       if (disabled) {
-        await ensureNotPlatformAdmin(user.id, trx)
-        await trx.from('auth_access_tokens').where('tokenable_id', user.id).delete()
+        await ensureNotPlatformAdmin(user.id, trx);
+        await trx
+          .from('auth_access_tokens')
+          .where('tokenable_id', user.id)
+          .delete();
       }
 
-      user.disabledAt = disabled ? (user.disabledAt ?? DateTime.now()) : null
-      await user.save()
+      user.disabledAt = disabled ? (user.disabledAt ?? DateTime.now()) : null;
+      await user.save();
 
-      await audit.record(trx, disabled ? 'admin.user_disabled' : 'admin.user_enabled', {
-        tenantId: null,
-        subject: { type: 'user', id: user.id },
-        data: { email: user.email },
-      })
+      await audit.record(
+        trx,
+        disabled ? 'admin.user_disabled' : 'admin.user_enabled',
+        {
+          tenantId: null,
+          subject: { type: 'user', id: user.id },
+          data: { email: user.email },
+        }
+      );
 
-      return user
-    })
+      return user;
+    });
 
     // A login that re-checked `disabledAt` before the commit inserted its token after the delete
     // above took its snapshot; it has committed by now, so this delete sees it.
-    if (disabled) await db.from('auth_access_tokens').where('tokenable_id', user.id).delete()
+    if (disabled)
+      await db
+        .from('auth_access_tokens')
+        .where('tokenable_id', user.id)
+        .delete();
 
-    return user
+    return user;
   }
 }

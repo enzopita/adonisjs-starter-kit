@@ -5,26 +5,31 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@monorepo/ui/components/table'
-import { useSuspenseQuery } from '@tanstack/react-query'
-import { SearchInput } from '@/features/admin/components/search-input'
-import { TwoFactorStatus, UserActions, UserStatus } from '@/features/admin/components/user-actions'
-import { adminUsersQuery } from '@/features/admin/queries'
-import type { AdminSearch } from '@/features/admin/queries'
-import { PageHeader } from '@/features/core/components/page-header'
-import { Pagination } from '@/features/core/components/pagination'
-import { displayName } from '@/features/core/display-name'
-import { t } from '@/features/core/i18n'
-import { UserAvatar } from '@/features/users/components/user-avatar'
+} from '@monorepo/ui/components/table';
+import { useSuspenseQuery } from '@tanstack/react-query';
+
+import { SearchInput } from '@/features/admin/components/search-input';
+import {
+  TwoFactorStatus,
+  UserActions,
+  UserStatus,
+} from '@/features/admin/components/user-actions';
+import { adminUsersQuery } from '@/features/admin/queries';
+import type { AdminSearch } from '@/features/admin/queries';
+import { PageHeader } from '@/features/core/components/page-header';
+import { Pagination } from '@/features/core/components/pagination';
+import { displayName } from '@/features/core/display-name';
+import { t } from '@/features/core/i18n';
+import { UserAvatar } from '@/features/users/components/user-avatar';
 
 export function UsersPage({
   search,
   onSearchChange,
 }: {
-  search: AdminSearch
-  onSearchChange: (search: AdminSearch) => void
+  search: AdminSearch;
+  onSearchChange: (search: AdminSearch) => void;
 }) {
-  const { data: users } = useSuspenseQuery(adminUsersQuery(search))
+  const { data: users } = useSuspenseQuery(adminUsersQuery(search));
 
   return (
     <>
@@ -37,11 +42,13 @@ export function UsersPage({
         key={search.search}
         label={t('admin.usersPage.search')}
         value={search.search}
-        onApply={next => onSearchChange({ search: next })}
+        onApply={(next) => onSearchChange({ search: next })}
       />
 
       {users.data.length === 0 ? (
-        <p className="text-xs text-muted-foreground">{t('admin.usersPage.empty')}</p>
+        <p className="text-muted-foreground text-xs">
+          {t('admin.usersPage.empty')}
+        </p>
       ) : (
         <Table>
           <TableHeader>
@@ -56,14 +63,18 @@ export function UsersPage({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {users.data.map(row => (
+            {users.data.map((row) => (
               <TableRow key={row.user.id}>
                 <TableCell>
                   <div className="flex items-center gap-2">
                     <UserAvatar user={row.user} className="size-7" />
                     <div className="flex min-w-0 flex-col">
-                      <span className="truncate font-medium">{displayName(row.user)}</span>
-                      <span className="truncate text-muted-foreground">{row.user.email}</span>
+                      <span className="truncate font-medium">
+                        {displayName(row.user)}
+                      </span>
+                      <span className="text-muted-foreground truncate">
+                        {row.user.email}
+                      </span>
                     </div>
                   </div>
                 </TableCell>
@@ -85,8 +96,8 @@ export function UsersPage({
 
       <Pagination
         metadata={users.metadata}
-        onPageChange={page => onSearchChange({ ...search, page })}
+        onPageChange={(page) => onSearchChange({ ...search, page })}
       />
     </>
-  )
+  );
 }

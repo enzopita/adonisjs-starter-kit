@@ -1,7 +1,7 @@
-import { Input } from '@monorepo/ui/components/input'
-import { useEffect, useState } from 'react'
+import { Input } from '@monorepo/ui/components/input';
+import { useEffect, useState } from 'react';
 
-const SEARCH_DELAY_MS = 300
+const SEARCH_DELAY_MS = 300;
 
 /**
  * A search box that applies once typing pauses, rather than refetching the list at every
@@ -12,21 +12,21 @@ export function SearchInput({
   value,
   onApply,
 }: {
-  label: string
-  value: string | undefined
-  onApply: (search: string | undefined) => void
+  label: string;
+  value: string | undefined;
+  onApply: (search: string | undefined) => void;
 }) {
-  const [draft, setDraft] = useState(value ?? '')
+  const [draft, setDraft] = useState(value ?? '');
 
   useEffect(() => {
-    const next = draft.trim() || undefined
+    const next = draft.trim() || undefined;
 
-    if (next === value) return
+    if (next === value) return;
 
-    const timer = setTimeout(() => onApply(next), SEARCH_DELAY_MS)
+    const timer = setTimeout(() => onApply(next), SEARCH_DELAY_MS);
 
-    return () => clearTimeout(timer)
-  }, [draft, value, onApply])
+    return () => clearTimeout(timer);
+  }, [draft, value, onApply]);
 
   return (
     <Input
@@ -35,7 +35,7 @@ export function SearchInput({
       placeholder={label}
       className="max-w-xs"
       value={draft}
-      onChange={event => setDraft(event.target.value)}
+      onChange={(event) => setDraft(event.target.value)}
     />
-  )
+  );
 }

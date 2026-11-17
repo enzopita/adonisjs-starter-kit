@@ -1,21 +1,29 @@
-import { FieldGroup } from '@monorepo/ui/components/field'
-import { useMutation } from '@tanstack/react-query'
-import { getRouteApi, Link } from '@tanstack/react-router'
-import { AuthCard } from '@/features/core/components/auth-card'
-import { queries } from '@/features/core/api'
-import { useAppForm, withFormErrors } from '@/features/core/form'
-import { resolveLocale, t } from '@/features/core/i18n'
-import { session } from '@/features/core/session'
+import { FieldGroup } from '@monorepo/ui/components/field';
+import { useMutation } from '@tanstack/react-query';
+import { getRouteApi, Link } from '@tanstack/react-router';
 
-const route = getRouteApi('/signup')
+import { queries } from '@/features/core/api';
+import { AuthCard } from '@/features/core/components/auth-card';
+import { useAppForm, withFormErrors } from '@/features/core/form';
+import { resolveLocale, t } from '@/features/core/i18n';
+import { session } from '@/features/core/session';
+
+const route = getRouteApi('/signup');
 
 /** Signing up reruns the route guards, which send the user on to `?redirect=`. */
 export function SignupPage() {
-  const { redirect: redirectTo } = route.useSearch()
-  const createAccount = useMutation(queries.auth.newAccount.store.mutationOptions())
+  const { redirect: redirectTo } = route.useSearch();
+  const createAccount = useMutation(
+    queries.auth.newAccount.store.mutationOptions()
+  );
 
   const form = useAppForm({
-    defaultValues: { fullName: '', email: '', password: '', passwordConfirmation: '' },
+    defaultValues: {
+      fullName: '',
+      email: '',
+      password: '',
+      passwordConfirmation: '',
+    },
     onSubmit: async ({ value, formApi }) => {
       const created = await withFormErrors(
         formApi,
@@ -29,19 +37,19 @@ export function SignupPage() {
             locale: resolveLocale(navigator.languages),
             timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
           },
-        }),
-      )
+        })
+      );
 
-      if (created) session.signIn(created.data.token)
+      if (created) session.signIn(created.data.token);
     },
-  })
+  });
 
   return (
     <AuthCard
       title={t('auth.signupPage.title')}
       description={t('auth.signupPage.description')}
       footer={
-        <p className="text-xs text-muted-foreground">
+        <p className="text-muted-foreground text-xs">
           {t('auth.signupPage.haveAccount')}{' '}
           <Link
             to="/login"
@@ -58,12 +66,15 @@ export function SignupPage() {
           <FieldGroup>
             <form.FormAlert />
             <form.AppField name="fullName">
-              {field => (
-                <field.TextField label={t('auth.signupPage.fullName')} autoComplete="name" />
+              {(field) => (
+                <field.TextField
+                  label={t('auth.signupPage.fullName')}
+                  autoComplete="name"
+                />
               )}
             </form.AppField>
             <form.AppField name="email">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.signupPage.email')}
                   type="email"
@@ -73,7 +84,7 @@ export function SignupPage() {
               )}
             </form.AppField>
             <form.AppField name="password">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.signupPage.password')}
                   type="password"
@@ -84,7 +95,7 @@ export function SignupPage() {
               )}
             </form.AppField>
             <form.AppField name="passwordConfirmation">
-              {field => (
+              {(field) => (
                 <field.TextField
                   label={t('auth.signupPage.confirmPassword')}
                   type="password"
@@ -93,10 +104,12 @@ export function SignupPage() {
                 />
               )}
             </form.AppField>
-            <form.SubmitButton size="lg">{t('auth.signupPage.submit')}</form.SubmitButton>
+            <form.SubmitButton size="lg">
+              {t('auth.signupPage.submit')}
+            </form.SubmitButton>
           </FieldGroup>
         </form.Form>
       </form.AppForm>
     </AuthCard>
-  )
+  );
 }

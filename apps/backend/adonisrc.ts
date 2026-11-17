@@ -1,6 +1,6 @@
-import { indexEntities } from '@adonisjs/core/generators'
-import { defineConfig } from '@adonisjs/core/app'
-import { generateRegistry } from '@tuyau/core/hooks'
+import { defineConfig } from '@adonisjs/core/app';
+import { indexEntities } from '@adonisjs/core/generators';
+import { generateRegistry } from '@tuyau/core/hooks';
 
 export default defineConfig({
   experimental: {},
@@ -117,4 +117,4 @@ export default defineConfig({
       generateRegistry({ routes: { except: [/^openapi\./] } }),
     ],
   },
-})
+});

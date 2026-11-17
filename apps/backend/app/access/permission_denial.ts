@@ -1,5 +1,6 @@
-import type { Permission } from '#access/permissions'
-import { AuthorizationResponse } from '@adonisjs/bouncer'
+import { AuthorizationResponse } from '@adonisjs/bouncer';
+
+import type { Permission } from '#access/permissions';
 
 /**
  * A refusal of `can`, naming the permission and the tenant it was checked in, so the bouncer
@@ -8,8 +9,8 @@ import { AuthorizationResponse } from '@adonisjs/bouncer'
 export class PermissionDenial extends AuthorizationResponse {
   constructor(
     readonly permission: Permission,
-    readonly tenantId: string | null,
+    readonly tenantId: string | null
   ) {
-    super(false)
+    super(false);
   }
 }

@@ -1,6 +1,8 @@
-import { randomUUID } from 'node:crypto'
-import factory from '@adonisjs/lucid/factories'
-import Attachment from '#attachments/models/attachment'
+import { randomUUID } from 'node:crypto';
+
+import factory from '@adonisjs/lucid/factories';
+
+import Attachment from '#attachments/models/attachment';
 
 export const AttachmentFactory = factory
   .define(Attachment, async () => {
@@ -10,6 +12,6 @@ export const AttachmentFactory = factory
       extname: 'png' as const,
       mimeType: 'image/png',
       size: 68,
-    }
+    };
   })
-  .build()
+  .build();

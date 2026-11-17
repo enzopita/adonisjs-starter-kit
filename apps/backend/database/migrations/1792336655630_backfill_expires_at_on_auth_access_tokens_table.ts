@@ -1,4 +1,4 @@
-import { BaseSchema } from '@adonisjs/lucid/schema'
+import { BaseSchema } from '@adonisjs/lucid/schema';
 
 /**
  * Tokens issued before the sliding idle timeout have a null `expires_at`, which the app now
@@ -8,13 +8,13 @@ import { BaseSchema } from '@adonisjs/lucid/schema'
  */
 export default class extends BaseSchema {
   override async up() {
-    this.defer(db =>
+    this.defer((db) =>
       db.rawQuery(`
         UPDATE auth_access_tokens
         SET expires_at = COALESCE(last_used_at, created_at) + INTERVAL '30 days'
         WHERE expires_at IS NULL AND impersonator_id IS NULL
-      `),
-    )
+      `)
+    );
   }
 
   /** Not worth reversing: it only widens a null expiry that the app no longer honors as "never". */

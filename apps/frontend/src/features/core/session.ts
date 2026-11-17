@@ -1,7 +1,8 @@
-import { z } from 'zod'
-import { useStore } from 'zustand'
-import { createPersistedStore } from '@/features/core/persisted-store'
-import { preferences } from '@/features/core/preferences'
+import { z } from 'zod';
+import { useStore } from 'zustand';
+
+import { createPersistedStore } from '@/features/core/persisted-store';
+import { preferences } from '@/features/core/preferences';
 
 export const sessionStore = createPersistedStore(
   'starter:session',
@@ -14,36 +15,41 @@ export const sessionStore = createPersistedStore(
       // State saved before impersonation existed holds `{ token }` alone; it stays signed in.
       .default(null),
   }),
-  { token: null, impersonation: null },
-)
+  { token: null, impersonation: null }
+);
 
 export const session = {
   token: () => sessionStore.getState().token,
   isAuthenticated: () => sessionStore.getState().token !== null,
   isImpersonating: () => sessionStore.getState().impersonation !== null,
-  signIn: (token: string) => sessionStore.setState({ token, impersonation: null }),
+  signIn: (token: string) =>
+    sessionStore.setState({ token, impersonation: null }),
   /** Also drops the stored time zone (see `preferences.clearTimeZone`). */
   signOut: () => {
-    preferences.clearTimeZone()
-    sessionStore.setState({ token: null, impersonation: null })
+    preferences.clearTimeZone();
+    sessionStore.setState({ token: null, impersonation: null });
   },
   impersonate: (token: string) => {
-    const adminToken = sessionStore.getState().token
+    const adminToken = sessionStore.getState().token;
 
-    if (adminToken) sessionStore.setState({ token, impersonation: { adminToken } })
+    if (adminToken)
+      sessionStore.setState({ token, impersonation: { adminToken } });
   },
   /** Back to the admin's own token; outside an impersonation, signs out. */
   stopImpersonating: () => {
-    const { impersonation } = sessionStore.getState()
+    const { impersonation } = sessionStore.getState();
 
-    sessionStore.setState({ token: impersonation?.adminToken ?? null, impersonation: null })
+    sessionStore.setState({
+      token: impersonation?.adminToken ?? null,
+      impersonation: null,
+    });
   },
-}
+};
 
 export function useIsAuthenticated() {
-  return useStore(sessionStore, state => state.token !== null)
+  return useStore(sessionStore, (state) => state.token !== null);
 }
 
 export function useIsImpersonating() {
-  return useStore(sessionStore, state => state.impersonation !== null)
+  return useStore(sessionStore, (state) => state.impersonation !== null);
 }

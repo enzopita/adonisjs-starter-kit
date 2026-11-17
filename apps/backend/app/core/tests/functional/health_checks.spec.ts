@@ -1,16 +1,22 @@
-import { test } from '@japa/runner'
-import env from '#start/env'
+import { test } from '@japa/runner';
+
+import env from '#start/env';
 
 test.group('Core | health checks', () => {
-  test('rejects a readiness probe without the monitoring secret', async ({ client, assert }) => {
-    const response = await client.get('/health/ready').header('x-monitoring-secret', 'wrong')
+  test('rejects a readiness probe without the monitoring secret', async ({
+    client,
+    assert,
+  }) => {
+    const response = await client
+      .get('/health/ready')
+      .header('x-monitoring-secret', 'wrong');
 
-    response.assertStatus(401)
+    response.assertStatus(401);
     assert.deepEqual(response.body(), {
       code: 'E_UNAUTHORIZED_ACCESS',
       message: 'Sign in to continue.',
-    })
-  })
+    });
+  });
 
   test('reports every indicator to a probe with the monitoring secret', async ({
     client,
@@ -18,11 +24,11 @@ test.group('Core | health checks', () => {
   }) => {
     const response = await client
       .get('/health/ready')
-      .header('x-monitoring-secret', env.get('MONITORING_SECRET').release())
+      .header('x-monitoring-secret', env.get('MONITORING_SECRET').release());
 
     // The checks measure this test process: after the full suite its RSS alone fails the memory
     // threshold, so the status reflects the machine, not the probe.
-    assert.include([200, 503], response.status())
+    assert.include([200, 503], response.status());
     assert.deepEqual(
       response.body().data.checks.map((check: { name: string }) => check.name),
       [
@@ -33,7 +39,7 @@ test.group('Core | health checks', () => {
         'Connection count health check (pg)',
         'Storage check',
         'Redis health check (main)',
-      ],
-    )
-  })
-})
+      ]
+    );
+  });
+});

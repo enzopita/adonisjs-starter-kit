@@ -1,11 +1,16 @@
-import type User from '#users/models/user'
-import db from '@adonisjs/lucid/services/db'
-import PlatformAdmin from '#access/models/platform_admin'
-import { ALL_PERMISSIONS, isAssignable, type Permission } from '#access/permissions'
+import db from '@adonisjs/lucid/services/db';
+
+import PlatformAdmin from '#access/models/platform_admin';
+import {
+  ALL_PERMISSIONS,
+  isAssignable,
+  type Permission,
+} from '#access/permissions';
+import type User from '#users/models/user';
 
 export interface GetPermissionsInput {
-  user: User
-  tenantId: string | null
+  user: User;
+  tenantId: string | null;
 }
 
 /**
@@ -14,28 +19,38 @@ export interface GetPermissionsInput {
  * outside a tenant.
  */
 export default class GetPermissions {
-  async handle({ user, tenantId }: GetPermissionsInput): Promise<Set<Permission>> {
-    if (user.twoFactorConfirmedAt && (await PlatformAdmin.findBy('userId', user.id))) {
-      return new Set(ALL_PERMISSIONS)
+  async handle({
+    user,
+    tenantId,
+  }: GetPermissionsInput): Promise<Set<Permission>> {
+    if (
+      user.twoFactorConfirmedAt &&
+      (await PlatformAdmin.findBy('userId', user.id))
+    ) {
+      return new Set(ALL_PERMISSIONS);
     }
 
-    if (!tenantId) return new Set()
+    if (!tenantId) return new Set();
 
     const fromRole = db
       .from('role_assignments')
       .join('roles', 'roles.id', 'role_assignments.role_id')
       .where('role_assignments.tenant_id', tenantId)
       .where('role_assignments.user_id', user.id)
-      .select(db.raw('unnest(roles.permissions) as permission'))
+      .select(db.raw('unnest(roles.permissions) as permission'));
 
     const granted = db
       .from('permission_grants')
       .where('tenant_id', tenantId)
       .where('user_id', user.id)
-      .select('permission')
+      .select('permission');
 
-    const rows: { permission: string }[] = await fromRole.unionAll(granted)
+    const rows: { permission: string }[] = await fromRole.unionAll(granted);
 
-    return new Set(rows.flatMap(({ permission }) => (isAssignable(permission) ? [permission] : [])))
+    return new Set(
+      rows.flatMap(({ permission }) =>
+        isAssignable(permission) ? [permission] : []
+      )
+    );
   }
 }

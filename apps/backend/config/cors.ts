@@ -1,6 +1,7 @@
-import env from '#start/env'
-import app from '@adonisjs/core/services/app'
-import { defineConfig } from '@adonisjs/cors'
+import app from '@adonisjs/core/services/app';
+import { defineConfig } from '@adonisjs/cors';
+
+import env from '#start/env';
 
 const corsConfig = defineConfig({
   /**
@@ -13,6 +14,6 @@ const corsConfig = defineConfig({
   exposeHeaders: [],
   credentials: true,
   maxAge: 90,
-})
+});
 
-export default corsConfig
+export default corsConfig;

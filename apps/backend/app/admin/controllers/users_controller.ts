@@ -1,9 +1,10 @@
-import { can } from '#access/abilities'
-import ListUsers from '#admin/queries/list_users'
-import { PERMISSIONS } from '#access/permissions'
-import type { HttpContext } from '@adonisjs/core/http'
-import { listUsersValidator } from '#admin/validators/user'
-import AdminUserTransformer from '#admin/transformers/admin_user_transformer'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import { can } from '#access/abilities';
+import { PERMISSIONS } from '#access/permissions';
+import ListUsers from '#admin/queries/list_users';
+import AdminUserTransformer from '#admin/transformers/admin_user_transformer';
+import { listUsersValidator } from '#admin/validators/user';
 
 /**
  * @tags Admin
@@ -19,11 +20,11 @@ export default class UsersController {
    * @response {403} Not a platform admin
    */
   async index({ bouncer, request, serialize }: HttpContext) {
-    await bouncer.authorize(can, PERMISSIONS.platformAdmin)
-    const filters = await request.validateUsing(listUsersValidator)
+    await bouncer.authorize(can, PERMISSIONS.platformAdmin);
+    const filters = await request.validateUsing(listUsersValidator);
 
-    const { rows, meta } = await new ListUsers().handle(filters)
+    const { rows, meta } = await new ListUsers().handle(filters);
 
-    return serialize(AdminUserTransformer.paginate(rows, meta))
+    return serialize(AdminUserTransformer.paginate(rows, meta));
   }
 }

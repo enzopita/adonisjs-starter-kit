@@ -1,7 +1,8 @@
-import type { HttpContext } from '@adonisjs/core/http'
-import UpdateAvatar from '#users/actions/update_avatar'
-import { updateAvatarValidator } from '#users/validators/user'
-import UserTransformer from '#users/transformers/user_transformer'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import UpdateAvatar from '#users/actions/update_avatar';
+import UserTransformer from '#users/transformers/user_transformer';
+import { updateAvatarValidator } from '#users/validators/user';
 
 /**
  * @tags Account
@@ -14,10 +15,13 @@ export default class AvatarController {
    * webp, at most 2 MB. Send `null` to remove the avatar. Returns the updated user.
    */
   async update({ request, auth, serialize }: HttpContext) {
-    const { attachmentId } = await request.validateUsing(updateAvatarValidator)
+    const { attachmentId } = await request.validateUsing(updateAvatarValidator);
 
-    const user = await new UpdateAvatar().handle({ user: auth.getUserOrFail(), attachmentId })
+    const user = await new UpdateAvatar().handle({
+      user: auth.getUserOrFail(),
+      attachmentId,
+    });
 
-    return serialize(UserTransformer.transform(user))
+    return serialize(UserTransformer.transform(user));
   }
 }

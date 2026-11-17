@@ -1,42 +1,43 @@
-import vine from '@vinejs/vine'
-import { test } from '@japa/runner'
-import db from '@adonisjs/lucid/services/db'
-import Tenant from '#tenancy/models/tenant'
-import { compose } from '@adonisjs/core/helpers'
-import { withTenant } from '#tenancy/mixins/with_tenant'
-import testUtils from '@adonisjs/core/services/test_utils'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
-import { existsInTenant } from '#tenancy/validators/exists_in_tenant'
-import { runAsSystem, runInTenant } from '#tenancy/tenant_context'
-import MissingTenantContextException from '#tenancy/exceptions/missing_tenant_context_exception'
+import { compose } from '@adonisjs/core/helpers';
+import testUtils from '@adonisjs/core/services/test_utils';
+import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm';
+import db from '@adonisjs/lucid/services/db';
+import type { HasMany } from '@adonisjs/lucid/types/relations';
+import { test } from '@japa/runner';
+import vine from '@vinejs/vine';
+
+import MissingTenantContextException from '#tenancy/exceptions/missing_tenant_context_exception';
+import { withTenant } from '#tenancy/mixins/with_tenant';
+import Tenant from '#tenancy/models/tenant';
+import { runAsSystem, runInTenant } from '#tenancy/tenant_context';
+import { existsInTenant } from '#tenancy/validators/exists_in_tenant';
 
 class ProbeSchema extends BaseModel {
   @column({ isPrimary: true })
-  declare id: string
+  declare id: string;
 
   @column()
-  declare tenantId: string
+  declare tenantId: string;
 
   @column()
-  declare ownerId: string
+  declare ownerId: string;
 
   @column()
-  declare name: string
+  declare name: string;
 }
 
 class Probe extends compose(ProbeSchema, withTenant) {
-  static override table = 'tenancy_probes'
+  static override table = 'tenancy_probes';
 }
 
 class ProbeOwner extends BaseModel {
-  static override table = 'tenancy_probe_owners'
+  static override table = 'tenancy_probe_owners';
 
   @column({ isPrimary: true })
-  declare id: string
+  declare id: string;
 
   @hasMany(() => Probe, { foreignKey: 'ownerId' })
-  declare probes: HasMany<typeof Probe>
+  declare probes: HasMany<typeof Probe>;
 }
 
 /**
@@ -44,7 +45,9 @@ class ProbeOwner extends BaseModel {
  * is transactional, so the global transaction drops the tables after each test.
  */
 async function seed() {
-  await db.rawQuery('CREATE TABLE tenancy_probe_owners (id uuid PRIMARY KEY DEFAULT uuidv7())')
+  await db.rawQuery(
+    'CREATE TABLE tenancy_probe_owners (id uuid PRIMARY KEY DEFAULT uuidv7())'
+  );
   await db.rawQuery(`
     CREATE TABLE tenancy_probes (
       id uuid PRIMARY KEY DEFAULT uuidv7(),
@@ -52,171 +55,223 @@ async function seed() {
       owner_id uuid NOT NULL REFERENCES tenancy_probe_owners (id),
       name text NOT NULL
     )
-  `)
+  `);
 
-  const acme = await Tenant.create({ name: 'Acme' })
-  const globex = await Tenant.create({ name: 'Globex' })
-  const owner = await ProbeOwner.create({})
+  const acme = await Tenant.create({ name: 'Acme' });
+  const globex = await Tenant.create({ name: 'Globex' });
+  const owner = await ProbeOwner.create({});
 
   const insert = async (tenant: Tenant, name: string) => {
     const [row] = await db
       .table('tenancy_probes')
       .insert({ tenant_id: tenant.id, owner_id: owner.id, name })
-      .returning('id')
+      .returning('id');
 
-    return String(row.id)
-  }
+    return String(row.id);
+  };
 
-  const acmeId = await insert(acme, 'probe 0')
-  const acmeIds = [acmeId, await insert(acme, 'probe 1')]
-  const globexId = await insert(globex, 'probe 2')
-  const globexIds = [globexId, await insert(globex, 'probe 3')]
+  const acmeId = await insert(acme, 'probe 0');
+  const acmeIds = [acmeId, await insert(acme, 'probe 1')];
+  const globexId = await insert(globex, 'probe 2');
+  const globexIds = [globexId, await insert(globex, 'probe 3')];
 
-  return { acme, globex, ownerId: owner.id, acmeId, acmeIds, globexId, globexIds }
+  return {
+    acme,
+    globex,
+    ownerId: owner.id,
+    acmeId,
+    acmeIds,
+    globexId,
+    globexIds,
+  };
 }
 
 const namesOf = (tenant: Tenant) =>
-  db.from('tenancy_probes').where('tenant_id', tenant.id).orderBy('name').select('name')
+  db
+    .from('tenancy_probes')
+    .where('tenant_id', tenant.id)
+    .orderBy('name')
+    .select('name');
 
-test.group('Tenancy | withTenant', group => {
-  group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
+test.group('Tenancy | withTenant', (group) => {
+  group.each.setup(() => testUtils.db().wrapInGlobalTransaction());
 
   test('reads only the current tenant rows', async ({ assert }) => {
-    const { acme, acmeIds, globexId } = await seed()
+    const { acme, acmeIds, globexId } = await seed();
 
     await runInTenant(acme.id, async () => {
-      const all = await Probe.all()
+      const all = await Probe.all();
       assert.sameMembers(
-        all.map(probe => probe.id),
-        acmeIds,
-      )
+        all.map((probe) => probe.id),
+        acmeIds
+      );
 
-      const pojos = await Probe.query().pojo<{ id: string }>()
+      const pojos = await Probe.query().pojo<{ id: string }>();
       assert.sameMembers(
-        pojos.map(probe => probe.id),
-        acmeIds,
-      )
+        pojos.map((probe) => probe.id),
+        acmeIds
+      );
 
-      assert.isNull(await Probe.find(globexId))
-      assert.isNull(await Probe.findBy('name', 'probe 2'))
-    })
-  })
+      assert.isNull(await Probe.find(globexId));
+      assert.isNull(await Probe.findBy('name', 'probe 2'));
+    });
+  });
 
-  test('counts only the current tenant rows when paginating', async ({ assert }) => {
-    const { acme } = await seed()
+  test('counts only the current tenant rows when paginating', async ({
+    assert,
+  }) => {
+    const { acme } = await seed();
 
-    const page = await runInTenant(acme.id, () => Probe.query().paginate(1, 10))
+    const page = await runInTenant(acme.id, () =>
+      Probe.query().paginate(1, 10)
+    );
 
-    assert.equal(page.total, 2)
-    assert.lengthOf(page.all(), 2)
-  })
+    assert.equal(page.total, 2);
+    assert.lengthOf(page.all(), 2);
+  });
 
   test('bulk updates only the current tenant rows', async ({ assert }) => {
-    const { acme, globex } = await seed()
+    const { acme, globex } = await seed();
 
     await runInTenant(acme.id, async () => {
-      await Probe.query().update({ name: 'renamed' })
-    })
+      await Probe.query().update({ name: 'renamed' });
+    });
 
-    assert.deepEqual(await namesOf(acme), [{ name: 'renamed' }, { name: 'renamed' }])
-    assert.deepEqual(await namesOf(globex), [{ name: 'probe 2' }, { name: 'probe 3' }])
-  })
+    assert.deepEqual(await namesOf(acme), [
+      { name: 'renamed' },
+      { name: 'renamed' },
+    ]);
+    assert.deepEqual(await namesOf(globex), [
+      { name: 'probe 2' },
+      { name: 'probe 3' },
+    ]);
+  });
 
   test('bulk deletes only the current tenant rows', async ({ assert }) => {
-    const { acme, globex } = await seed()
+    const { acme, globex } = await seed();
 
     await runInTenant(acme.id, async () => {
-      await Probe.query().delete()
-    })
+      await Probe.query().delete();
+    });
 
-    assert.lengthOf(await namesOf(acme), 0)
-    assert.lengthOf(await namesOf(globex), 2)
-  })
+    assert.lengthOf(await namesOf(acme), 0);
+    assert.lengthOf(await namesOf(globex), 2);
+  });
 
-  test('restricts relationship queries and preloads from a global model', async ({ assert }) => {
-    const { acme, ownerId, acmeIds } = await seed()
+  test('restricts relationship queries and preloads from a global model', async ({
+    assert,
+  }) => {
+    const { acme, ownerId, acmeIds } = await seed();
 
     await runInTenant(acme.id, async () => {
-      const owner = await ProbeOwner.query().where('id', ownerId).preload('probes').firstOrFail()
+      const owner = await ProbeOwner.query()
+        .where('id', ownerId)
+        .preload('probes')
+        .firstOrFail();
       assert.sameMembers(
-        owner.probes.map(probe => probe.id),
-        acmeIds,
-      )
+        owner.probes.map((probe) => probe.id),
+        acmeIds
+      );
 
-      const related = await owner.related('probes').query()
+      const related = await owner.related('probes').query();
       assert.sameMembers(
-        related.map(probe => probe.id),
-        acmeIds,
-      )
+        related.map((probe) => probe.id),
+        acmeIds
+      );
 
-      assert.isNull(await owner.related('probes').query().where('name', 'probe 2').first())
-      assert.equal((await owner.related('probes').query().paginate(1, 10)).total, 2)
-    })
-  })
+      assert.isNull(
+        await owner.related('probes').query().where('name', 'probe 2').first()
+      );
+      assert.equal(
+        (await owner.related('probes').query().paginate(1, 10)).total,
+        2
+      );
+    });
+  });
 
-  test('fills tenantId on create from the tenant context', async ({ assert }) => {
-    const { acme, ownerId } = await seed()
+  test('fills tenantId on create from the tenant context', async ({
+    assert,
+  }) => {
+    const { acme, ownerId } = await seed();
 
-    const probe = await runInTenant(acme.id, () => Probe.create({ ownerId, name: 'new' }))
+    const probe = await runInTenant(acme.id, () =>
+      Probe.create({ ownerId, name: 'new' })
+    );
 
-    assert.equal(probe.tenantId, acme.id)
-  })
+    assert.equal(probe.tenantId, acme.id);
+  });
 
   test('refuses to write a row into another tenant', async ({ assert }) => {
-    const { acme, globex, acmeId, ownerId } = await seed()
+    const { acme, globex, acmeId, ownerId } = await seed();
 
     await runInTenant(acme.id, async () => {
       await assert.rejects(
         () => Probe.create({ ownerId, name: 'smuggled', tenantId: globex.id }),
-        /into another tenant/,
-      )
+        /into another tenant/
+      );
 
-      const probe = await Probe.findOrFail(acmeId)
-      await assert.rejects(() => probe.merge({ tenantId: globex.id }).save(), /into another tenant/)
-    })
+      const probe = await Probe.findOrFail(acmeId);
+      await assert.rejects(
+        () => probe.merge({ tenantId: globex.id }).save(),
+        /into another tenant/
+      );
+    });
 
     assert.deepEqual(
-      (await namesOf(globex)).map(row => row.name),
-      ['probe 2', 'probe 3'],
-    )
-  })
+      (await namesOf(globex)).map((row) => row.name),
+      ['probe 2', 'probe 3']
+    );
+  });
 
-  test('refuses to create without a tenantId in the system context', async ({ assert }) => {
-    const { ownerId } = await seed()
+  test('refuses to create without a tenantId in the system context', async ({
+    assert,
+  }) => {
+    const { ownerId } = await seed();
 
     await assert.rejects(
       () => runAsSystem(() => Probe.create({ ownerId, name: 'orphan' })),
-      /needs an explicit tenantId/,
-    )
-  })
+      /needs an explicit tenantId/
+    );
+  });
 
   test('sees every tenant in the system context', async ({ assert }) => {
-    const { acmeIds, globexIds } = await seed()
+    const { acmeIds, globexIds } = await seed();
 
-    const all = await runAsSystem(() => Probe.all())
+    const all = await runAsSystem(() => Probe.all());
 
     assert.sameMembers(
-      all.map(probe => probe.id),
-      [...acmeIds, ...globexIds],
-    )
-  })
+      all.map((probe) => probe.id),
+      [...acmeIds, ...globexIds]
+    );
+  });
 
   test('throws outside any tenant context', async ({ assert }) => {
-    const { ownerId } = await seed()
-    const owner = await ProbeOwner.findOrFail(ownerId)
+    const { ownerId } = await seed();
+    const owner = await ProbeOwner.findOrFail(ownerId);
 
-    await assert.rejects(() => Probe.query().delete(), MissingTenantContextException)
-    await assert.rejects(() => owner.related('probes').query(), MissingTenantContextException)
-    await assert.rejects(() => Probe.create({ ownerId, name: 'x' }), MissingTenantContextException)
-  })
+    await assert.rejects(
+      () => Probe.query().delete(),
+      MissingTenantContextException
+    );
+    await assert.rejects(
+      () => owner.related('probes').query(),
+      MissingTenantContextException
+    );
+    await assert.rejects(
+      () => Probe.create({ ownerId, name: 'x' }),
+      MissingTenantContextException
+    );
+  });
 
   test('existsInTenant rejects an id of another tenant', async ({ assert }) => {
-    const { acme, acmeId, globexId } = await seed()
-    const validator = vine.create({ probeId: vine.string().exists(existsInTenant(Probe)) })
+    const { acme, acmeId, globexId } = await seed();
+    const validator = vine.create({
+      probeId: vine.string().exists(existsInTenant(Probe)),
+    });
 
     await runInTenant(acme.id, async () => {
-      await validator.validate({ probeId: acmeId })
-      await assert.rejects(() => validator.validate({ probeId: globexId }))
-    })
-  })
-})
+      await validator.validate({ probeId: acmeId });
+      await assert.rejects(() => validator.validate({ probeId: globexId }));
+    });
+  });
+});

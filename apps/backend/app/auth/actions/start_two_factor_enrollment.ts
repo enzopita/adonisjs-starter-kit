@@ -1,12 +1,13 @@
-import User from '#users/models/user'
-import db from '@adonisjs/lucid/services/db'
-import { audit } from '#core/audit/main'
-import type {} from '#auth/types/audit'
-import { newTwoFactorSecret } from '#auth/services/two_factor'
-import TwoFactorAlreadyEnabledException from '#auth/exceptions/two_factor_already_enabled_exception'
+import db from '@adonisjs/lucid/services/db';
+
+import TwoFactorAlreadyEnabledException from '#auth/exceptions/two_factor_already_enabled_exception';
+import { newTwoFactorSecret } from '#auth/services/two_factor';
+import type {} from '#auth/types/audit';
+import { audit } from '#core/audit/main';
+import User from '#users/models/user';
 
 export interface StartTwoFactorEnrollmentInput {
-  user: User
+  user: User;
 }
 
 /**
@@ -15,26 +16,30 @@ export interface StartTwoFactorEnrollmentInput {
  */
 export default class StartTwoFactorEnrollment {
   async handle({ user }: StartTwoFactorEnrollmentInput) {
-    return db.transaction(async trx => {
+    return db.transaction(async (trx) => {
       const locked = await User.query({ client: trx })
         .where('id', user.id)
         .forUpdate()
-        .firstOrFail()
+        .firstOrFail();
 
-      if (locked.twoFactorConfirmedAt) throw new TwoFactorAlreadyEnabledException()
+      if (locked.twoFactorConfirmedAt)
+        throw new TwoFactorAlreadyEnabledException();
 
-      const secret = newTwoFactorSecret(locked.email)
+      const secret = newTwoFactorSecret(locked.email);
 
-      locked.merge({ twoFactorSecret: secret.encrypted, twoFactorLastStep: null })
-      await locked.save()
+      locked.merge({
+        twoFactorSecret: secret.encrypted,
+        twoFactorLastStep: null,
+      });
+      await locked.save();
 
       await audit.record(trx, 'auth.two_factor_enrollment_started', {
         tenantId: null,
         subject: { type: 'user', id: locked.id },
         data: { email: locked.email },
-      })
+      });
 
-      return { secret: secret.base32, uri: secret.uri }
-    })
+      return { secret: secret.base32, uri: secret.uri };
+    });
   }
 }

@@ -1,8 +1,12 @@
-import { Avatar, AvatarFallback, AvatarImage } from '@monorepo/ui/components/avatar'
-import type { Data } from '@monorepo/backend/data'
-import type { ComponentProps } from 'react'
+import type { Data } from '@monorepo/backend/data';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@monorepo/ui/components/avatar';
+import type { ComponentProps } from 'react';
 
-type AvatarUser = Pick<Data.Users.User, 'initials' | 'avatar'>
+type AvatarUser = Pick<Data.Users.User, 'initials' | 'avatar'>;
 
 export function UserAvatar({
   user,
@@ -14,5 +18,5 @@ export function UserAvatar({
       {user.avatar && <AvatarImage src={user.avatar.url} alt={alt} />}
       <AvatarFallback>{user.initials}</AvatarFallback>
     </Avatar>
-  )
+  );
 }

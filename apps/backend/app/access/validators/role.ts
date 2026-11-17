@@ -1,17 +1,20 @@
-import vine from '@vinejs/vine'
-import Role from '#access/models/role'
-import { ASSIGNABLE_PERMISSIONS } from '#access/permissions'
+import vine from '@vinejs/vine';
 
-const params = vine.object({ id: vine.string().uuid() })
+import Role from '#access/models/role';
+import { ASSIGNABLE_PERMISSIONS } from '#access/permissions';
 
-const permissions = vine.array(vine.enum(ASSIGNABLE_PERMISSIONS)).distinct()
+const params = vine.object({ id: vine.string().uuid() });
 
-const name = vine.string().trim().minLength(1).maxLength(255)
+const permissions = vine.array(vine.enum(ASSIGNABLE_PERMISSIONS)).distinct();
+
+const name = vine.string().trim().minLength(1).maxLength(255);
 
 export const createRoleValidator = vine.create({
-  name: name.clone().unique(async (_db, value) => !(await Role.findBy('name', value))),
+  name: name
+    .clone()
+    .unique(async (_db, value) => !(await Role.findBy('name', value))),
   permissions,
-})
+});
 
 export const updateRoleValidator = vine.create({
   params,
@@ -19,11 +22,11 @@ export const updateRoleValidator = vine.create({
     const taken = await Role.query()
       .where('name', value)
       .whereNot('id', field.data.params.id)
-      .first()
+      .first();
 
-    return !taken
+    return !taken;
   }),
   permissions,
-})
+});
 
-export const roleParamsValidator = vine.create({ params })
+export const roleParamsValidator = vine.create({ params });

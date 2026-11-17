@@ -1,10 +1,11 @@
-import { audit } from '#core/audit/main'
-import type {} from '#access/types/audit'
-import * as abilities from '#access/abilities'
-import { Bouncer, errors } from '@adonisjs/bouncer'
-import type { HttpContext } from '@adonisjs/core/http'
-import type { NextFn } from '@adonisjs/core/types/http'
-import { PermissionDenial } from '#access/permission_denial'
+import { Bouncer, errors } from '@adonisjs/bouncer';
+import type { HttpContext } from '@adonisjs/core/http';
+import type { NextFn } from '@adonisjs/core/types/http';
+
+import * as abilities from '#access/abilities';
+import { PermissionDenial } from '#access/permission_denial';
+import type {} from '#access/types/audit';
+import { audit } from '#core/audit/main';
 
 /**
  * Records a refused `authorize()` inside a tenant as `access.denied`. Outside any tenant only
@@ -12,11 +13,11 @@ import { PermissionDenial } from '#access/permission_denial'
  */
 async function auditDenial(
   ctx: HttpContext,
-  error: InstanceType<typeof errors.E_AUTHORIZATION_FAILURE>,
+  error: InstanceType<typeof errors.E_AUTHORIZATION_FAILURE>
 ) {
-  const denial = error.response
+  const denial = error.response;
 
-  if (!(denial instanceof PermissionDenial) || !denial.tenantId) return
+  if (!(denial instanceof PermissionDenial) || !denial.tenantId) return;
 
   await audit.note('access.denied', {
     tenantId: denial.tenantId,
@@ -26,38 +27,43 @@ async function auditDenial(
       route: ctx.route?.pattern ?? null,
       method: ctx.request.method(),
     },
-  })
+  });
 }
 
 export default class InitializeBouncerMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
-    const bouncer = new Bouncer(() => ctx.auth.user ?? null, abilities).setContainerResolver(
-      ctx.containerResolver,
-    )
+    const bouncer = new Bouncer(
+      () => ctx.auth.user ?? null,
+      abilities
+    ).setContainerResolver(ctx.containerResolver);
 
     // Wrapped where it throws: the exception handler answers the request before any middleware
     // sees the error, and `allows()` probes, which never throw, must not record.
-    const authorize = bouncer.authorize.bind(bouncer)
+    const authorize = bouncer.authorize.bind(bouncer);
 
     // SAFETY: the wrapper takes and returns what authorize does; it only adds the audit.
     bouncer.authorize = (async (...args: Parameters<typeof authorize>) => {
       try {
-        await authorize(...args)
+        await authorize(...args);
       } catch (error) {
-        if (error instanceof errors.E_AUTHORIZATION_FAILURE) await auditDenial(ctx, error)
+        if (error instanceof errors.E_AUTHORIZATION_FAILURE)
+          await auditDenial(ctx, error);
 
-        throw error
+        throw error;
       }
-    }) as typeof bouncer.authorize
+    }) as typeof bouncer.authorize;
 
-    ctx.bouncer = bouncer
+    ctx.bouncer = bouncer;
 
-    return next()
+    return next();
   }
 }
 
 declare module '@adonisjs/core/http' {
   export interface HttpContext {
-    bouncer: Bouncer<Exclude<HttpContext['auth']['user'], undefined>, typeof abilities>
+    bouncer: Bouncer<
+      Exclude<HttpContext['auth']['user'], undefined>,
+      typeof abilities
+    >;
   }
 }

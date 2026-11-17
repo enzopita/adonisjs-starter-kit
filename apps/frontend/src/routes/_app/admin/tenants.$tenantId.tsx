@@ -1,16 +1,17 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { TenantPage } from '@/features/admin/components/tenant-page'
-import { adminTenantQuery } from '@/features/admin/queries'
+import { createFileRoute } from '@tanstack/react-router';
+
+import { TenantPage } from '@/features/admin/components/tenant-page';
+import { adminTenantQuery } from '@/features/admin/queries';
 
 export const Route = createFileRoute('/_app/admin/tenants/$tenantId')({
   loader: async ({ context: { queryClient, canUseArea }, params }) => {
-    if (canUseArea) await queryClient.query(adminTenantQuery(params.tenantId))
+    if (canUseArea) await queryClient.query(adminTenantQuery(params.tenantId));
   },
   component: TenantRoute,
-})
+});
 
 function TenantRoute() {
-  const { tenantId } = Route.useParams()
+  const { tenantId } = Route.useParams();
 
-  return <TenantPage tenantId={tenantId} />
+  return <TenantPage tenantId={tenantId} />;
 }

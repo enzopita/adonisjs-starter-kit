@@ -1,6 +1,7 @@
-import type User from '#users/models/user'
-import { BaseTransformer } from '@adonisjs/core/transformers'
-import AttachmentTransformer from '#attachments/transformers/attachment_transformer'
+import { BaseTransformer } from '@adonisjs/core/transformers';
+
+import AttachmentTransformer from '#attachments/transformers/attachment_transformer';
+import type User from '#users/models/user';
 
 export default class UserTransformer extends BaseTransformer<User> {
   toObject() {
@@ -17,7 +18,9 @@ export default class UserTransformer extends BaseTransformer<User> {
         'timezone',
       ]),
       twoFactorEnabled: this.resource.twoFactorConfirmedAt !== null,
-      avatar: AttachmentTransformer.transform(this.whenLoaded(this.resource.avatar)),
-    }
+      avatar: AttachmentTransformer.transform(
+        this.whenLoaded(this.resource.avatar)
+      ),
+    };
   }
 }

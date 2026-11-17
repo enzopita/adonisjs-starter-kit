@@ -1,12 +1,13 @@
-import { DateTime } from 'luxon'
-import db from '@adonisjs/lucid/services/db'
-import { audit } from '#core/audit/main'
-import type {} from '#audit/types/audit'
+import db from '@adonisjs/lucid/services/db';
+import { DateTime } from 'luxon';
 
-const BATCH_SIZE = 1000
+import type {} from '#audit/types/audit';
+import { audit } from '#core/audit/main';
+
+const BATCH_SIZE = 1000;
 
 export interface PruneAuditEventsInput {
-  retentionDays: number
+  retentionDays: number;
 }
 
 /**
@@ -16,8 +17,8 @@ export interface PruneAuditEventsInput {
  */
 export default class PruneAuditEvents {
   async handle({ retentionDays }: PruneAuditEventsInput) {
-    const before = DateTime.now().minus({ days: retentionDays })
-    let deleted = 0
+    const before = DateTime.now().minus({ days: retentionDays });
+    let deleted = 0;
 
     while (true) {
       // Ids are uuidv7, so walking the primary key from the oldest reaches old rows first.
@@ -28,12 +29,12 @@ export default class PruneAuditEvents {
           ORDER BY id LIMIT :limit FOR UPDATE SKIP LOCKED
         )
         `,
-        { before: before.toJSDate(), limit: BATCH_SIZE },
-      )
+        { before: before.toJSDate(), limit: BATCH_SIZE }
+      );
 
-      deleted += rowCount
+      deleted += rowCount;
 
-      if (rowCount < BATCH_SIZE) break
+      if (rowCount < BATCH_SIZE) break;
     }
 
     if (deleted > 0) {
@@ -41,9 +42,9 @@ export default class PruneAuditEvents {
         tenantId: null,
         subject: null,
         data: { count: deleted, before: before.toISO()! },
-      })
+      });
     }
 
-    return deleted
+    return deleted;
   }
 }

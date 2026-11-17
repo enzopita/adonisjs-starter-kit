@@ -1,8 +1,9 @@
-import { can } from '#access/abilities'
-import { PERMISSIONS } from '#access/permissions'
-import type { HttpContext } from '@adonisjs/core/http'
-import { userParamsValidator } from '#admin/validators/user'
-import ResetTwoFactor from '#admin/actions/reset_two_factor'
+import type { HttpContext } from '@adonisjs/core/http';
+
+import { can } from '#access/abilities';
+import { PERMISSIONS } from '#access/permissions';
+import ResetTwoFactor from '#admin/actions/reset_two_factor';
+import { userParamsValidator } from '#admin/validators/user';
 
 /**
  * @tags Admin
@@ -20,14 +21,14 @@ export default class TwoFactorResetsController {
    * @response {404} User not found
    */
   async destroy({ bouncer, request, serialize }: HttpContext) {
-    await bouncer.authorize(can, PERMISSIONS.platformAdmin)
-    const { params } = await request.validateUsing(userParamsValidator)
+    await bouncer.authorize(can, PERMISSIONS.platformAdmin);
+    const { params } = await request.validateUsing(userParamsValidator);
 
     const { user } = await new ResetTwoFactor().handle({
       id: params.id,
       protectPlatformAdmins: true,
-    })
+    });
 
-    return serialize({ id: user.id, twoFactorEnabled: false })
+    return serialize({ id: user.id, twoFactorEnabled: false });
   }
 }

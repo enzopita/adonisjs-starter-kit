@@ -1,4 +1,4 @@
-import { defineConfig, drivers } from '@adonisjs/core/hash'
+import { defineConfig, drivers } from '@adonisjs/core/hash';
 
 const hashConfig = defineConfig({
   default: 'scrypt',
@@ -6,9 +6,9 @@ const hashConfig = defineConfig({
   list: {
     scrypt: drivers.scrypt({}),
   },
-})
+});
 
-export default hashConfig
+export default hashConfig;
 
 declare module '@adonisjs/core/types' {
   export interface HashersList extends InferHashers<typeof hashConfig> {}
