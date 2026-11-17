@@ -90,6 +90,15 @@ test.group('Auth | accounts', group => {
     badTimezone.assertStatus(422)
   })
 
+  // Regression: a name longer than the column passes validation and the insert answers 500.
+  test('rejects a full name longer than 255 characters', async ({ client }) => {
+    const response = await client
+      .visit('auth.new_account.store')
+      .json({ ...account, email: 'long-name@example.com', fullName: 'x'.repeat(256) })
+
+    response.assertStatus(422)
+  })
+
   test('records the sign-up, attributed to the new account', async ({ client, assert }) => {
     const response = await client
       .visit('auth.new_account.store')

@@ -24,6 +24,9 @@ export default class SetPlatformAdmin {
         await grantPlatformAdmin(user.id, trx)
       } else {
         await PlatformAdmin.query({ client: trx }).where('userId', user.id).delete()
+
+        // Their impersonation tokens belong to the users they act as, so nothing else ends them.
+        await trx.from('auth_access_tokens').where('impersonator_id', user.id).delete()
       }
 
       await audit.record(

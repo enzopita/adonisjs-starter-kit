@@ -1,3 +1,4 @@
+import { audit } from '#core/audit/main'
 import ListSessions from '#auth/queries/list_sessions'
 import type { HttpContext } from '@adonisjs/core/http'
 import RevokeSessions from '#auth/actions/revoke_sessions'
@@ -58,6 +59,8 @@ export default class SessionsController {
 
     const keepTokenId = String(user.currentAccessToken!.identifier)
     const revoked = await new RevokeSessions().handle({ user, keepTokenId })
+
+    if (!revoked) audit.unchanged()
 
     return serialize({ revoked })
   }

@@ -107,6 +107,19 @@ test.group('Auth | sessions', group => {
     stillWorks.assertStatus(200)
   })
 
+  // Regression: with nothing to revoke the write records no event, and the audit check answers 500.
+  test('revoking every other session when there is none answers 200', async ({
+    client,
+    assert,
+  }) => {
+    const token = await signUp(client, 'ada@example.com')
+
+    const response = await client.visit('profile.sessions.destroy_all').bearerToken(token)
+
+    response.assertStatus(200)
+    assert.equal(response.body().data.revoked, 0)
+  })
+
   test('refuses to revoke sessions while impersonating', async ({ client }) => {
     const token = await signUp(client, 'ada@example.com')
 
