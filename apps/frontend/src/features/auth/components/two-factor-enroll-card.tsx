@@ -6,7 +6,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@monorepo/ui/components/card'
-import { Field, FieldLabel } from '@monorepo/ui/components/field'
+import { Field, FieldGroup, FieldLabel } from '@monorepo/ui/components/field'
 import { Input } from '@monorepo/ui/components/input'
 import { useMutation } from '@tanstack/react-query'
 import { CopyIcon } from 'lucide-react'
@@ -84,34 +84,36 @@ export function TwoFactorEnrollCard({
             </div>
           </Field>
           <form.AppForm>
-            <form.Form className="flex flex-col gap-4">
-              <form.FormAlert />
-              <form.AppField name="password">
-                {field => (
-                  <field.TextField
-                    label={t('auth.twoFactorCard.password')}
-                    type="password"
-                    autoComplete="current-password"
-                    required
-                  />
-                )}
-              </form.AppField>
-              <form.AppField name="code">
-                {field => (
-                  <field.TextField
-                    label={t('auth.twoFactorCard.code')}
-                    autoComplete="one-time-code"
-                    inputMode="numeric"
-                    required
-                  />
-                )}
-              </form.AppField>
-              <div className="flex gap-2">
-                <form.SubmitButton>{t('auth.twoFactorCard.confirm')}</form.SubmitButton>
-                <Button type="button" variant="ghost" onClick={onCancel}>
-                  {t('auth.twoFactorCard.cancel')}
-                </Button>
-              </div>
+            <form.Form>
+              <FieldGroup>
+                <form.FormAlert />
+                <form.AppField name="password">
+                  {field => (
+                    <field.TextField
+                      label={t('auth.twoFactorCard.password')}
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                    />
+                  )}
+                </form.AppField>
+                <form.AppField name="code">
+                  {field => (
+                    <field.TextField
+                      label={t('auth.twoFactorCard.code')}
+                      autoComplete="one-time-code"
+                      inputMode="numeric"
+                      required
+                    />
+                  )}
+                </form.AppField>
+                <div className="flex gap-2">
+                  <form.SubmitButton>{t('auth.twoFactorCard.confirm')}</form.SubmitButton>
+                  <Button type="button" variant="ghost" onClick={onCancel}>
+                    {t('auth.twoFactorCard.cancel')}
+                  </Button>
+                </div>
+              </FieldGroup>
             </form.Form>
           </form.AppForm>
         </div>

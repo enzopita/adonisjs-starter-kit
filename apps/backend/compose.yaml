@@ -29,6 +29,10 @@ services:
       - '${SMTP_PORT:-1025}:1025'
       - '${MAILPIT_PORT:-8025}:8025'
     restart: unless-stopped
+    # `up --wait` fails on an exited one-shot unless a running service waits for it to complete.
+    depends_on:
+      rustfs-init:
+        condition: service_completed_successfully
     healthcheck:
       test: ['CMD', '/mailpit', 'readyz']
       interval: 10s

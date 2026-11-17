@@ -2,6 +2,7 @@ import { Button } from '@monorepo/ui/components/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@monorepo/ui/components/dropdown-menu'
@@ -24,18 +25,20 @@ export function RowActionsMenu({ label, actions }: { label: string; actions: Row
         <MoreHorizontalIcon />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-auto max-w-xs">
-        {actions.map(action => (
-          <DropdownMenuItem
-            key={action.key}
-            variant={action.destructive ? 'destructive' : 'default'}
-            disabled={action.disabled}
-            onClick={action.onSelect}
-            className="whitespace-nowrap"
-          >
-            <action.icon />
-            <span className="truncate">{action.label}</span>
-          </DropdownMenuItem>
-        ))}
+        <DropdownMenuGroup>
+          {actions.map(action => (
+            <DropdownMenuItem
+              key={action.key}
+              variant={action.destructive ? 'destructive' : 'default'}
+              disabled={action.disabled}
+              onClick={action.onSelect}
+              className="whitespace-nowrap"
+            >
+              <action.icon />
+              <span className="truncate">{action.label}</span>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
       </DropdownMenuContent>
     </DropdownMenu>
   )

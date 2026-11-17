@@ -35,7 +35,7 @@ test('a member changes their time zone and their language from the profile page'
     .not.toBe(beforeAnyChange)
 
   await timeZoneSelect().tap()
-  await screen.getByRole('option', '(UTC-09:00) America/Adak').tap()
+  await screen.getByRole('option', '(UTC+00:00) UTC').tap()
   await expect(saved()).toBeVisible()
   await expect.poll(() => signupRow.textContent()).not.toBe(kiritimati)
 

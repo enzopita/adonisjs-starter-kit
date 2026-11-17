@@ -6,6 +6,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@monorepo/ui/components/dialog'
+import { FieldGroup } from '@monorepo/ui/components/field'
 import { useMutation } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { queries } from '@/features/core/api'
@@ -48,20 +49,22 @@ export function RenameTenantDialog({
           </DialogDescription>
         </DialogHeader>
         <form.AppForm>
-          <form.Form className="flex flex-col gap-4">
-            <form.FormAlert />
-            <form.AppField name="name">
-              {field => (
-                <field.TextField
-                  label={t('admin.renameTenantDialog.name')}
-                  required
-                  maxLength={255}
-                />
-              )}
-            </form.AppField>
-            <DialogFooter>
-              <form.SubmitButton>{t('admin.renameTenantDialog.save')}</form.SubmitButton>
-            </DialogFooter>
+          <form.Form>
+            <FieldGroup>
+              <form.FormAlert />
+              <form.AppField name="name">
+                {field => (
+                  <field.TextField
+                    label={t('admin.renameTenantDialog.name')}
+                    required
+                    maxLength={255}
+                  />
+                )}
+              </form.AppField>
+              <DialogFooter>
+                <form.SubmitButton>{t('admin.renameTenantDialog.save')}</form.SubmitButton>
+              </DialogFooter>
+            </FieldGroup>
           </form.Form>
         </form.AppForm>
       </DialogContent>
