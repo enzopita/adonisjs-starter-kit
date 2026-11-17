@@ -16,5 +16,7 @@ export async function signUp(client: ApiClient, email: string) {
 
 /** The access token's id, which a session row and its audit events carry: `oat_<base64url id>.<secret>`. */
 export function sessionIdOf(token: string) {
-  return Buffer.from(token.slice('oat_'.length).split('.')[0]!, 'base64url').toString()
+  const [id = ''] = token.slice('oat_'.length).split('.')
+
+  return Buffer.from(id, 'base64url').toString()
 }

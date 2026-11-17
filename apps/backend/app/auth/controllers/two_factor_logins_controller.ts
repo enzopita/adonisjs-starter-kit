@@ -2,7 +2,7 @@ import User from '#users/models/user'
 import db from '@adonisjs/lucid/services/db'
 import { audit } from '#core/audit/main'
 import type {} from '#auth/types/audit'
-import { openSession } from '#auth/services/sessions'
+import { openSession, releaseToken } from '#auth/services/sessions'
 import type { HttpContext } from '@adonisjs/core/http'
 import { penalizeTwoFactorFailure } from '#start/limiter'
 import UserTransformer from '#users/transformers/user_transformer'
@@ -89,7 +89,7 @@ export default class TwoFactorLoginsController {
 
     return serialize({
       user: UserTransformer.transform(user),
-      token: token.value!.release(),
+      token: releaseToken(token),
     })
   }
 }

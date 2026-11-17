@@ -50,15 +50,15 @@ test.group('Core | OpenAPI document', () => {
           .filter(([status]) => Number(status) >= 400)
           // The readiness probe answers 503 with the health report, not an error.
           .filter(([status]) => !(method === 'get' && path === '/health/ready' && status === '503'))
-          .map(
-            ([status, response]) =>
-              [
-                status,
-                '$ref' in response
-                  ? document.components!.responses![response.$ref.split('/').pop()!]!
-                  : response,
-              ] as const,
-          )
+          .map(([status, response]) => {
+            if (!('$ref' in response)) return [status, response] as const
+
+            const resolved = document.components?.responses?.[response.$ref.split('/').pop() ?? '']
+
+            if (resolved === undefined) throw new Error(`${response.$ref} is not in components`)
+
+            return [status, resolved] as const
+          })
           .filter(([, response]) => !isErrorBody(response.content?.['application/json']?.schema))
           .map(([status]) => `${method.toUpperCase()} ${path} ${status}`),
       ),

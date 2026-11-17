@@ -131,16 +131,18 @@ test.group('Auth | two-factor login', group => {
     const { recoveryCodes } = await enroll(client, await signUp(client, 'ada@example.com'))
     const [recoveryCode] = recoveryCodes
 
+    if (recoveryCode === undefined) throw new Error('expected recovery codes from enrollment')
+
     const used = await secondStep(client, {
       challenge: await challengeFor(client, 'ada@example.com'),
-      recoveryCode: recoveryCode!.toUpperCase(),
+      recoveryCode: recoveryCode.toUpperCase(),
     })
 
     used.assertStatus(200)
 
     const again = await secondStep(client, {
       challenge: await challengeFor(client, 'ada@example.com'),
-      recoveryCode: recoveryCode!,
+      recoveryCode,
     })
 
     again.assertStatus(400)
@@ -266,7 +268,8 @@ test.group('Auth | two-factor enrollment', group => {
     for (const row of stored) assert.notInclude(recoveryCodes, row.code_hash)
 
     const user = await User.findByOrFail('email', 'ada@example.com')
-    assert.notInclude(user.twoFactorSecret!, secret)
+    assert.isNotNull(user.twoFactorSecret)
+    assert.notInclude(user.twoFactorSecret ?? '', secret)
 
     ;(await client.visit('profile.profile.show').bearerToken(other)).assertStatus(401)
 
@@ -365,6 +368,8 @@ test.group('Auth | two-factor disable and recovery codes', group => {
     const { secret, recoveryCodes } = await enroll(client, token)
     const [oldCode] = recoveryCodes
 
+    if (oldCode === undefined) throw new Error('expected recovery codes from enrollment')
+
     const regenerated = await client
       .visit('profile.two_factor.regenerate_recovery_codes')
       .json({ password: account.password, code: totpCode(secret) })
@@ -372,18 +377,20 @@ test.group('Auth | two-factor disable and recovery codes', group => {
 
     regenerated.assertStatus(200)
     const [newCode] = regenerated.body().data.recoveryCodes
+
+    if (newCode === undefined) throw new Error('expected regenerated recovery codes')
     assert.notEqual(newCode, oldCode)
 
     const withOld = await secondStep(client, {
       challenge: await challengeFor(client, 'ada@example.com'),
-      recoveryCode: oldCode!,
+      recoveryCode: oldCode,
     })
 
     withOld.assertStatus(400)
 
     const withNew = await secondStep(client, {
       challenge: await challengeFor(client, 'ada@example.com'),
-      recoveryCode: newCode!,
+      recoveryCode: newCode,
     })
 
     withNew.assertStatus(200)

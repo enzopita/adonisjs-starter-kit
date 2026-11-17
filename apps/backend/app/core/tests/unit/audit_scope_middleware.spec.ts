@@ -28,7 +28,12 @@ async function handle({ method, status, records, exempt }: Request) {
       })
     }
 
-    if (exempt === 'unaudited') currentAuditScope()!.unaudited = 'provider_callback'
+    if (exempt === 'unaudited') {
+      const scope = currentAuditScope()
+
+      if (scope === undefined) throw new Error('expected an audit scope inside the middleware')
+      scope.unaudited = 'provider_callback'
+    }
 
     if (exempt === 'unchanged') audit.unchanged()
 

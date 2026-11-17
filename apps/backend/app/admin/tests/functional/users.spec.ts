@@ -13,6 +13,7 @@ import PasswordResetMail from '#auth/mails/password_reset_mail'
 import TwoFactorResetMail from '#admin/mails/two_factor_reset_mail'
 import { countRecoveryCodes, replaceRecoveryCodes } from '#auth/services/two_factor'
 import { createUser, workspace } from '#access/tests/seed'
+import { releaseToken } from '#auth/services/sessions'
 
 test.group('Admin | users', group => {
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())
@@ -177,7 +178,7 @@ test.group('Admin | users', group => {
     reset.assertBody({ data: { id: ada.id, twoFactorEnabled: false } })
     assert.containSubset(await listRow(), { user: { twoFactorEnabled: false } })
 
-    const stale = await client.visit('profile.profile.show').bearerToken(session.value!.release())
+    const stale = await client.visit('profile.profile.show').bearerToken(releaseToken(session))
     stale.assertStatus(401)
 
     const held = await client.visit('auth.access_tokens.store').json(oldCredentials)

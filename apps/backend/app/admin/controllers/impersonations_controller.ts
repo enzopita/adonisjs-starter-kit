@@ -4,6 +4,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { userParamsValidator } from '#admin/validators/user'
 import ImpersonateUser from '#admin/actions/impersonate_user'
 import UserTransformer from '#users/transformers/user_transformer'
+import { releaseToken } from '#auth/services/sessions'
 
 /**
  * @tags Admin
@@ -30,7 +31,7 @@ export default class ImpersonationsController {
 
     return serialize({
       user: UserTransformer.transform(user),
-      token: token.value!.release(),
+      token: releaseToken(token),
     })
   }
 }

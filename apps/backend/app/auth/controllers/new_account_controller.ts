@@ -2,6 +2,7 @@ import SignUp from '#auth/actions/sign_up'
 import { signupValidator } from '#auth/validators/auth'
 import type { HttpContext } from '@adonisjs/core/http'
 import UserTransformer from '#users/transformers/user_transformer'
+import { releaseToken } from '#auth/services/sessions'
 
 /**
  * @tags Auth
@@ -29,7 +30,7 @@ export default class NewAccountController {
 
     return serialize({
       user: UserTransformer.transform(user),
-      token: token.value!.release(),
+      token: releaseToken(token),
     })
   }
 }

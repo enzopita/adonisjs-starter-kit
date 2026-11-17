@@ -1,4 +1,3 @@
-import type User from '#users/models/user'
 import db from '@adonisjs/lucid/services/db'
 import type { HttpContext } from '@adonisjs/core/http'
 import RevokeSessions from '#auth/actions/revoke_sessions'
@@ -15,7 +14,7 @@ import {
 } from '#auth/validators/two_factor'
 
 /** An admin acting as the user never changes how the user signs in. */
-function ownUser({ auth }: HttpContext): User {
+function ownUser({ auth }: HttpContext) {
   const user = auth.getUserOrFail()
 
   if (user.currentAccessToken?.impersonatorId) throw new ImpersonatingException()
@@ -72,7 +71,7 @@ export default class TwoFactorController {
     const recoveryCodes = await new ConfirmTwoFactor().handle({ user, password, code })
 
     // Every session must have passed a second factor: only this one, which just did, stays.
-    const keepTokenId = String(user.currentAccessToken!.identifier)
+    const keepTokenId = String(user.currentAccessToken.identifier)
     await new RevokeSessions().handle({ user, keepTokenId })
 
     return ctx.serialize({ recoveryCodes })
