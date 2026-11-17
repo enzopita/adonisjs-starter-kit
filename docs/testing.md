@@ -20,7 +20,7 @@ Done: every added test names its regression and owner; no behavior asserted twic
 
 ## Agent steps in e2e tests
 
-`agent.act` and `agent.assert` run on Claude Code over ACP (`claudeCode()` in `e2e.config.ts`), no API key. `agent.waitFor` and `agent.extract` fail with `MODEL_UNAVAILABLE` (no `model` set). Instead:
+`agent.waitFor` and `agent.extract` fail with `MODEL_UNAVAILABLE`: the ACP executor (`claudeCode()` in `e2e.config.ts`) runs `agent.act` and `agent.assert` but exposes no judge model. Instead:
 
 - Wait deterministically (`expect(...).toBeVisible()`, `expect(browser).toHaveURL()`, `locator.waitFor()`), then `agent.assert` if judgment is needed.
 - Read values through a locator or `tests/support/api.ts`.
