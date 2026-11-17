@@ -16,9 +16,10 @@ export const createRoleValidator = vine.create({
 export const updateRoleValidator = vine.create({
   params,
   name: name.clone().unique(async (_db, value, field) => {
+    // SAFETY: vine types FieldContext.data as any; the route's uuid matcher guarantees params.id.
     const taken = await Role.query()
       .where('name', value)
-      .whereNot('id', field.data.params.id)
+      .whereNot('id', (field.data as { params: { id: string } }).params.id)
       .first()
 
     return !taken

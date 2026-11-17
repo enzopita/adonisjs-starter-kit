@@ -1,6 +1,7 @@
 import type { DateTime } from 'luxon'
 import User from '#users/models/user'
 import AuditEvent from '#core/models/audit_event'
+import { paginationMeta } from '#core/pagination'
 
 /** A tenant's events, or a user's own account events (sign-in, avatar), which have no tenant. */
 export type AuditTrail = { tenantId: string } | { accountOf: string }
@@ -76,6 +77,6 @@ export default class ListAuditEvents {
       impersonator: (event.impersonatorId && userById.get(event.impersonatorId)) || null,
     }))
 
-    return { rows, meta: events.getMeta() }
+    return { rows, meta: paginationMeta(events) }
   }
 }

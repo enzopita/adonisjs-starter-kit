@@ -262,7 +262,7 @@ test.group('Auth | two-factor enrollment', group => {
 
     for (const code of recoveryCodes) assert.match(code, /^[a-z2-9]{5}-[a-z2-9]{5}$/)
 
-    const stored: { code_hash: string }[] = await db.from('two_factor_recovery_codes')
+    const stored = await db.query<{ code_hash: string }>().from('two_factor_recovery_codes')
     assert.lengthOf(stored, 10)
 
     for (const row of stored) assert.notInclude(recoveryCodes, row.code_hash)

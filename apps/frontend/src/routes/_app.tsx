@@ -11,7 +11,6 @@ import { Separator } from '@monorepo/ui/components/separator'
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query'
 import { createFileRoute, Outlet, redirect, useRouter } from '@tanstack/react-router'
 import type { ErrorComponentProps } from '@tanstack/react-router'
-import { TuyauError } from '@tuyau/core/client'
 import { CircleAlertIcon } from 'lucide-react'
 import { useEffect, useRef } from 'react'
 import { AdminMenuItem } from '@/features/admin/components/admin-menu-item'
@@ -19,7 +18,7 @@ import { ImpersonationBanner } from '@/features/admin/components/impersonation-b
 import { adminMeQuery } from '@/features/admin/queries'
 import { queries } from '@/features/core/api'
 import { AppMark } from '@/features/core/components/app-mark'
-import { errorMessage } from '@/features/core/errors'
+import { errorMessage, isTuyauError } from '@/features/core/errors'
 import { locale, resolveLocale, t } from '@/features/core/i18n'
 import { LOCALES } from '@/features/core/locales'
 import type { Locale } from '@/features/core/locales'
@@ -148,7 +147,7 @@ function AppError({ error }: ErrorComponentProps) {
           <h1>{t('routes.app.wentWrong')}</h1>
         </EmptyTitle>
         <EmptyDescription>
-          {error instanceof TuyauError ? errorMessage(error) : t('routes.app.pageFailed')}
+          {isTuyauError(error) ? errorMessage(error) : t('routes.app.pageFailed')}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>

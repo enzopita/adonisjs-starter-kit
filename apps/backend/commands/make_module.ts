@@ -124,8 +124,9 @@ export default class MakeModule extends BaseCommand {
   /** Adds `#<name>/*` next to the other module aliases in package.json. */
   private registerAlias() {
     this.patch('package.json', source => {
-      const pkg = JSON.parse(source)
-      const entries = Object.entries<string>(pkg.imports)
+      // SAFETY: package.json is the project's own, with an `imports` map of alias to path.
+      const pkg = JSON.parse(source) as { imports: Record<string, string> }
+      const entries = Object.entries(pkg.imports)
 
       const lastModule = entries.findLastIndex(([, target]) =>
         /^\.\/app\/[^*]+\/\*\.js$/.test(target),
@@ -155,7 +156,8 @@ export default class MakeModule extends BaseCommand {
   /** Registers the module in modules.json, the dependency map the lint enforces. */
   private registerBoundary() {
     this.patch('modules.json', source => {
-      const modules = JSON.parse(source)
+      // SAFETY: modules.json maps each module name to the modules it may import.
+      const modules = JSON.parse(source) as Record<string, string[]>
       modules[this.name] = ['core']
 
       return `${JSON.stringify(modules, null, 2)}\n`

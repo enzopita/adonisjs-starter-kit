@@ -1,11 +1,10 @@
 import { FieldGroup } from '@monorepo/ui/components/field'
 import { useMutation } from '@tanstack/react-query'
 import { getRouteApi, Link } from '@tanstack/react-router'
-import { TuyauError } from '@tuyau/core/client'
 import { useState } from 'react'
 import { AuthCard } from '@/features/core/components/auth-card'
 import { queries } from '@/features/core/api'
-import { apiErrorCode, errorMessage, formErrors } from '@/features/core/errors'
+import { apiErrorCode, errorMessage, formErrors, isTuyauError } from '@/features/core/errors'
 import { useAppForm, withFormErrors } from '@/features/core/form'
 import { t } from '@/features/core/i18n'
 import { session } from '@/features/core/session'
@@ -20,7 +19,7 @@ export function LoginPage() {
 
   // The alert shows the server's message; this adds the way to a fresh link once the mailed one expired.
   const passwordResetRequired =
-    createToken.error instanceof TuyauError &&
+    isTuyauError(createToken.error) &&
     apiErrorCode(createToken.error) === 'E_PASSWORD_RESET_REQUIRED'
 
   const form = useAppForm({
@@ -135,7 +134,7 @@ function TwoFactorStep({
 
         session.signIn(data.token)
       } catch (error) {
-        if (!(error instanceof TuyauError)) throw error
+        if (!isTuyauError(error)) throw error
 
         if (apiErrorCode(error) === 'E_INVALID_TWO_FACTOR_CHALLENGE') {
           onChallengeExpired(errorMessage(error))

@@ -1,8 +1,8 @@
 import type { QueryKey } from '@tanstack/react-query'
 import { createRouter } from '@tanstack/react-router'
-import { TuyauError } from '@tuyau/core/client'
+import type { TuyauError } from '@tuyau/core/client'
 import { adminMeQuery } from '@/features/admin/queries'
-import { apiErrorCode } from '@/features/core/errors'
+import { apiErrorCode, isTuyauError } from '@/features/core/errors'
 import type { ApiErrorCode } from '@/features/core/errors'
 import { queryClient } from '@/features/core/query-client'
 import { sessionStore } from '@/features/core/session'
@@ -38,8 +38,8 @@ const RERUN_GUARD_ON: Partial<Record<ApiErrorCode, () => QueryKey>> = {
   E_TWO_FACTOR_REQUIRED: () => adminMeQuery().queryKey,
 }
 
-function rerunStaleGuard(error: Error | null) {
-  if (!(error instanceof TuyauError) || error.status !== 403) return
+function rerunStaleGuard(error: TuyauError) {
+  if (error.status !== 403) return
 
   const code = apiErrorCode(error)
   const queryKey = code && RERUN_GUARD_ON[code]?.()
@@ -52,11 +52,13 @@ function rerunStaleGuard(error: Error | null) {
 }
 
 queryClient.getQueryCache().subscribe(event => {
-  if (event.type === 'updated' && event.action.type === 'error') rerunStaleGuard(event.action.error)
+  if (event.type === 'updated' && event.action.type === 'error' && isTuyauError(event.action.error))
+    rerunStaleGuard(event.action.error)
 })
 
 queryClient.getMutationCache().subscribe(event => {
-  if (event.type === 'updated' && event.action.type === 'error') rerunStaleGuard(event.action.error)
+  if (event.type === 'updated' && event.action.type === 'error' && isTuyauError(event.action.error))
+    rerunStaleGuard(event.action.error)
 })
 
 declare module '@tanstack/react-router' {

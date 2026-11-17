@@ -47,7 +47,12 @@ test.group('Auth | sessions', group => {
 
     // An impersonation token looks like one of ada's own rows (same tokenable_id): fake one the
     // way the admin module's action writes it, to prove the list excludes it by impersonator_id.
-    const grace = await db.from('users').where('email', 'grace@example.com').first()
+    const grace = await db
+      .query<{ id: string }>()
+      .from('users')
+      .where('email', 'grace@example.com')
+      .firstOrFail()
+
     await db
       .from('auth_access_tokens')
       .where('id', sessionIdOf(secondToken))
@@ -123,7 +128,12 @@ test.group('Auth | sessions', group => {
   test('refuses to revoke sessions while impersonating', async ({ client }) => {
     const token = await signUp(client, 'ada@example.com')
 
-    const ada = await db.from('users').where('email', 'ada@example.com').first()
+    const ada = await db
+      .query<{ id: string }>()
+      .from('users')
+      .where('email', 'ada@example.com')
+      .firstOrFail()
+
     await db
       .from('auth_access_tokens')
       .where('id', sessionIdOf(token))
@@ -167,7 +177,12 @@ test.group('Auth | sessions', group => {
     const used = await client.visit('profile.profile.show').bearerToken(token)
     used.assertStatus(200)
 
-    const row = await db.from('auth_access_tokens').where('id', sessionIdOf(token)).first()
+    const row = await db
+      .query<{ expires_at: Date }>()
+      .from('auth_access_tokens')
+      .where('id', sessionIdOf(token))
+      .firstOrFail()
+
     assert.isAbove(DateTime.fromJSDate(row.expires_at).diffNow('days').days, 29)
   })
 
@@ -175,7 +190,13 @@ test.group('Auth | sessions', group => {
   // outlive the 1-hour cap just by using it.
   test('does not extend an impersonation token’s expiry', async ({ client, assert }) => {
     const token = await signUp(client, 'ada@example.com')
-    const ada = await db.from('users').where('email', 'ada@example.com').first()
+
+    const ada = await db
+      .query<{ id: string }>()
+      .from('users')
+      .where('email', 'ada@example.com')
+      .firstOrFail()
+
     const originalExpiry = DateTime.now().plus({ minutes: 1 }).toJSDate()
 
     await db
@@ -186,7 +207,12 @@ test.group('Auth | sessions', group => {
     const response = await client.visit('profile.profile.show').bearerToken(token)
     response.assertStatus(200)
 
-    const row = await db.from('auth_access_tokens').where('id', sessionIdOf(token)).first()
+    const row = await db
+      .query<{ expires_at: Date }>()
+      .from('auth_access_tokens')
+      .where('id', sessionIdOf(token))
+      .firstOrFail()
+
     assert.equal(row.expires_at.getTime(), originalExpiry.getTime())
   })
 })

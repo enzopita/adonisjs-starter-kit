@@ -1,4 +1,5 @@
 import Tenant from '#tenancy/models/tenant'
+import { paginationMeta } from '#core/pagination'
 
 export interface ListTenantsInput {
   search?: string
@@ -26,6 +27,6 @@ export default class ListTenants {
       memberCount: Number(tenant.$extras.memberships_count),
     }))
 
-    return { rows, meta: tenants.getMeta() }
+    return { rows, meta: paginationMeta(tenants) }
   }
 }
