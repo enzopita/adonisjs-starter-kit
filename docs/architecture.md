@@ -1,36 +1,34 @@
 # Backend architecture
 
-`apps/backend/app/` holds one folder per **module**: a bounded context that owns its vocabulary, its tables, and its routes. A module may hold several models; modules are not 1:1 with tables. Code outside `app/` (`start/`, `config/`, `database/`, `providers/`, `tests/`) is application wiring, not a module.
+`apps/backend/app/` = one folder per **module**: a bounded context owning its vocabulary, tables and routes (not 1:1 with tables). `start/`, `config/`, `database/`, `providers/`, `commands/`, `tests/` are wiring, not modules.
 
-| Module        | Owns                                                                                                                                |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `core`        | Infrastructure every module builds on: exception handler, global middleware, `apiRoutes`, health checks, the audit recorder.        |
-| `users`       | The `User` identity: model, transformer, access tokens, the profile endpoint, locale and timezone.                                  |
-| `auth`        | Behavior over that identity: sign-up, login, two-factor, logout, sessions, password reset, email verification, the auth middleware. |
-| `attachments` | Stored files: upload, signed URLs, the claim service consumers call, pruning.                                                       |
-| `tenancy`     | Tenants and their members, the tenant scope on models, the `tenant` middleware.                                                     |
-| `access`      | Roles and grants per tenant, platform admins, and the Bouncer ability every check goes through.                                     |
-| `audit`       | Reading and pruning the audit trail: a tenant's events, a user's account activity, which permission opens which history.            |
-| `admin`       | The platform admin's area: every tenant and user, suspending, disabling, impersonating, resetting two-factor, `node ace admin:*`.   |
+| Module        | Owns                                                                                 |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `core`        | Exception handler, global middleware, `apiRoutes`, health checks, audit recorder.    |
+| `users`       | `User` identity: model, transformer, access tokens, profile, locale, timezone.       |
+| `auth`        | Sign-up, login, two-factor, sessions, password reset, email verification, `auth` mw. |
+| `attachments` | Uploads, signed URLs, the claim service, pruning.                                    |
+| `tenancy`     | Tenants, memberships, tenant scope on models, `tenant` mw.                           |
+| `access`      | Roles, grants, invitations, platform admins, the `can` Bouncer ability.              |
+| `audit`       | Reading and pruning the trail; which permission opens which history.                 |
+| `admin`       | Platform admin area: tenants, users, suspend, disable, impersonate.                  |
 
 ## Starting a new module or feature
 
-A feature that extends an existing context goes in that module; skip step 1. All commands run from `apps/backend/`.
+Extending an existing context: skip step 1. Run from `apps/backend/`.
 
-1. **Create the module**: `node ace make:module <name> [--events]`. Never create `app/<name>/` by hand: the command also registers the three places nothing warns about when one is missing (the `#<name>/*` alias in `package.json`, the `adonisrc.ts` preloads, `modules.json`). `--events` adds `types/events.ts` and a preloaded `start/events.ts`.
-2. **Declare dependencies**: the new module may import only `core`. If it needs another module, add it to its list in `modules.json` (see [Dependencies between modules](#dependencies-between-modules)).
-3. **Tables**: `node ace make:model <module>/<name> -m -f --transformer` creates the model, its factory and transformer in the module, and the migration in `database/migrations/`. Fill the migration, then `node ace migration:run`: it regenerates `database/schema.ts`, the `<Name>Schema` class the model extends, so the model doesn't typecheck before this step.
-4. **Input**: `node ace make:validator <module>/<entity>`. One file per entity, one validator per use case.
-5. **Behavior**: an action in `actions/` for each write, a query in `queries/` for each non-trivial read (see [Code conventions](#code-conventions)). No generator: copy the closest existing one.
-6. **HTTP**: `node ace make:controller <module>/<name>`, following [Controllers and the typed client](#controllers-and-the-typed-client), and its routes in `app/<module>/routes.ts`, inside `apiRoutes()`.
-7. **Tests**: `node ace make:test <module>/<name> --suite=functional` (or `unit`), only for the behaviors `docs/testing.md` assigns to that layer.
-8. **Check**: `pnpm typecheck && pnpm lint` from the root. The frontend sees the new routes and response types after codegen, which `pnpm dev` runs on every change, or `node ace codegen` once.
+1. **Module**: `node ace make:module <name> [--events]`. Never create `app/<name>/` by hand: the command also registers the `adonisrc.ts` preloads, and a missing preload fails silently.
+2. **Dependencies**: a new module imports only `core`; add others to `modules.json` (see [Dependencies between modules](#dependencies-between-modules)).
+3. **Tables**: `node ace make:model <module>/<name> -m -f --transformer`, fill the migration, `node ace migration:run`. It regenerates `database/schema.ts` (`<Name>Schema`), so the model typechecks only after it.
+4. **Input**: `node ace make:validator <module>/<entity>`.
+5. **Behavior**: an action per write, a query per non-trivial read ([Code conventions](#code-conventions)). No generator: copy the closest one.
+6. **HTTP**: `node ace make:controller <module>/<name>` ([Controllers](#controllers-and-the-typed-client)); routes in `app/<module>/routes.ts` inside `apiRoutes()`.
+7. **Tests**: `node ace make:test <module>/<name> --suite=functional|unit`, per `docs/testing.md`.
+8. **Codegen**: the frontend sees new routes and types after `node ace codegen` (root `pnpm dev` runs it on change).
 
-Migrations are the one thing a module doesn't hold: they all live in `database/migrations/`, next to `database/schema.ts`. Lucid runs migration folders one after another in config order, not by timestamp, so per-module folders would let one module's foreign keys run before the tables they reference.
+Migrations all live in `database/migrations/`: Lucid runs folders in config order, not by timestamp, so per-module folders would break cross-module foreign keys.
 
 ### Module layout
-
-Create only the folders a module needs; `routes.ts` is the one every module has.
 
 ```
 app/<module>/
@@ -40,8 +38,7 @@ app/<module>/
   queries/            # one read use case per file
   services/           # behavior with side effects shared by several actions
   jobs/               # background work run by the queue worker
-  mails/              # BaseMail subclasses, one per mail
-  models/, transformers/, validators/, middleware/, exceptions/, enums/
+  mails/              # one class per mail
   database/factories/
   types/events.ts     # EventsList declaration merge, when the module emits events
   types/audit.ts      # AuditEvents declaration merge, when the module records audit events
@@ -51,249 +48,143 @@ app/<module>/
 
 ### Generators
 
-The `make:*` commands read the ejected stubs in `apps/backend/stubs/`: the name is `<module>/<name>`, and a name without an existing module fails. `make:migration` takes a bare table name and always writes to `database/migrations/`.
+`make:*` reads `apps/backend/stubs/`; name is `<module>/<name>` and the module must exist. `make:migration` takes a bare table name.
 
-```sh
-node ace make:controller users/tokens --api             # app/users/controllers/tokens_controller.ts
-node ace make:model users/invoice -m -f --transformer   # + database/migrations/…_create_invoices_table.ts
-node ace make:validator users/invoice --resource
-node ace make:transformer users/invoice
-node ace make:exception users/invoice_locked
-node ace make:service users/invoice_numbering
-node ace make:job users/send_invoice                    # app/users/jobs/send_invoice.ts
-node ace make:test users/invoices --suite=functional    # --suite is required
-```
-
-- Pass every flag a command would otherwise prompt for (`--suite`): a prompt hangs a non-interactive run.
-- On `make:model`, spell out `--transformer`: Lucid gives it the same `-c` alias as `--controller`.
-- No generator for middleware: `make:middleware` writes a broken import into `start/kernel.ts`. Create the file in `app/<module>/middleware/` and register it in `start/kernel.ts` by hand.
+- Pass every flag a command would prompt for (`--suite`): a prompt hangs non-interactive runs.
+- `make:model`: spell out `--transformer` (`-c` is also `--controller`).
+- `make:exception` emits a plain `Exception`: rewrite it as an `ApiException` ([Errors](#errors)).
+- Middleware: no generator (`make:middleware` breaks `start/kernel.ts`). Create in `app/<module>/middleware/`, register in `start/kernel.ts` by hand.
 
 ## Controllers and the typed client
 
-The frontend calls the API through Tuyau, whose types are inferred from the controllers: the request body from the validator, the response from the action's return type. Every controller action follows two rules:
+Tuyau infers frontend types from controllers. Every action:
 
-- **Validate with `request.validateUsing(validator)`.** Without it, the request body is typed `any` on the frontend.
-- **Return `serialize(...)`.** A model through its transformer (`serialize(UserTransformer.transform(user))`, `serialize(UserTransformer.paginate(rows, meta))` for a paginated list), anything else as a plain object (`serialize({ message })`). Never return a model or a bare object: a model reaches the frontend as `ModelObject` with no fields, and a bare object skips the `{ data }` envelope that `providers/api_provider.ts` gives every response.
+- **`request.validateUsing(validator)`**, or the body is `any` on the frontend.
+- **Returns `serialize(...)`**: models through a transformer (`UserTransformer.transform(user)`, `.paginate(rows, meta)`), else a plain object (`serialize({ message })`). A raw model types as empty `ModelObject`; a bare object skips the `{ data }` envelope (`providers/api_provider.ts`).
 
-Expected failures are exceptions, not response helpers: see [Errors](#errors). The frontend narrows them with `error.isStatus(404)` or by `code`.
+Expected failures are exceptions ([Errors](#errors)); the frontend narrows with `error.isStatus(404)` or `code`.
 
-The same rules feed the OpenAPI document (`@enzopita/adonisjs-openapi`, configured in `config/openapi.ts`). Outside production, `GET /docs` renders it with Scalar, generated live on each request; `node ace openapi:generate` writes it to `openapi.json`, which is committed. The first paragraph of the action's doc comment is the operation summary, and `@response` tags describe the statuses that need a reason for this action.
+**OpenAPI** (`@enzopita/adonisjs-openapi`, `config/openapi.ts`, `strict: true`): `GET /docs` outside production; `openapi.json` is committed. Doc comment per action, en-US:
 
-Every action documents itself for API clients, in en-US, as a doc comment:
+- **Summary**: first paragraph, imperative, ≤60 chars, no period (`Create a role`).
+- **Description**: only what the schema can't say: required permission, side effects (mail, signed-out sessions), non-obvious behavior. Maintainer reasoning → `//` inside the method.
+- **`@tags`**: one tag from `config/openapi.ts`; on the class when shared.
 
-- **Summary**: the first paragraph, an imperative phrase of at most 60 characters with no period (`Create a role`).
-- **Description**: the next paragraphs, only what a caller can't read from the schema: the permission it requires, side effects such as an email or signed-out sessions, and non-obvious behavior. Reasoning for maintainers goes in a `//` comment inside the method.
-- **`@tags`**: one tag declared in `config/openapi.ts`, on the class when every action shares it.
-- **`@response`**: a reason for a status only this action explains, listed under [Errors](#errors).
-
-`config/openapi.ts` sets `strict: true` and the summary rules, so any warning, such as an operation without a summary or a declared tag, fails `node ace openapi:check --strict`. `app/core/tests/functional/openapi.spec.ts` and the `pre-push` hook run it.
+After changing a route, action, validator or exception: `node ace openapi:generate`, commit `openapi.json`. `node ace openapi:check --strict` (functional test + `pre-push`) fails on a stale file or any diagnostic. `openapi:generate --explain=<route name>` shows where each response comes from.
 
 ## Errors
 
-Every error the API sends is `{ code, message }`, except the `422` of a failed validation, which is `{ errors: [{ field, message, rule }] }`. The `code` is stable and the frontend branches on it; the `message` is translated for display.
+Body: `{ code, message }`; validation `422`: `{ errors: [{ field, message, rule }] }`. `code` is stable (frontend branches on it), `message` is translated.
 
-**Expected failures are `ApiException` subclasses.** One file per exception, in the `exceptions/` folder of the module that owns it (`app/access/exceptions/last_manager_exception.ts`). Extend `ApiException<'E_CODE'>` from `#core/exceptions/api_exception` and declare `static status`, `static code` and `static message`, the English fallback. Add `errors.<code>` to every file in `resources/lang/*/errors.json`; the handler translates the message by that key. Throw the exception from an action or a middleware, never answer an expected failure with a response helper.
+- **Expected failure = `ApiException` subclass**: one file in the owning module's `exceptions/`, extends `ApiException<'E_CODE'>` (`#core/exceptions/api_exception`), with `static status`, `code`, `message` (English fallback). Add `errors.<code>` to every `resources/lang/*/errors.json`. Throw from an action or middleware; never a response helper.
+- **Everything else**: `app/core/exceptions/handler.ts` owns the shape. In production a `5xx` sends `E_INTERNAL_SERVER_ERROR` + a generic message, so SQL/driver text never leaks; dev and tests keep the stack.
 
-**The handler owns the shape of everything else.** `app/core/exceptions/handler.ts` renders `{ code, message }` for framework and package errors, such as a missing route or `E_ROW_NOT_FOUND`. A server error (`5xx`) sends `E_INTERNAL_SERVER_ERROR` and a generic message outside development, so a SQL or driver message never reaches the client. It also renders the package errors that bring a body of their own in the same shape: `E_UNAUTHORIZED_ACCESS` and `E_INVALID_CREDENTIALS` from auth, `E_AUTHORIZATION_FAILURE` from bouncer, and `E_TOO_MANY_REQUESTS` from the limiter. Change the shape there, in one place.
+OpenAPI **derives** error responses from: `throw new` in the action, its actions/services, or route middleware; middleware response helpers; `401` of `auth` routes; `422` of `validateUsing`; AdonisJS package throws (`authorize()` 403, `findOrFail()`/`firstOrFail()` 404, `verifyCredentials()` 400, limiter 429). Other packages' throws → an `errors` entry in `config/openapi.ts`.
 
-**The OpenAPI document derives most error responses on its own:**
-
-- An exception the app throws with `throw new`, in the action, in the actions and services it calls, or in a middleware of the route, with its literal `code`.
-- A response a middleware sends with a helper, such as `response.unauthorized(...)`.
-- The `401` of an authenticated route, and the `422` of an action that calls `request.validateUsing()`.
-- An exception thrown inside an AdonisJS package, with no config: the `403` of `bouncer.authorize()`, the `404` of `findOrFail()` and `firstOrFail()`, the `400` of `verifyCredentials()`, and the `429` of the limiter. An exception thrown inside another package goes in `errors` in `config/openapi.ts`.
-
-**Describe a response once, on its class.** The first paragraph of an exception's doc comment (`/** The role is still assigned to a member */`) describes its response on every route. A response that only that class sends becomes a `$ref` in `components.responses`.
-
-**Add a `@response` tag to the action's doc comment only for a reason the action owns:**
-
-- `` @response {403} Lacks `members.manage` `` for a bouncer `authorize()`, naming the permission.
-- `@response {404} Role not found` for a `findOrFail()`.
-- `@response {429} Reason` for a throttled route.
-
-`@response {N} reason` only describes a status the generator already derives, and fails with `OA-T003` otherwise. Its reason replaces the description for that operation. For a status that nothing derives and no class sends, declare the body too: `@response {413} {EntityTooLarge} Reason`. For an exception thrown from code the generator doesn't follow, such as a function a package calls, use `@throws {LastManagerException}`, found by name in `app/**/exceptions/`.
-
-After changing a route, an action, a validator or an exception, run `node ace openapi:generate` and commit `openapi.json`. `node ace openapi:check --strict` fails when the committed file is stale or a diagnostic is left, such as a route the generator skipped or a model returned without a transformer. `node ace openapi:generate --explain=<route name>` prints where each response of a route comes from.
+- **Describe once, on the class**: first paragraph of the exception's doc comment (`/** The role is still assigned to a member */`).
+- **`@response` on the action only for a reason it owns**: `` @response {403} Lacks `members.manage` ``, `@response {404} Role not found`, `@response {429} Reason`. Only for a derived status (else `OA-T003`). Underived status: `@response {413} {EntityTooLarge} Reason`. Thrown from code the generator doesn't follow: `@throws {LastManagerException}`.
 
 ## Attachments
 
-A file reaches a record in two requests: the frontend uploads it to `POST /api/v1/attachments`, then sends the returned `id` with the record's write. `users.avatar_attachment_id` is the reference example. A module that stores files:
+Two requests: upload to `POST /api/v1/attachments`, send the returned `id` with the record's write. Reference: `users.avatar_attachment_id`.
 
-1. **Depends on `attachments`** in `modules.json`.
-2. **References it with a foreign key column named `*_attachment_id`** (or a join table with one), `references('id').inTable('attachments')`, with the default `ON DELETE`. A test fails on any `*_attachment_id` column without that FK, or with a cascading one.
-3. **Lets the frontend upload first.** The upload endpoint accepts every type in `#attachments/rules`; the consumer narrows it.
-4. **Claims in the same transaction as its write**: `new ClaimAttachments().handle(trx, { ids, uploaderId, rule })`, with a rule from `defineAttachmentRule({ extnames, maxSize })` and only the ids the record is newly adding. It throws a 422 `E_INVALID_ATTACHMENT` for an unknown id, another user's upload, or a file outside the rule.
-5. **Embeds it through `AttachmentTransformer`**, which signs a one-hour URL. Load the relation first; whoever serializes the record has already authorized it.
-6. **Drops the reference to remove a file.** Never delete attachments by hand: the prune deletes every attachment older than a day that no foreign key references, row and object. It runs daily at 03:00 UTC from `start/scheduler.ts` (`PruneAttachmentsJob`), and on demand with `node ace attachments:prune`; it is safe to run concurrently or after a crash. A run that deletes some records one `attachment.pruned` system event with their `count`.
+1. Single-column FK named `*_attachment_id`, `references('id').inTable('attachments')`, default `ON DELETE`. A schema test fails on a cascading or missing FK for that name; prune throws on a multi-column FK.
+2. Narrow types in the consumer: upload accepts all of `#attachments/rules`.
+3. Claim **in the write's transaction**: `new ClaimAttachments().handle(trx, { ids, uploaderId, rule })`, rule from `defineAttachmentRule({ extnames, maxSize })`, only newly added ids.
+4. Embed via `AttachmentTransformer` (one-hour signed URL).
+5. Remove a file by dropping the reference, never deleting it: `PruneAttachmentsJob` deletes unreferenced attachments older than a day.
 
 ## Queues
 
-Background work runs as jobs on `@adonisjs/queue`, backed by Redis through the `main` connection in `config/redis.ts`. A job lives in its module's `jobs/` folder (`node ace make:job <module>/<name>`); the worker discovers every `app/*/jobs/**` file, so a job needs no registration.
+`@adonisjs/queue` on Redis.
 
-- **Dispatch after the transaction commits**: `await SendInvoice.dispatch({ invoiceId })`. A job dispatched inside a transaction can run before the commit, or after a rollback, and miss its row.
-- **Payloads carry ids, not models**: the payload is serialized to JSON, and the job loads fresh rows when it runs.
-- **Jobs can run twice**: retries (`maxRetries`) and stalled-job recovery re-run a job that may have partly succeeded, so make it idempotent.
-- **Recurring jobs** are declared in `start/scheduler.ts`, preloaded only for the HTTP server. A schedule is upserted by its id (the job class name), so every boot of every instance converges on one schedule. `PruneAttachmentsJob` is the reference example.
-- **The worker is its own process**: `node ace queue:work`. `pnpm dev` runs it next to the server under `node --watch`; production runs the `worker` service in `compose.dokploy.yaml`.
-- **Queue upgrades can migrate Redis**: a release that changes the storage format ships the conversion in `node ace queue:migrate`, which does nothing on storage that is already current. Production runs it on every deploy in the `migrate` service, before the backend and the worker start. `pnpm dev` runs it too, since the server fails to boot on schedules of an older format.
-- **Tests run jobs inline**: `.env.test` sets `QUEUE_DRIVER=sync`. To assert a dispatch without running the job, use `QueueManager.fake()` and restore it in the group's teardown.
+- **Dispatch after commit**: inside a transaction the job may run before commit or after rollback.
+- **Payload = ids**, not models (JSON).
+- **Idempotent**: retries and stalled recovery re-run partial jobs.
+- **Recurring**: `start/scheduler.ts`, upserted by job class name. Reference: `PruneAttachmentsJob`.
+- **Worker**: only the root `pnpm dev` starts it (and runs `queue:migrate`); `apps/backend`'s `pnpm dev` is the server alone.
+- **Tests**: `QUEUE_DRIVER=sync`. Assert dispatch with `QueueManager.fake()`, restore in teardown.
 
 ## Rate limiting
 
-Every named throttle lives in `start/limiter.ts`, enforced everywhere but development (the e2e suite signs up far more often than any limit allows), backed by `@adonisjs/limiter` on the Redis store (`memory` in tests, via `LIMITER_STORE=memory` in `.env.test`). Apply one to a route with `.use(someThrottle)`, next to the other route middleware; a login-style endpoint that must only penalize failures uses the limiter directly in its controller (`penalizeLoginFailure(email, ip, check)`, `penalizeTwoFactorFailure(userId, check)`) instead of the HTTP middleware. A throttle that rejects a request throws `@adonisjs/limiter`'s `E_TOO_MANY_REQUESTS`, which `app/core/exceptions/handler.ts` renders like every other exception (`{ code, message }`, translated from `errors.E_TOO_MANY_REQUESTS`) and with the limiter's own `Retry-After` header. Per-IP keys rely on `request.ip()`, which `config/app.ts` reads through `trustProxy`: it trusts loopback and private ranges, where the production proxy runs, so every visitor doesn't share the proxy's address.
+Throttles live in `start/limiter.ts`, off in development. A route that must penalize only failures (login, two-factor) calls `penalizeLoginFailure`/`penalizeTwoFactorFailure` instead of the HTTP middleware.
 
 ## Two-factor authentication
 
-Two-factor (TOTP, RFC 6238) is optional for users and required of platform admins (see [Admin](#admin)). The `auth` module owns it; its state is three columns on `users` and one table:
+TOTP, optional for users, required for platform admins. Owned by `auth`.
 
-- **`users.two_factor_secret`**: the base32 secret, encrypted with `APP_KEY` (purpose `two_factor_secret`). Set and unconfirmed while enrolling.
-- **`users.two_factor_confirmed_at`**: two-factor is on only when this is set. A pending secret changes nothing about signing in. A check constraint refuses a confirmation without a secret.
-- **`users.two_factor_last_step`**: the last 30-second time step a code was accepted for. A code at or before it is refused, so a code works once. The write is a conditional update, so two concurrent uses of one code can't both pass.
-- **`two_factor_recovery_codes`**: ten single-use codes (`xxxxx-xxxxx`), stored as `encryption.blindIndex()` hashes, an HMAC keyed from `APP_KEY`, so a database dump alone can't be brute-forced offline. Using one deletes its row. Rotating `APP_KEY` out of `config/encryption.ts` invalidates every secret and recovery code.
-
-A code is accepted one step either side of the server's clock.
-
-### Login
-
-`POST /api/v1/auth/login` answers `{ twoFactorRequired: false, user, token }` for an account without two-factor. With two-factor confirmed, once the password is right (and the account isn't disabled or held by an admin's [two-factor reset](#lost-device)), it opens no session and answers `{ twoFactorRequired: true, challenge }` instead, recording `auth.two_factor_challenged`. The challenge is the user id encrypted with `APP_KEY` (purpose `two_factor_challenge`), valid five minutes: the client can neither read nor forge it, and it opens nothing by itself.
-
-`POST /api/v1/auth/login/two-factor` (`{ challenge, code }` or `{ challenge, recoveryCode }`) answers `{ user, token }` like a login. A forged or expired challenge, or one whose user has turned two-factor off since, answers 400 `E_INVALID_TWO_FACTOR_CHALLENGE`; a disabled account 403 `E_ACCOUNT_DISABLED`; a wrong or used code 400 `E_INVALID_TWO_FACTOR_CODE`, recorded as `auth.two_factor_failed`, and the challenge stays usable. Five wrong codes in 15 minutes block the user's second step for 15 minutes, whatever the IP or challenge (`penalizeTwoFactorFailure`); the route also allows 30 requests per IP per 15 minutes. A success records `auth.logged_in` with the `factor` used, and a recovery code also `auth.recovery_code_used` with the codes `remaining`.
-
-### Sessions expire after 30 days of idle time
-
-An access token from a real sign-in (not impersonation) carries a sliding idle timeout: `openSession` (`auth/services/sessions.ts`) sets `expires_at` to `SESSION_IDLE_TIMEOUT_DAYS` (30) from now, and `UuidAccessTokensProvider.verify()` in `#users/models/user` pushes it forward by the same amount on every verified request, in the same `UPDATE` that already bumps `last_used_at`. A session stops working only after 30 days with no request; using it keeps it alive indefinitely. Impersonation tokens are excluded, so their 1-hour cap still holds. `PruneExpiredTokensJob` (`app/auth/jobs/`) deletes expired rows from `auth_access_tokens` and `user_tokens` daily at 03:15 UTC from `start/scheduler.ts`, and on demand with `node ace auth:prune-tokens`; a run that deletes anything records one `auth.tokens_pruned` system event with both counts.
-
-### Every session passed a second factor
-
-Confirming two-factor revokes every other session of the user, keeping only the one that just confirmed with a code. Login re-reads the user after creating its token: a confirmation that committed meanwhile turns the answer into a challenge and deletes the token, the way a disable does. So every live session of a user with two-factor confirmed has passed a second factor, and the admin requirement only checks `two_factor_confirmed_at`.
-
-### Endpoints
-
-Every route below needs `auth`, and the writes answer 403 `E_IMPERSONATING` from an impersonation token: an admin acting as the user never changes how they sign in. Confirm, disable and regenerate allow 10 requests per user per 15 minutes.
-
-| Route                                                                                      | Does                                                                                                                                                                                                                                                         |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /api/v1/account/two-factor`                                                           | `{ enabled, recoveryCodesLeft }`. The profile also carries `twoFactorEnabled`.                                                                                                                                                                               |
-| `POST /api/v1/account/two-factor`                                                          | Starts or restarts enrollment: stores a new pending secret and answers `{ secret, uri }`, the base32 secret for manual entry and the `otpauth://` URI for a QR code (issuer `APP_NAME`, label the email). 409 `E_TWO_FACTOR_ALREADY_ENABLED` once confirmed. |
-| `POST /api/v1/account/two-factor/confirmation` (`{ password, code }`)                      | Confirms with a code of the pending secret, answers `{ recoveryCodes }` (the only time they are readable) and revokes every other session. 409 `E_TWO_FACTOR_NOT_STARTED` without a pending secret.                                                          |
-| `DELETE /api/v1/account/two-factor` (`{ password, code }` or `{ password, recoveryCode }`) | Turns it off: clears the secret and the recovery codes. 400 `E_INVALID_PASSWORD` for a wrong password.                                                                                                                                                       |
-| `POST /api/v1/account/two-factor/recovery-codes` (`{ password, code }`)                    | Replaces every recovery code and answers `{ recoveryCodes }`.                                                                                                                                                                                                |
-
-Disable and regenerate answer 409 `E_TWO_FACTOR_NOT_ENABLED` when two-factor is off. Disable and the admin reset share `clearTwoFactor` (`auth/services/two_factor.ts`), the one write that turns it off. Each write records its event: `auth.two_factor_enrollment_started`, `auth.two_factor_enabled`, `auth.two_factor_disabled`, `auth.recovery_codes_regenerated`. No event holds a secret, a code or a challenge.
+- **Single use**: `users.two_factor_last_step` + a conditional update, so a code works once even under concurrency.
+- **Recovery codes**: `encryption.blindIndex()` HMACs, not brute-forceable from a dump. Rotating `APP_KEY` invalidates every secret and code.
+- **Login with two-factor** opens no session: answers `{ twoFactorRequired: true, challenge }` (user id encrypted with `APP_KEY`, 5 min); `POST /api/v1/auth/login/two-factor` finishes it.
+- **Every live session passed a second factor**: confirming revokes other sessions; login re-reads the user after creating its token and drops it if two-factor got confirmed meanwhile. So admin checks only read `two_factor_confirmed_at`.
+- **Impersonation never changes sign-in**: two-factor writes answer 403 `E_IMPERSONATING`.
+- **One off-switch**: `clearTwoFactor` (`auth/services/two_factor.ts`), shared by disable and the admin reset.
+- **No event holds a secret, code or challenge.**
+- **Sessions** slide: 30 idle days (`SESSION_IDLE_TIMEOUT_DAYS`), extended on each request. Impersonation tokens keep a 1-hour cap.
 
 ### Lost device
 
-A user who lost both their authenticator and their recovery codes can't turn two-factor off themselves. A platform admin resets it from the users page (`DELETE /api/v1/admin/users/:id/two-factor`, see [Admin](#admin)): it clears the secret and the recovery codes, signs the user out of every session, so whoever holds one loses it, and holds their sign-in until they choose a new password through a link mailed to them. The admin can't verify who claimed the lost device, so the password alone mustn't be enough: someone holding a phished password would otherwise get in by asking for a reset, while the inbox proves the account's owner. The API refuses a platform admin's account and a disabled one; an operator resets a platform admin's with `node ace admin:reset-two-factor <email>`, which does the same as the system.
+An admin resets it (`DELETE /api/v1/admin/users/:id/two-factor`): clears secret and codes, deletes the user's own sessions (impersonation ones are the admin's), and **holds sign-in until a new password** via a mailed link. Why: the admin can't verify who asked, so a phished password alone must not be enough; the inbox proves ownership.
 
-The hold is `users.password_reset_required_at`, a nullable timestamp like `disabled_at`, set in the reset's transaction with a `password_reset` user token (`auth/services/user_tokens.ts`) whose raw value the `admin:two_factor_reset` event carries to the mail, so the mail's link is the ordinary `/reset-password/:token` one, valid 60 minutes. While it's set, a login with the right password answers 403 `E_PASSWORD_RESET_REQUIRED` (after the disabled check, so it tells nothing to someone without the password), records `auth.password_reset_required` and opens no session; `openSession` re-reads it after creating its token, like `disabled_at`, so a second step racing the reset can't keep one either. Forgot-password still mails a held user a fresh link, and `ResetPassword` clears the hold in the transaction that sets the new password. Two-factor is off by then, so turning it back on is up to the user once they're in.
+- Hold = `users.password_reset_required_at` + a `password_reset` user token; the link is the normal `/reset-password/:token`.
+- While held, a correct password answers 403 `E_PASSWORD_RESET_REQUIRED` (after the disabled check), no session; `openSession` re-reads it like `disabled_at`.
+- `ResetPassword` clears the hold. Two-factor stays off until the user re-enables it.
+- API refuses platform admins and disabled users; operators use `node ace admin:reset-two-factor <email>`.
 
 ## Tenancy
 
-A tenant is a workspace that users join through `tenant_memberships`. The `tenancy` module scopes rows to the current tenant. Every business table belongs to a tenant: a new module that stores app data depends on `tenancy` and makes its models tenant-scoped. `users`, `auth`, and `attachments` sit below it, since a user and their uploads exist before they join any tenant.
+A tenant is a workspace joined via `tenant_memberships`. **Every business table is tenant-scoped**: a new module storing app data depends on `tenancy`. `users`, `auth`, `attachments` sit below it.
 
-Every query of a tenant-scoped model runs inside a context from `#tenancy/tenant_context`:
+Every query of a scoped model needs a context (`#tenancy/tenant_context`):
 
-- **`runInTenant(tenantId, fn)`** restricts the queries in `fn` to that tenant.
-- **`runAsSystem(fn)`** lifts the restriction, for work that spans tenants. Await every query inside `fn`: a builder returned unexecuted runs after the context ends.
-- **Neither**: the query throws a 500 `E_MISSING_TENANT_CONTEXT`. A missing context is a bug, never "every tenant".
+- `runInTenant(tenantId, fn)`: restricts to that tenant.
+- `runAsSystem(fn)`: cross-tenant. Await every query inside: an unexecuted builder runs after the context ends.
+- Neither: 500 `E_MISSING_TENANT_CONTEXT`. Missing context is a bug, never "all tenants".
 
 ### Make a model tenant-scoped
 
-1. **Depend on `tenancy`** in `modules.json`.
-2. **Add the column** in the migration: `table.uuid('tenant_id').notNullable().references('id').inTable('tenants').onDelete('CASCADE').index()`.
-3. **Compose the mixin**: `class Project extends compose(ProjectSchema, withTenant) {}`, with `withTenant` from `#tenancy/mixins/with_tenant`. A model without a `tenantId` column doesn't compile.
+1. Depend on `tenancy` in `modules.json`.
+2. Migration: `table.uuid('tenant_id').notNullable().references('id').inTable('tenants').onDelete('CASCADE').index()`.
+3. `class Project extends compose(ProjectSchema, withTenant) {}` (`#tenancy/mixins/with_tenant`).
 
-The mixin adds `<table>.tenant_id = <tenant>` to every query built from the model: reads, `find`, `paginate` and its count, bulk `update()` and `delete()`, `pojo()`, and relationship queries and preloads that reach it from a global model. On create, it fills `tenantId` from the context; in `runAsSystem()`, set it yourself or the create throws. Inside a tenant, saving a row with another `tenantId` throws, so a `tenantId` that slips through `merge()` or `fill()` never moves a row.
+The mixin filters every model query (reads, `find`, `paginate`, bulk `update()`/`delete()`, `pojo()`, relations and preloads from global models), fills `tenantId` on create (set it yourself in `runAsSystem()`), and throws on saving a row with another `tenantId`.
 
-The scope doesn't reach:
+**Not scoped** (filter `tenant_id` yourself):
 
-- **`db` queries and the `exists` and `unique` rules**, which read the table directly. To validate a reference, use `vine.string().uuid().exists(existsInTenant(Project))` from `#tenancy/validators/exists_in_tenant`.
-- **`has()`, `whereHas()`, and `withCount()` from a global model**: the subquery counts every tenant. Filter `tenant_id` in the callback.
-- **Instance `save()` and `delete()`**, which write by primary key to a row a scoped query already loaded.
-
-A preload with `groupLimit()` on a tenant-scoped model fails with a SQL error.
+- `db` queries and the `exists`/`unique` rules. Use `existsInTenant(Project)` (`#tenancy/validators/exists_in_tenant`).
+- `has()`, `whereHas()`, `withCount()` from a global model.
+- Instance `save()`/`delete()` (by primary key on an already-scoped row).
 
 ### Requests
 
-A route that touches tenant data uses `middleware.tenant()` after `middleware.auth()`, and the client sends the tenant id in the `X-Tenant-Id` header:
-
-| Header                                     | Response                                                                                                                                 |
-| ------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------- |
-| Missing or not a UUID                      | 400, `key: 'E_INVALID_TENANT_HEADER'`                                                                                                    |
-| Unknown tenant, or the user isn't a member | 403, `key: 'E_TENANT_ACCESS_DENIED'`, the same body for both; a non-member's attempt is recorded as `access.tenant_denied` on the tenant |
-| A suspended tenant of the user             | 403, `key: 'E_TENANT_SUSPENDED'`; see [Admin](#admin)                                                                                    |
-| A tenant of the user                       | `ctx.tenant` is the `Tenant`, and the rest of the request runs in `runInTenant`                                                          |
-
-`GET /api/v1/tenants` lists the user's tenants. `POST /api/v1/tenants` creates one with the user as its first member, then emits `tenancy:tenant_created` (`{ tenantId, creatorId }`). Both need only `auth`.
+Tenant routes: `middleware.auth()` then `middleware.tenant()`; client sends `X-Tenant-Id`. Unknown tenant and non-member get the same 403 `E_TENANT_ACCESS_DENIED`, so ids can't be probed.
 
 ### Jobs and commands
 
-A job or command has no request, so it has no context. A job that touches tenant data carries `tenantId` in its payload and runs its work in `runInTenant(this.payload.tenantId, () => ...)`. Work across tenants, such as a scheduled cleanup, runs in `runAsSystem()`.
+No request, no context. Tenant jobs carry `tenantId` in the payload and run in `runInTenant(this.payload.tenantId, ...)`; cross-tenant work in `runAsSystem()`.
 
 ## Authorization
 
-The `access` module decides what a user may do in a tenant. In each tenant they belong to, a member holds at most one role and any number of individual grants; their permissions there are the role's plus the grants, with no denials. Roles, role assignments and grants are tenant-scoped models, so they follow every rule of [Tenancy](#tenancy). Every check goes through one Bouncer ability, `can` from `#access/abilities`.
+`access` decides what a member may do: at most one role + any grants, no denials. Roles, assignments, grants are tenant-scoped. Every check: `bouncer.authorize(can, PERMISSIONS.x)` (`#access/abilities`).
 
-### Add a permission
-
-Add it to `PERMISSIONS` in `app/access/permissions.ts`: `invoicesVoid: 'invoices.void'`. Roles and grants accept it from then on.
-
-Removing one is safe: a stored permission the catalog no longer lists grants nothing, and `GET /api/v1/access/me` and the roles endpoints leave it out.
-
-### Check it in a controller
-
-```ts
-async destroy({ bouncer, request, serialize }: HttpContext) {
-  await bouncer.authorize(can, PERMISSIONS.invoicesVoid)
-  // ...
-}
-```
-
-A denial answers 403 with `{ errors: [{ message }] }`, the `errors.E_AUTHORIZATION_FAILURE` translation. Inside a tenant, it also records `access.denied` on that tenant's trail, with the permission, the route pattern and the method: the bouncer middleware wraps `authorize()`, since the exception handler answers before any middleware sees the error. `bouncer.allows()` records nothing, so a screen can ask what to show. Outside a tenant nothing is recorded: only platform admins pass there, and no screen would list it.
-
-A check reads the tenant context: inside `middleware.tenant()` it uses that tenant's role and grants. Outside any tenant (no context, or `runAsSystem()`) only a platform admin with two-factor passes, so a route that forgets `middleware.tenant()` denies everyone else.
-
-The permissions load on the first check of a request and are memoized on the request's `User` instance, so a route that never checks runs no query. A `User` kept beyond its request keeps what it loaded.
-
-### Endpoints
-
-Every route below needs `auth` and `tenant`, and acts in the tenant of `X-Tenant-Id`: its roles and its members, except `POST /api/v1/invitations/accept`, which needs only `auth` since the invited user isn't a member yet.
-
-| Route                                                               | Needs                                       | Does                                                                                                                                                           |
-| ------------------------------------------------------------------- | ------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /api/v1/access/me`                                             | any member                                  | `{ permissions }`: what the user passes, in catalog order, for the frontend to gate its UI.                                                                    |
-| `GET /api/v1/access/permissions`                                    | any member                                  | `{ groups }`: the assignable permissions grouped by their `<group>.` prefix, in catalog order, for the frontend to render organized.                           |
-| `GET`, `POST /api/v1/roles`; `PUT`, `DELETE /api/v1/roles/:id`      | `roles.manage`, `GET` also `members.manage` | Lists, creates, renames and re-permissions roles. `DELETE` answers 409 `E_ROLE_IN_USE` while someone holds the role, or while a pending invitation carries it. |
-| `GET /api/v1/members`                                               | `members.manage`                            | Every member of the tenant, with their role and their individual grants.                                                                                       |
-| `PUT /api/v1/members/:userId/role` (`{ roleId }`)                   | `members.manage`                            | Replaces the member's role; `null` removes it.                                                                                                                 |
-| `PUT /api/v1/members/:userId/permissions` (`{ permissions }`)       | `members.manage`                            | Replaces the member's grants.                                                                                                                                  |
-| `GET`, `POST /api/v1/invitations`; `DELETE /api/v1/invitations/:id` | `members.manage`                            | Lists (pending and expired), sends, and revokes invitations. See "Invitations" below.                                                                          |
-| `POST /api/v1/invitations/accept` (`{ token }`)                     | `auth` only                                 | Accepts an invitation by its raw token. See "Invitations" below.                                                                                               |
-
-- A `userId` that isn't a member of the tenant answers 404 `E_MEMBER_NOT_FOUND`, and a `roleId` of another tenant answers 422.
-- A change that would leave no one holding `members.manage`, when someone held it, answers 409 `E_LAST_MANAGER`: a member can't demote or strip the last manager, themselves included.
+- **Permissions**: `PERMISSIONS` in `app/access/permissions.ts`. Removing one is safe: unknown stored permissions grant nothing.
+- **Denial** inside a tenant records `access.denied` (the bouncer middleware wraps `authorize()`); `bouncer.allows()` records nothing.
+- **Context**: inside `middleware.tenant()` uses that tenant's role and grants; outside (or `runAsSystem()`) only a platform admin with two-factor passes, so forgetting `middleware.tenant()` denies everyone else.
+- **Last manager**: a change leaving nobody with `members.manage` answers 409 `E_LAST_MANAGER`.
 
 ### Invitations
 
-A member holding `members.manage` invites someone by email; the `access` module owns the `invitations` table alongside the role an invitation carries. `POST /api/v1/invitations` (`{ email, roleId }`) upserts on `(tenantId, email)`: inviting an email that's already pending refreshes its token, role, inviter and expiry (7 days) and resends the mail, rather than failing. An email already belonging to a member of the tenant answers 409 `E_ALREADY_MEMBER`. The raw token is only ever in the mailed link (`${FRONTEND_URL}/invitations/:token`); the table stores its SHA-256 hash.
-
-`POST /api/v1/invitations/accept` looks the hash up across every tenant (`runAsSystem`), outside the `tenant` middleware since the invited user isn't a member yet. An unknown or expired token answers 404 `E_INVITATION_NOT_FOUND` (the same body for both, so a token can't be probed to tell a stale one from a wrong one); a signed-in email that doesn't match the invitation's answers 403 `E_INVITATION_EMAIL_MISMATCH`. Otherwise it creates the membership (and the invitation's role, if the user doesn't already hold one) and deletes the invitation, all inside `runInTenant`. Already a member: the invitation is just deleted. Both branches make accept safe to retry with the same token.
-
-An invitation's `roleId` has no `ON DELETE`, like a role assignment's: deleting a role a pending invitation carries answers 409 `E_ROLE_IN_USE` through `DeleteRole`'s existing mapping. `FRONTEND_URL` (the frontend's own origin, for the link in the mail) is required config; see `.env.example`.
-
-Each mail is a `BaseMail` subclass in its module's `mails/`, rendering `resources/views/emails/<name>_html.edge` and `<name>_text.edge`. A mail built around one link extends `LinkMail` (`core/mails/link_mail.ts`) and names only its translation prefix, its view and its expiry (`access/mails/invitation_mail.ts` is the reference). The HTML view wraps its sections in `@email.layout(...)` (`resources/views/components/email/layout.edge`), which holds the shared chrome and compiles to responsive HTML through the `@mjml` tag of `@adonisjs/mail`. The mail class translates with `i18nManager.locale(locale)` and passes the finished strings as view data, never a bound `t`: the views render in the queue worker from JSON, and a dropped `t` falls back to Edge's global `t()`, which only knows the default locale.
-
-Send every mail with `mail.sendLater(...)`; the lint rejects `mail.send()`. `start/mail.ts` routes `sendLater` to `SendMailJob` (`core/jobs/send_mail.ts`), so the request only enqueues and the worker delivers with retries, surviving a mail-provider outage or a restart. In tests, `mail.fake()` renders queued mails inline: assert with `fake.mails.assertQueued(...)` and read them with `fake.mails.queued()`. Mailpit (http://localhost:8025) shows every mail sent in dev, and its HTML check scores client support.
+`POST /api/v1/invitations` upserts on `(tenantId, email)`: re-inviting refreshes and resends. Accept runs outside `tenant` (`runAsSystem` lookup), answers the same 404 `E_INVITATION_NOT_FOUND` for unknown and expired (no probing), and is retry-safe. An invitation's `roleId` blocks role deletion (409 `E_ROLE_IN_USE`).
 
 ### Platform admins
 
-A user with a row in `platform_admins` and [two-factor](#two-factor-authentication) confirmed passes every check in every tenant, and outside any tenant. `GET /api/v1/access/me` lists every permission for them, `platform.admin` included. Without two-factor, `GetPermissions` treats them like anyone else: their own role and grants inside a tenant, nothing outside one. `can` hands it the request's `User`, so the rule reads `two_factor_confirmed_at` with no extra query. No role or grant can hold `platform.admin`. Make the first one with `node ace admin:grant <email>`: it is safe to run again, and records an `admin.granted` system event the first time. Platform admins grant and revoke it from then on (see [Admin](#admin)).
+A `platform_admins` row **plus confirmed two-factor** passes every check everywhere; without two-factor, treated like anyone. No role or grant can hold `platform.admin`. First admin: `node ace admin:grant <email>` (idempotent).
 
 ### Tenant owner
 
-`access` listens to `tenancy:tenant_created`: it creates the tenant's "Owner" role, named in the creator's locale (`access.owner_role`), with every permission but `platform.admin`, and assigns it to the creator. Both steps keep what exists, so the listener is safe to run again. A permission added to the catalog later doesn't reach existing Owner roles: grant it through `PUT /api/v1/roles/:id`, or with a data migration that also records a `role.updated` event per role it changes. `…_grant_audit_view_to_owner_roles.ts` is the reference: it adds `audit.view` to every role holding `roles.manage` and `members.manage` without it, as the system, and its `down()` keeps the grant.
+`access` listens to `tenancy:tenant_created`: creates the "Owner" role (every permission but `platform.admin`, named in the creator's locale) and assigns it. Rerunning is safe only in the same locale: the role is matched by its translated name. New catalog permissions don't reach existing Owners: grant via `PUT /api/v1/roles/:id` or a data migration recording `role.updated` per role (reference: `…_grant_audit_view_to_owner_roles.ts`).
 
-`POST /api/v1/tenants` awaits the listener. If it throws, the request answers 500 with the tenant and the membership already committed, and the tenant has no Owner. Finish it from `node ace repl`:
+If the listener throws, the tenant exists without an Owner. Fix from `node ace repl`, with the creator's locale:
 
 ```ts
 await import('#access/actions/seed_tenant_owner').then(({ default: SeedTenantOwner }) =>
@@ -301,27 +192,31 @@ await import('#access/actions/seed_tenant_owner').then(({ default: SeedTenantOwn
 )
 ```
 
+## Mail
+
+- Single-link mail: extend `LinkMail` (`core/mails/link_mail.ts`). Reference: `access/mails/invitation_mail.ts`.
+- Translate in the class with `i18nManager.locale(locale)` and pass finished strings: views render in the worker from JSON, and Edge's global `t()` only knows the default locale.
+- Locale for an existing user: `mailLocaleFor` (`users/services/mail_locale`): user's, else request's, else default. Invitations use the inviter's request locale unless the email has an account.
+
 ## Audit trail
 
-Every successful write records one **audit event** in `audit_events`: what happened in business terms (`member.role_changed`), its subject, the display values of that moment, and who did it from which session. The app never updates an event, and deletes one only once it is older than the retention (see [Retention](#retention)).
+Every successful write records one **audit event** (`audit_events`): business intent (`member.role_changed`), subject, display values of that moment, actor and session. The app never updates events; retention deletes them.
 
 ### Record an event
 
-1. **Declare the type** in the module's `types/audit.ts`, merging into `AuditEvents` from `#core/audit/types`. `TenantEvent<'role', { name: string }>` is listed on a tenant's trail; `AccountEvent<…>` belongs to no tenant (login, avatar). The data is a type alias of JSON values that holds display values (names, emails), so the event still reads after its subject changes or is deleted.
-2. **Record it in the write's transaction**: `await audit.record(trx, 'role.deleted', { tenantId, subject: { type: 'role', id: role.id }, data: { name: role.name } })`, with `audit` from `#core/audit/main`. A rollback drops the event with the write. `audit.note(type, entry)` inserts on its own: use it only for an event with no row to share a transaction with (login, failed login, logout).
-3. **Import the declarations** in that file: `import type {} from '#<module>/types/audit'`. The frontend compiles backend files through the API registry and sees only the declarations they import.
+1. **Declare** in `<module>/types/audit.ts`, merging into `AuditEvents` (`#core/audit/types`): `TenantEvent<'role', { name: string }>` (tenant trail), `AccountEvent<…>` (no tenant), `SystemEvent<…>` (jobs, listed nowhere). Data holds display values (names, emails) so it survives the subject.
+2. **Record in the write's transaction**: `await audit.record(trx, 'role.deleted', { tenantId, subject: { type: 'role', id: role.id }, data: { name: role.name } })` (`#core/audit/main`). `audit.note(type, entry)` only when no row shares a transaction (login, logout).
+3. **Import** `import type {} from '#<module>/types/audit'` in that file: the frontend sees only imported declarations.
 
-For an update, call `dirtyChanges(row, ['name', 'permissions'])` from `#core/audit/main` before `save()`: it returns `{ name: { from, to } }` for the named keys that changed. Keys named `password`, `token`, `tokenHash`, `token_hash`, `hash` or `secret` are stored as `'[redacted]'` at any depth.
+Updates: `dirtyChanges(row, ['name', 'permissions'])` before `save()` → `{ name: { from, to } }`. Keys `password`, `token`, `tokenHash`, `token_hash`, `hash`, `secret` are stored `'[redacted]'` at any depth.
 
-The origin comes from the request. `audit_scope_middleware` (router stack, after `silent_auth`) runs the request in an AsyncLocalStorage scope, and each event reads its actor (`ctx.auth.user`), session (the access token's id), impersonator (the token's `impersonator_id`, see [Admin](#admin)), request id, IP and user agent when it is recorded. Login and sign-up pass `actorId`, and login `sessionId`, because the user appears during the request. Outside a request (repl, seeds, jobs) an event has no origin, and the trail shows it as the system.
+Origin (actor, session, impersonator, request id, IP, UA) comes from `audit_scope_middleware`'s AsyncLocalStorage scope. The user appears mid-request in login (pass `actorId` + `sessionId`) and sign-up (`actorId`). No request (repl, seeds, jobs) = system.
 
 ### The guard
 
-The same middleware fails a `POST`, `PUT`, `PATCH` or `DELETE` that answers 2xx without recording an event. Outside production it answers 500 `E_UNAUDITED_WRITE`, so the endpoint's first functional test names the missing call. In production, where the write is already committed, it logs an error. A refused write (4xx) needs no event; the functional test owns any event it does record, such as the failed login.
+A 2xx `POST`/`PUT`/`PATCH`/`DELETE` without an event fails: 500 `E_UNAUDITED_WRITE` outside production, logged error in production. 4xx needs no event. Exemptions (use only these):
 
-Two writes are exempt, each declared where its reason is known. Use these, not a flag of your own, so every exemption is found the same way:
-
-- **A route that is no person's action** and keeps its own trail, such as a provider's webhook whose rows record every status it reports, declares it on the route:
+- **Route that is no person's action** (webhook keeping its own trail):
 
   ```ts
   router
@@ -329,146 +224,67 @@ Two writes are exempt, each declared where its reason is known. Use these, not a
     .use(middleware.unaudited({ reason: 'provider_callback' }))
   ```
 
-  Reasons are the `UnauditedReason` union in `#core/audit/scope`; a new one is a reviewed edit there. `unaudited_routes.spec.ts` lists every such route and fails one behind `auth` or `tenant`, so a new exemption shows in review.
+  Reasons: `UnauditedReason` in `#core/audit/scope`. Add the route to the expected list in `unaudited_routes.spec.ts`; it must not sit behind `auth` or `tenant`.
 
-- **A write that found nothing to change**, such as repeating an idempotent pause, calls `audit.unchanged()` in its action. Only the action knows, so it is called there, not declared on the route.
+- **Write that changed nothing**: `audit.unchanged()` in the action.
 
-Either one recording an event anyway fails with 500 `E_AUDIT_EXEMPTION_MISUSED` outside production: the exemption is wrong.
+Exempt + event recorded anyway: 500 `E_AUDIT_EXEMPTION_MISUSED`.
 
-### Why not a mixin or a trigger
-
-Lucid hooks run only inside an instance's `save()` and `delete()`, so a mixin misses the bulk `query().delete()` that `AssignRole` and `ReplaceGrants` use, and records row diffs instead of intent. A Postgres trigger has no actor, session or request unless every transaction sets them, and it records rows, not intent.
+Why not a mixin or trigger: Lucid hooks miss bulk `query().delete()` and record diffs, not intent; a Postgres trigger has no actor or session.
 
 ### Read a trail
 
-`GET /api/v1/audit/events` (`auth`, `tenant`) lists the tenant's events newest first, paginated (`page`, `perPage` up to 100) and filtered by `type[]`, `actorId`, `subjectType`, `subjectId`, `from` and `to` (ISO 8601). Each row holds `actor` (the user, or `null` for the system), `impersonator` (the platform admin acting as `actor`, or `null`), `session` (`id`, `ip`, `userAgent`, `requestId`), `createdAt`, and `event: { type, subject, data }`, a union the frontend narrows on `event.type`. It is nested because the inferred response type keeps a union inside a field, not at the top level of a row.
-
-The whole trail needs `audit.view`. Every Owner role holds it: a new tenant's from the start, an older one through a migration (see [Tenant owner](#tenant-owner)).
-
-`GET /api/v1/account/activity` (`auth` only) lists the signed-in user's account events, those with no tenant that they did or that are about them, in the same paginated shape (`page`, `perPage`). A failed login on an existing account's email has that user as its subject, so its owner sees the attempt; the login response stays the same. The tenant trail's `event` union holds tenant events only and the account activity's account events only: `AuditEventTransformer` serializes them as `toObject()` and `forAccount()`.
-
-A feature shows the history of its own records through the same endpoint, filtered by `subjectType` and `subjectId`. `SUBJECT_PERMISSIONS` in `app/audit/subject_permissions.ts` maps a subject type to the feature permission that may read its trail without `audit.view` (`role` to `roles.manage`). A new feature adds its subject type there.
-
-### Jobs
-
-A scheduled job records as the system: no actor, no session. Declare its event as `SystemEvent<…>`, which belongs to no tenant and no account, so no screen lists it (`audit.pruned`). No job writes on behalf of a request today. One that does will carry the request's origin in its payload: add to `#core/audit/scope` a function that snapshots the current origin as plain values for the dispatch, and a scope the job runs its work in, built from that snapshot.
-
-### Retention
-
-`PruneAuditEventsJob` (`app/audit/jobs/`) runs daily at 03:30 UTC from `start/scheduler.ts`, and on demand with `node ace audit:prune`. It deletes the events older than `AUDIT_RETENTION_DAYS` (default 365, read as `auditRetentionDays` from `#config/app`) in batches of 1000, then records one `audit.pruned` system event with the `count` it deleted and the `before` cutoff. A run that deletes nothing records nothing. It is safe to run twice, concurrently (each batch skips the rows another run has locked), or after a crash.
+- `GET /api/v1/audit/events` (`auth`, `tenant`): rows nest `event: { type, subject, data }` because inferred types keep a union only inside a field.
+- **Per-record history**: same endpoint filtered by `subjectType` + `subjectId`. Map the subject type to its feature permission in `SUBJECT_PERMISSIONS` (`app/audit/subject_permissions.ts`); otherwise it needs `audit.view`.
+- A future job writing on behalf of a request: snapshot the origin into its payload via a new function in `#core/audit/scope`.
 
 ## Admin
 
-The `admin` module is the platform admins' area. Every route needs `auth` and runs outside any tenant, so `bouncer.authorize(can, PERMISSIONS.platformAdmin)` passes only a platform admin; `GET /api/v1/admin/me` answers `{ platformAdmin, twoFactorRequired }` to anyone signed in, for the frontend to show the entry, or to send a platform admin to enable two-factor first.
+Routes need `auth`, run outside any tenant, check `bouncer.authorize(can, PERMISSIONS.platformAdmin)`. Every route but `admin/me` goes in the group with the `twoFactor` middleware; both read `platform_admins` directly to tell "must enroll" from "not an admin".
 
-A platform admin must have [two-factor](#two-factor-authentication) confirmed to use the area. Every admin route but `admin/me` sits in one route group whose `twoFactor` middleware (`admin/middleware/require_two_factor_middleware.ts`) answers a platform admin without it 403 `E_TWO_FACTOR_REQUIRED`, impersonation included; anyone else passes through to the route's own authorization failure. A new admin route goes in that group. The `can` ability already denies such an admin `platform.admin`, so the routes would refuse them anyway; the middleware and `admin/me` read `platform_admins` directly so they can tell "must enroll" from "not an admin". `node ace admin:grant` and the grant endpoint still grant to an account without two-factor; the requirement applies when the account uses the area. A platform admin who turns two-factor off is refused the same way until they turn it back on.
+States are nullable timestamps; each invariant is held **at its write**, not checked per request:
 
-| Route                                                     | Does                                                                                                                           |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `GET /api/v1/admin/tenants` (`search`, `page`, `perPage`) | Every tenant by name, with `memberCount` and `suspendedAt`.                                                                    |
-| `GET /api/v1/admin/tenants/:id`                           | The tenant and its members, each with `disabledAt`, `platformAdmin` and their role's name.                                     |
-| `PUT /api/v1/admin/tenants/:id` (`{ name }`)              | Renames it: `admin.tenant_renamed` on the tenant's trail.                                                                      |
-| `POST`, `DELETE /api/v1/admin/tenants/:id/suspension`     | Suspends and reactivates it: `admin.tenant_suspended`, `admin.tenant_reactivated`.                                             |
-| `GET /api/v1/admin/users` (`search`, `page`, `perPage`)   | Every user by email, searched by email or name, with `disabledAt`, `platformAdmin`, `tenantCount` and `user.twoFactorEnabled`. |
-| `POST`, `DELETE /api/v1/admin/users/:id/suspension`       | Disables and enables the account: `admin.user_disabled`, `admin.user_enabled`, in the user's account activity.                 |
-| `POST /api/v1/admin/users/:id/impersonation`              | `{ user, token }` like login: a one-hour token that acts as the user. `admin.impersonation_started` in their activity.         |
-| `POST`, `DELETE /api/v1/admin/users/:id/platform-admin`   | Grants and revokes platform admin: `admin.platform_admin_granted`, `admin.platform_admin_revoked`, in their activity.          |
-| `DELETE /api/v1/admin/users/:id/two-factor`               | Resets the user's two-factor (see [Lost device](#lost-device)): `admin.two_factor_reset` in their activity.                    |
+- **Suspended tenant** (`tenants.suspended_at`): `tenant` mw answers members 403 `E_TENANT_SUSPENDED`.
+- **Disabled user** (`users.disabled_at`) holds no token: disabling deletes tokens in the transaction and again after commit; login re-reads `disabled_at` after creating its token. No row locks needed.
+- **Platform admins are protected**: never disabled, impersonated or two-factor-reset via API (409 `E_PLATFORM_ADMIN_PROTECTED`). Why: one stolen admin session must not take over another admin.
+- **No self-revoke**: 409 `E_CANNOT_REVOKE_SELF`; `node ace admin:grant` recovers.
+- **Two-factor reset** isn't idempotent (409 `E_TWO_FACTOR_NOT_ENABLED` when off): a repeat would sign out and mail again.
+- **Idempotent writes** (suspend, disable, grant and reverses): repeat keeps the first date, 200, records the event again.
 
-The states are nullable timestamps, and each holds an invariant at its write rather than a check on every request:
-
-- **A suspended tenant (`tenants.suspended_at`) lets nobody in.** The `tenant` middleware answers its members 403 `E_TENANT_SUSPENDED`, after the membership check, so a non-member still gets `E_TENANT_ACCESS_DENIED`. `GET /api/v1/tenants` keeps listing it with its `suspendedAt`, for the frontend to say why.
-- **A disabled user (`users.disabled_at`) holds no access token.** Disabling deletes every token of theirs in the same transaction, and again after the commit; login answers 403 `E_ACCOUNT_DISABLED` once the password is right, and re-reads `disabled_at` after creating its token, deleting it if set. Without row locks, a login racing the disable either sees the committed `disabled_at` or inserted its token before the commit, where the second delete finds it. Impersonating them or resetting their two-factor answers 409 `E_USER_DISABLED`.
-- **A platform admin is never disabled, impersonated or has their two-factor reset through the API**, the caller included: 409 `E_PLATFORM_ADMIN_PROTECTED`. Revoke their platform admin first, or reset an admin's two-factor with `node ace admin:reset-two-factor <email>`: one admin resetting another's would let a single stolen admin session take over a second admin account.
-- **A two-factor reset leaves the user no session, and no sign-in until a new password.** `ResetTwoFactor` clears it under a row lock and, in the same transaction, sets `password_reset_required_at`, issues a password reset token, deletes the user's sessions (not impersonation ones) and records the event; after the commit it emits `admin:two_factor_reset` with the raw token, whose listener (`admin/start/events.ts`) mails `TwoFactorResetMail` with the reset link, in the user's locale (`mailLocaleFor`). See [Lost device](#lost-device) for the sign-in hold. A user without two-factor confirmed answers 409 `E_TWO_FACTOR_NOT_ENABLED`, unlike the idempotent writes below: a repeat would sign them out and mail them again about a reset that didn't happen. Enabling isn't protected, so someone disabled before being granted can still be enabled.
-- **An admin can't revoke their own platform admin**: 409 `E_CANNOT_REVOKE_SELF`. Since the caller is an admin, a revoke never removes the last one; only two admins revoking each other at the same moment can, and `node ace admin:grant` recovers. `node ace admin:grant` and the grant endpoint share `grantPlatformAdmin` (`services/grant_platform_admin.ts`), which keeps an existing grant.
-
-Suspending, disabling, granting and their reverses are idempotent: a repeat keeps the first date and answers 200, and records its event again, since every successful write records one (see [The guard](#the-guard)).
-
-An impersonation token is an ordinary access token whose `impersonator_id` names the admin: `User.currentAccessToken.impersonatorId` carries it, and every event recorded with it stores it in `audit_events.impersonator_id`. The session ends with `POST /api/v1/account/logout` from that token, and the frontend restores the admin's own token. It never reaches the admin area, since its user is never a platform admin.
+**Impersonation**: an ordinary one-hour access token with `impersonator_id` (`User.currentAccessToken.impersonatorId`, stored in `audit_events.impersonator_id`). Ends with `POST /api/v1/account/logout`; the frontend restores the admin token. Never reaches the admin area.
 
 ## Locale, timezone and UTC
 
-`users.locale` and `users.timezone` are nullable: null means "not known yet", which only existing
-users (signed up before this) can be. A later unit fills them in from the browser on the user's
-next load; nothing backfills them. `#users/validators/user.ts` exports `localeRule` (the
-`supportedLocales` of `config/i18n.ts`, so there's one list) and `timezoneRule` (any zone name
-`Intl.DateTimeFormat` accepts: `Intl.supportedValuesOf('timeZone')` alone misses aliases browsers
-report, such as `Asia/Kolkata` or `Etc/UTC`; the rule resolves and stores the canonical name);
-both signup (`auth/validators/auth.ts`) and `PATCH /api/v1/account/profile`
-(`users/validators/user.ts`) import them rather than repeating the list.
-
-Sign-up accepts optional `locale` and `timezone`; an absent `locale` stores the request's resolved
-locale (`ctx.i18n.locale`), and an absent `timezone` stays null. `PATCH /api/v1/account/profile`
-updates either or both (`UpdateProfile` in `users/actions/`), audited as `user.profile_updated`
-like `user.avatar_changed`; it isn't refused during impersonation, following the avatar endpoint's
-precedent over the two-factor endpoints'.
-
-Every mail to an existing user picks its locale with `mailLocaleFor` (`users/services/mail_locale`):
-the user's own stored locale, else the triggering request's, else the app default. Password reset,
-both email-verification mails, and the admin's two-factor reset (`admin/actions/reset_two_factor`,
-and `node ace admin:reset-two-factor`) all go through it, so the admin's own locale never leaks
-into a mail addressed to someone else. An invitation stays on the inviter's request locale, since
-the invited address may have no account yet, unless that email already belongs to a user, in which
-case `InviteMember` uses theirs.
-
-Everything crosses the API in UTC. `TZ=UTC` is set process-wide (`.env.example`, every
-`compose*.yaml` service), the deployment setup the AdonisJS docs show; Luxon has no separate
-"default zone" to pin, since `DateTime.now()` already follows the process `TZ`. A transformer
-serializes a `DateTime` with `toISO()`'s default UTC-offset formatting, so a response looks like
-`"createdAt": "2026-10-18T16:56:46.344+00:00"` regardless of the host's local time. The frontend
-alone converts a timestamp for display, in the user's stored timezone once that unit lands.
+- `users.locale`/`users.timezone` nullable: null = unknown (legacy users); the frontend fills them from the browser.
+- One list: `localeRule` and `timezoneRule` in `#users/validators/user.ts`. `timezoneRule` resolves aliases (`Asia/Kolkata`, `Etc/UTC`) to the canonical name, which `Intl.supportedValuesOf` alone misses.
+- **UTC everywhere**: `TZ=UTC` (`apps/backend/.env.example`, CI), so Luxon serializes `+00:00`. Only the frontend converts for display.
 
 ## Translations
 
-Every message a person reads comes from `resources/lang/<locale>/*.json`, in en-US (the default) and pt-BR. `config/i18n.ts` lists the supported locales. A request's locale is the first `Accept-Language` language whose primary subtag a supported locale shares (`pt-PT` reads pt-BR), else en-US; `ctx.i18n` holds it.
+Messages in `resources/lang/<locale>/*.json`, en-US (default) and pt-BR.
 
-- **Exceptions**: give the exception a `code` and add `errors.<code>` to every locale. The exception handler translates it; the frameworks' own (`E_INVALID_CREDENTIALS`, `E_AUTHORIZATION_FAILURE`...) read the same keys. The class's `message` stays the English fallback for logs.
-- **Responses built in code**: `ctx.i18n.t('<file>.<key>')`, as the tenant middleware does.
-- **Validation**: `validator.json` holds one message per rule, written to read under any field label; the frontend shows it unchanged.
-- **Work after the request** (mail, listeners, jobs): carry the request's `i18n.locale` in the event or job payload and translate with `i18nManager.locale(locale)`. `access:member_invited` is the reference.
-- **Values**: ICU syntax (`{min}`); write apostrophes as `’`, since `'` escapes in ICU, and build HTML around the translated text instead of putting tags in it.
-
-A unit test fails when a locale misses or adds a key.
+- **Exceptions**: `errors.<code>` in every locale; class `message` is the log fallback.
+- **Validation**: `validator.json`, one message per rule, label-agnostic.
+- **After the request** (mail, listeners, jobs): carry `i18n.locale` in the payload, translate with `i18nManager.locale(locale)`. Reference: `access:member_invited`.
+- **ICU** (`{min}`); apostrophe `’` (`'` escapes in ICU); no HTML inside messages.
 
 ## Health checks
 
-Two endpoints, outside `/api/v1`:
-
-- **`GET /health/live`** is the liveness probe for Docker (`HEALTHCHECK`) or an orchestrator. It answers 200 while the process serves HTTP and checks no dependency, so a database outage never turns into a restart loop.
-- **`GET /health/ready`** is for monitoring. It requires the `x-monitoring-secret` header to equal `MONITORING_SECRET` (401 otherwise), runs every check in `start/health.ts`, and returns the report under `data`: 200 when every check passes, 503 when one fails. Each entry in `data.checks` carries its `name`, `status` (`ok`, `warning`, `error`), a `message` describing the result, and the measured values and thresholds in `meta`.
-
-| Check                                | Fails when                                                                    | Thresholds (warn / fail) |
-| ------------------------------------ | ----------------------------------------------------------------------------- | ------------------------ |
-| `Disk space check`                   | Disk usage crosses the threshold; cached for an hour.                         | 75% / 80%                |
-| `Memory heap check`                  | V8 heap in use crosses the threshold.                                         | 250 MB / 300 MB          |
-| `Memory RSS check`                   | Resident memory of the process crosses the threshold.                         | 320 MB / 350 MB          |
-| `Database health check (pg)`         | Postgres refuses the connection.                                              |                          |
-| `Connection count health check (pg)` | Connections on the whole server (`pg_stat_activity`) cross.                   | 70 / 90                  |
-| `Storage check`                      | The S3 bucket can't be listed (unreachable, bad credentials, missing bucket). |                          |
-| `Redis health check (main)`          | Redis doesn't answer on the `main` connection.                                |                          |
-
-A new dependency the app can't serve without gets its own check, registered in `start/health.ts`; a custom one extends `BaseCheck` in `app/core/health_checks/`.
+`GET /health/live` checks no dependency, so a DB outage never causes a restart loop. `GET /health/ready` runs `start/health.ts`; a new hard dependency gets a check there (custom ones extend `BaseCheck` in `app/core/health_checks/`).
 
 ## Dependencies between modules
 
-`apps/backend/modules.json` lists, per module, the other modules it may import. The lint enforces it (`no-restricted-imports`, generated in `oxlint.config.ts`), and the pre-commit hook runs that lint:
-
-- A module imports itself, the modules listed for it, and `#start`, `#config`, `#database`, `#generated`. Its tests may also import `#tests`.
-- Imports go through module aliases: `#app/*` and parent-relative paths (`../`) are rejected inside `app/`.
-- A folder missing from `modules.json` can import no other module.
-
-A new dependency is a reviewed decision: add it to `modules.json` in the same change, and never in a direction that would close a cycle. `core` depends on nothing.
+`apps/backend/modules.json` lists what each module may import, lint-enforced. A new dependency is a reviewed decision, same change, never closing a cycle. `core` depends on nothing.
 
 ## Naming feeds the generated registries
 
-`indexEntities` (in `adonisrc.ts`) indexes `app/**/*_controller.ts` into `#generated/controllers`, grouped by module (`controllers.auth.AccessTokens`), and `app/**/*_transformer.ts` into the frontend's `Data` types (`Data.Users.User`). A file with another suffix is silently left out of both.
+`indexEntities` (`adonisrc.ts`) indexes `app/**/*_controller.ts` into `#generated/controllers` (`controllers.auth.AccessTokens`) and `app/**/*_transformer.ts` into the frontend's `Data` (`Data.Users.User`). Other suffixes are silently skipped.
 
 ## Code conventions
 
-- **Actions** (`actions/<verb>_<noun>.ts`): a default-exported class with one `async handle(input)`. `input` is a plain interface; never `HttpContext`. Return the primary value; throw the module's exceptions on expected failures. An action never calls another action: shared work becomes a service or a query.
-- **Queries** (`queries/<verb>_<subject>.ts`): same shape as actions, read-only. One per business concept, not per screen.
-- **Side effects through events**: mail, notifications, external HTTP, and anything another module reacts to are emitted as `<module>:<past_tense_verb>` events and handled in `start/events.ts`. Emit after the transaction commits, so listeners never see a rolled-back write.
-- **Read-then-write races**: when a write derives a value from existing rows (next position, sequence number), lock the parent row with `forUpdate()` inside a transaction and back it with a `unique` constraint.
-- **Transformers**: `toObject()` is the base shape; screen-specific shapes are variants named `for<Screen>` (`forList`, `forProfile`).
-- **Validators**: one file per entity (`validators/<entity>.ts`), exporting one validator per use case.
+- **Actions** (`actions/<verb>_<noun>.ts`): default-exported class, one `async handle(input)` (`handle(trx, input)` when it joins the caller's transaction); `input` a plain interface, never `HttpContext`. Returns the primary value, throws module exceptions. Never calls another action: shared work → service or query.
+- **Queries** (`queries/<verb>_<subject>.ts`): same shape, read-only, one per business concept.
+- **Side effects via events**: mail, notifications, external HTTP, cross-module reactions → `<module>:<past_tense_verb>` events, handled in `<module>/start/events.ts`, emitted after commit.
+- **Read-then-write races** (next position, sequence): `forUpdate()` on the parent row in a transaction + a `unique` constraint.
+- **Transformers**: `toObject()` base; screen variants `for<Screen>` (`forAccount`).
+- **Validators**: `validators/<entity>.ts`, one validator per use case.

@@ -1,64 +1,46 @@
 # Frontend architecture
 
-`apps/frontend/src/features/` holds one folder per **feature**, named after the backend module whose API it calls. `src/routes/` holds the TanStack Router file routes. They are wiring, like the backend's `start/`: guards, loaders, and the page component a path renders.
-
-| Feature   | Owns                                                                                                                                |
-| --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `core`    | The API client, the query client, the session store, the form kit, error messages, shared components (the auth card, the side nav). |
-| `users`   | The profile query, the avatar, the account menu, the profile page.                                                                  |
-| `auth`    | The login, sign-up, forgot-password, reset-password and verify-email pages.                                                         |
-| `tenancy` | The tenant list, the chosen workspace, the switcher, onboarding.                                                                    |
-| `access`  | Permissions, the workspace pages (overview, members, invitations, roles), accepting an invitation.                                  |
-| `audit`   | The event timeline and its texts, the audit trail page, a record's history, the account activity.                                   |
-| `admin`   | The platform admin area (workspaces, users), impersonation and its banner, the account menu's admin item.                           |
-
-A page that shows another feature's section composes it in its route: `routes/_app/profile.tsx` renders `ProfilePage` from `users` with `AccountActivity` from `audit` as its children, since `users` can't import `audit`.
+`apps/frontend/src/features/` = one folder per **feature**, named after the backend module it calls. `src/routes/` is wiring: guards, loaders, the page a path renders.
 
 ## Dependencies between features
 
-`apps/frontend/features.json` lists, per feature, the other features it may import. The lint enforces it, the same way `apps/backend/modules.json` constrains backend modules. A feature imports another only through `@/features/<feature>/...`, never through a relative path. Routes may import any feature. A new feature or a new dependency goes in `features.json` in the same change.
+`apps/frontend/features.json` lists what each feature may import (lint-enforced). Routes may import any feature, so a page mixing features composes them in its route: `routes/_app/profile.tsx` renders `ProfilePage` (`users`) with cards from `auth` and `audit` as children.
 
 ## Translations
 
-Every string a person reads, labels and placeholders included, lives in `src/locales/<locale>/<namespace>.json` (en-US and pt-BR) and renders through `t('<namespace>.<component>.<message>')` from `@/features/core/i18n`. The namespace is the feature (`routes` for route files); a new namespace file is added to both locales' `index.ts`. Messages use the ICU syntax the backend uses: values as `{name}` (`t('access.rolesPage.deleted', { name })`), apostrophes as `’`.
+Every visible string lives in `src/locales/<locale>/<namespace>.json` (en-US, pt-BR), rendered with `t('<namespace>.<component>.<message>')` from `@/features/core/i18n`. Namespace = feature (`routes` for routes); register new files in both locales' `index.ts`. ICU like the backend: `{name}`, apostrophe `’`.
 
-- A key missing from en-US fails the typecheck at the `t()` call; pt-BR with a missing or extra key fails it in `core/i18n.ts`, naming the keys.
-- Dates and numbers format with `Intl` and the exported `locale`.
-- The lint rule `i18n/no-untranslated-text` rejects text written straight into JSX, text props, and `toast()` calls.
-
-The locale is resolved once per page load: the preferences store's choice (`core/preferences.ts`), else the system languages (`navigator.languages`), the first one whose primary subtag a supported locale shares, else en-US. Every API request sends it as `Accept-Language`, so error and validation messages arrive already translated: show them as they come, never re-translate them by code. Every module-level `t()` call and `Intl` cache assumes `locale` never changes mid-session, so changing the UI language (the profile page's preferences card) reloads the page instead of reassigning it. `routes/_app.tsx` mirrors the signed-in profile's `locale` and `timezone` into the store on every load; an account with neither set yet (one from before this unit) gets them written back from the browser.
+- API messages arrive translated (`Accept-Language`): show them as they come, never re-translate.
+- Locale is fixed per page load (module-level `t()` and `Intl` caches), so changing language reloads the page.
 
 ## Dates and time zones
 
-Every date or time a person reads formats through `core/datetime.ts`, never a bare `new Intl.DateTimeFormat` or `toLocaleString` in a feature file: `formatDate(value, options, timeZone)` with one of its exported presets (`DATE_LONG`, `DATE_MEDIUM`, `DATE_TIME_SHORT`, `DATE_TIME_MEDIUM`), and the `useTimeZone()` hook for the zone, so a component re-renders when the zone changes without a reload. `relativeTime` stays zone-agnostic, since a relative difference doesn't depend on the viewer's zone. `TIME_ZONES` lists every IANA zone labelled with its current UTC offset, for the preferences card's select.
+Format only through `core/datetime.ts` (`formatDate` + `useTimeZone()`), never bare `Intl.DateTimeFormat`/`toLocaleString`. `relativeTime` is zone-agnostic.
 
 ## Server state
 
-API reads and writes go through TanStack Query, with `queries` from `@/features/core/api` (`@tuyau/react-query`). Ending a session is the exception: logging out (`logOut` in `core/api.ts`) and stopping an impersonation call `api` directly, since no screen shows what they change.
+TanStack Query with `queries` from `@/features/core/api` (`@tuyau/react-query`). Exception: logout (`logOut` in `core/api.ts`) and stopping impersonation call `api` directly.
 
-- **Reads**: a feature exports a query factory per endpoint (`membersQuery(tenantId)`), used by both the route loader and the component, so they share one cache entry.
-- **Workspace requests** pass `tenantHeaders(tenantId)`. Tuyau keys a query by its whole request, header included, so each workspace caches apart.
-- **Loaders and guards** load with `queryClient.query(options)`. It answers from the cache while the data is fresh, and fetches when a write has marked it stale, so a guard never decides on outdated data. `ensureQueryData`, `fetchQuery` and `prefetchQuery` are deprecated.
-- **Writes** use `useMutation(queries.x.y.mutationOptions())`. Every successful write invalidates every query (`core/query-client.ts`), and the mutation stays pending until the screens on display have refetched. A 401 anywhere signs the session out. A 403 `E_TENANT_SUSPENDED` anywhere reruns the route guards (`router.tsx`) on a fresh tenant list, and the workspace guard sends the member to `/workspace-suspended`.
+- **Reads**: one query factory per endpoint (`membersQuery(tenantId)`), shared by loader and component (one cache entry).
+- **Workspace requests**: `tenantHeaders(tenantId)`; the header is part of the cache key.
+- **Loaders and guards**: `queryClient.query(options)`, never the deprecated `ensureQueryData`, `fetchQuery`, `prefetchQuery`.
+- **Writes**: `useMutation(queries.x.y.mutationOptions())`. Success invalidates every query (`core/query-client.ts`); the mutation stays pending until visible screens refetch.
+- **Global errors**: 401 drops the token (an impersonation returns to the admin's). 403 `E_TENANT_SUSPENDED` or `E_TWO_FACTOR_REQUIRED` reruns the stale guard (`router.tsx`).
 
 ## Redirects
 
-Redirect only from `beforeLoad`. The router renders a route's cached match while its loader reloads in the background, so a redirect thrown from a loader shows the old page first.
+Only from `beforeLoad`: a loader redirect shows the cached old page first.
 
 ## Forms
 
-Build forms with `useAppForm` from `@/features/core/form`, which provides `form.Form`, `form.FormAlert`, `form.SubmitButton` and the `field.TextField` field component. In `onSubmit`, wrap the write in `withFormErrors(formApi, mutation.mutateAsync(...))`: a 422 shows on its fields, any other failure in the form's alert, and it resolves to `null` on failure.
+`useAppForm` from `@/features/core/form`. In `onSubmit`, wrap the write in `withFormErrors(formApi, mutation.mutateAsync(...))`.
 
 ## Client state
 
-Browser-persisted state is a store from `createPersistedStore(name, schema, initial, storage?)` (`core/persisted-store.ts`), in localStorage unless `storage` says otherwise. Never read or write `localStorage` or `sessionStorage` directly.
+Persisted state = `createPersistedStore(...)` (`core/persisted-store.ts`); never touch `localStorage`/`sessionStorage` directly.
 
-- What it reads back is parsed with the zod `schema`. Data that is missing or doesn't parse leaves `initial`.
-- Blocked storage keeps the store in memory, with its `persists` flag false.
-- Another tab's localStorage writes apply live.
-
-The session (`core/session.ts`, the access token) is shared by every tab. The workspace choice (`tenancy/workspace.ts`) is per tab, in sessionStorage, so two tabs can show two workspaces. A new tab starts from the workspace last chosen in any tab. `router.tsx` subscribes to the session: a token change clears the query cache and reruns the route guards. Choosing a workspace navigates, which reruns them too.
+Session (`core/session.ts`) is shared by all tabs; a token change clears the query cache and reruns guards. Workspace choice (`tenancy/workspace.ts`) is per tab (sessionStorage), so two tabs can show two workspaces.
 
 ## The active workspace
 
-The URL never names a workspace. Pages about one live under the `_app/_workspace` layout route. Its `beforeLoad` resolves the active workspace with `resolveTabWorkspace(tenants)`: the tab's choice while the user still belongs to it, otherwise their first. It records the result, so a reload keeps the tab on the same workspace. With no workspace, it redirects to `/onboarding`. A page reads the result with `useActiveTenant()`, and the user's permissions there with `usePermissions()`.
+The URL never names a workspace. Workspace pages live under `_app/_workspace`, whose `beforeLoad` resolves it (`resolveTabWorkspace`) and redirects to `/onboarding` or `/workspace-suspended`. Read it with `useActiveTenant()`, permissions with `usePermissions()`.
