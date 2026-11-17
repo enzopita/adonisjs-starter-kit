@@ -43,6 +43,11 @@ catalog:
   typescript: '~7.0.2'
   zod: ^4.6.7
   zustand: ^5.1.0
+  oxfmt: ^0.78.0
+  oxlint: ^1.93.0
+  oxlint-tsgolint: ^7.0.2006
+  ultracite: 8.2.1
+  lefthook: ^2.2.2
 
 allowBuilds:
   '@swc/core': true

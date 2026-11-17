@@ -1,18 +1,36 @@
 pre-commit:
   parallel: true
-  commands:
-    format:
-      glob: "*.{ts,tsx,js,jsx,json,md}"
-      run: pnpm oxfmt --no-error-on-unmatched-pattern {staged_files}
-      stage_fixed: true
-    lint:
-      glob: "*.{ts,tsx,js,jsx}"
-      run: pnpm oxlint --type-aware --fix --no-error-on-unmatched-pattern {staged_files}
-      stage_fixed: true
+  jobs:
     # Changing the module map can break files that are not staged: lint them all.
-    module-boundaries:
-      glob: "{oxlint.config.ts,apps/backend/modules.json,apps/frontend/features.json}"
+    - name: module-boundaries
+      glob: '{oxlint.config.ts,apps/backend/modules.json,apps/frontend/features.json}'
       run: pnpm lint
+    - run: pnpm exec ultracite fix {staged_files}
+      glob:
+        - '*.js'
+        - '*.jsx'
+        - '*.mjs'
+        - '*.cjs'
+        - '*.ts'
+        - '*.tsx'
+        - '*.mts'
+        - '*.cts'
+        - '*.json'
+        - '*.jsonc'
+        - '*.css'
+        - '*.scss'
+        - '*.less'
+        - '*.vue'
+        - '*.svelte'
+        - '*.astro'
+        - '*.html'
+        - '*.md'
+        - '*.mdx'
+        - '*.yaml'
+        - '*.yml'
+        - '*.graphql'
+        - '*.gql'
+      stage_fixed: true
 
 commit-msg:
   commands:
@@ -23,5 +41,5 @@ pre-push:
   commands:
     openapi:
       root: apps/backend/
-      glob: "apps/backend/{app/**,start/**,config/openapi.ts,adonisrc.ts,package.json,openapi.json}"
+      glob: 'apps/backend/{app/**,start/**,config/openapi.ts,adonisrc.ts,package.json,openapi.json}'
       run: node ace openapi:check --strict

@@ -18,7 +18,9 @@
     "test:e2e": "e2e run",
     "test:e2e:ci": "e2e run --strict-cache",
     "docs:pull": "sh scripts/pull-docs.sh",
-    "screenshots": "node scripts/screenshots.ts"
+    "screenshots": "node scripts/screenshots.ts",
+    "check": "ultracite check",
+    "fix": "ultracite fix"
   },
   "devDependencies": {
     "@adonisjs/eslint-plugin": "^2.2.2",
@@ -34,13 +36,14 @@
     "@types/node": "catalog:",
     "ai": "^7.0.170",
     "e2e": "^0.23.0",
-    "lefthook": "^2.2.2",
+    "lefthook": "catalog:",
     "otpauth": "catalog:",
-    "oxfmt": "^0.78.0",
-    "oxlint": "^1.93.0",
-    "oxlint-tsgolint": "^7.0.2006",
+    "oxfmt": "catalog:",
+    "oxlint": "catalog:",
+    "oxlint-tsgolint": "catalog:",
     "turbo": "^2.11.11",
     "typescript": "catalog:",
+    "ultracite": "catalog:",
     "zod": "^4.1.8"
   },
   "engines": {
