@@ -113,7 +113,7 @@ function start(name: string, command: string, args: string[], cwd: string) {
 function stopAll() {
   for (const child of started) {
     // Even when the leader exited: `node ace serve` can leave its server child in the group.
-    if (child.pid) {
+    if (child.pid !== undefined) {
       try {
         process.kill(-child.pid, 'SIGTERM')
       } catch {

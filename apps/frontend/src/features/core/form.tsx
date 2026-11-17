@@ -37,7 +37,7 @@ function TextField({ label, description, ...props }: TextFieldProps) {
         aria-invalid={error !== undefined}
         {...props}
       />
-      {description && <FieldDescription>{description}</FieldDescription>}
+      {Boolean(description) && <FieldDescription>{description}</FieldDescription>}
       <FieldError>{error}</FieldError>
     </Field>
   )

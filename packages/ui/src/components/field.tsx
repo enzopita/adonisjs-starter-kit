@@ -142,7 +142,7 @@ function FieldSeparator({
   return (
     <div
       data-slot="field-separator"
-      data-content={!!children}
+      data-content={Boolean(children)}
       className={cn(
         'relative -my-2 h-5 text-xs/relaxed group-data-[variant=outline]/field-group:-mb-2',
         className,
@@ -150,7 +150,7 @@ function FieldSeparator({
       {...props}
     >
       <Separator className="absolute inset-0 top-1/2" />
-      {children && (
+      {Boolean(children) && (
         <span
           className="relative mx-auto block w-fit bg-background px-2 text-muted-foreground"
           data-slot="field-separator-content"
@@ -170,12 +170,14 @@ function FieldError({
 }: React.ComponentProps<'div'> & {
   errors?: Array<{ message?: string } | undefined>
 }) {
+  const hasChildren = Boolean(children)
+
   const content = useMemo(() => {
-    if (children) {
+    if (hasChildren) {
       return children
     }
 
-    if (!errors?.length) {
+    if (!errors || errors.length === 0) {
       return null
     }
 
@@ -190,9 +192,11 @@ function FieldError({
         {uniqueErrors.map((error, index) => error?.message && <li key={index}>{error.message}</li>)}
       </ul>
     )
-  }, [children, errors])
+  }, [children, errors, hasChildren])
 
-  if (!content) {
+  const hasContent = Boolean(content)
+
+  if (!hasContent) {
     return null
   }
 

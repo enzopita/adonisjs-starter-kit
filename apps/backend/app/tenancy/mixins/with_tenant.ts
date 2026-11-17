@@ -70,7 +70,11 @@ export function withTenant<
     static guardTenantId(row: WithTenant) {
       const context = currentTenantContext()
 
-      if (context.kind === 'tenant' && row.$dirty.tenantId && row.tenantId !== context.tenantId) {
+      if (
+        context.kind === 'tenant' &&
+        Boolean(row.$dirty.tenantId) &&
+        row.tenantId !== context.tenantId
+      ) {
         throw new Error(`${row.constructor.name} can't be saved into another tenant`)
       }
     }

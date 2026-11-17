@@ -159,6 +159,12 @@ export default defineConfig({
     'typescript/no-unsafe-return': 'error',
     // A promise in a condition or a spread is a missing await; async handlers are fine.
     'typescript/no-misused-promises': ['error', { checksVoidReturn: false }],
+    // Ids, timestamps and tokens are never "", and the body parser turns empty input into null,
+    // so `if (value)` on a nullable string or boolean says what the code means.
+    'typescript/strict-boolean-expressions': [
+      'error',
+      { allowNullableString: true, allowNullableBoolean: true },
+    ],
     'oxc/no-accumulating-spread': 'error',
     'anti-slop/no-array-filter-map': 'error',
     'anti-slop/no-reduce-accumulator-copy': 'error',

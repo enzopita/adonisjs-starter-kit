@@ -31,7 +31,7 @@ export function AuthCard({
           <CardDescription>{description}</CardDescription>
         </CardHeader>
         <CardContent>{children}</CardContent>
-        {footer && <CardFooter className="justify-center">{footer}</CardFooter>}
+        {Boolean(footer) && <CardFooter className="justify-center">{footer}</CardFooter>}
       </Card>
     </main>
   )
