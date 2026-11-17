@@ -11835,7 +11835,8 @@
             "type": [
               "string",
               "null"
-            ]
+            ],
+            "maxLength": 255
           },
           "email": {
             "type": "string",

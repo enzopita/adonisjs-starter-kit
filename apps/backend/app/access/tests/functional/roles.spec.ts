@@ -1,5 +1,6 @@
 import { test } from '@japa/runner'
 import Role from '#access/models/role'
+import Invitation from '#access/models/invitation'
 import { ownedWorkspace } from '#access/tests/seed'
 import AuditEvent from '#core/models/audit_event'
 import testUtils from '@adonisjs/core/services/test_utils'
@@ -119,10 +120,20 @@ test.group('Access | roles', group => {
     refused.assertStatus(409)
     refused.assertBodyContains({ code: 'E_ROLE_IN_USE' })
 
+    // A pending invitation doesn't hold the role: it loses it instead of blocking the delete.
+    const invited = await client
+      .visit('access.invitations.store')
+      .json({ email: 'guest@example.com', roleId: editor.id })
+      .headers(acme.headers)
+      .loginAs(owner)
+
     await assignment.delete()
     const deleted = await destroy()
     deleted.assertStatus(200)
     assert.isNull(await acme.inside(() => Role.find(editor.id)))
+
+    const invitation = await acme.inside(() => Invitation.findOrFail(invited.body().data.id))
+    assert.isNull(invitation.roleId)
   })
 
   test('keeps members.manage on the role of the last manager', async ({ client, assert }) => {

@@ -74,6 +74,22 @@ test.group('Admin | impersonation', group => {
     )
   })
 
+  // Regression: an admin revoked for abuse keeps acting as the user until the token's hour is up.
+  test('revoking the admin ends their impersonations', async ({ client }) => {
+    const viewer = await admin()
+    const ada = await createUser()
+    const token = (await impersonate(client, viewer, ada)).body().data.token
+
+    const revoked = await client
+      .visit('admin.platform_admins.destroy', { id: viewer.id })
+      .loginAs(await admin())
+
+    revoked.assertStatus(200)
+
+    const profile = await client.visit('profile.profile.show').bearerToken(token)
+    profile.assertStatus(401)
+  })
+
   // Regression: impersonation hands out a session the disable just took away.
   test('refuses to impersonate a disabled user', async ({ client }) => {
     const viewer = await admin()
