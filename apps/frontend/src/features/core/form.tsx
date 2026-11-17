@@ -3,12 +3,11 @@ import { Field, FieldDescription, FieldError, FieldLabel } from '@monorepo/ui/co
 import { Input } from '@monorepo/ui/components/input'
 import { createFormHook, createFormHookContexts } from '@tanstack/react-form'
 import type { AnyFormApi } from '@tanstack/react-form'
-import { TuyauError } from '@tuyau/core/client'
 import { CircleAlertIcon } from 'lucide-react'
 import { useId } from 'react'
 import type { ComponentProps, ReactNode } from 'react'
 import { PendingButton } from '@/features/core/components/pending-button'
-import { formErrors } from '@/features/core/errors'
+import { formErrors, isTuyauError } from '@/features/core/errors'
 
 const { fieldContext, formContext, useFieldContext, useFormContext } = createFormHookContexts()
 
@@ -38,7 +37,7 @@ function TextField({ label, description, ...props }: TextFieldProps) {
         aria-invalid={error !== undefined}
         {...props}
       />
-      {description && <FieldDescription>{description}</FieldDescription>}
+      {Boolean(description) && <FieldDescription>{description}</FieldDescription>}
       <FieldError>{error}</FieldError>
     </Field>
   )
@@ -67,12 +66,12 @@ function FormAlert() {
   const form = useFormContext()
 
   return (
-    <form.Subscribe selector={state => state.errorMap.onSubmit}>
+    <form.Subscribe selector={state => String(state.errorMap.onSubmit ?? '')}>
       {error =>
         error ? (
           <Alert variant="destructive">
             <CircleAlertIcon />
-            <AlertDescription>{String(error)}</AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
         ) : null
       }
@@ -108,7 +107,7 @@ export async function withFormErrors<Result>(
   try {
     return await write
   } catch (error) {
-    if (!(error instanceof TuyauError)) throw error
+    if (!isTuyauError(error)) throw error
 
     formApi.setErrorMap({ onSubmit: formErrors(error) })
 

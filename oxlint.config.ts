@@ -150,6 +150,21 @@ export default defineConfig({
   ],
 
   rules: {
+    'typescript/no-deprecated': 'error',
+    'typescript/no-non-null-assertion': 'error',
+    'typescript/no-unsafe-argument': 'error',
+    'typescript/no-unsafe-assignment': 'error',
+    'typescript/no-unsafe-call': 'error',
+    'typescript/no-unsafe-member-access': 'error',
+    'typescript/no-unsafe-return': 'error',
+    // A promise in a condition or a spread is a missing await; async handlers are fine.
+    'typescript/no-misused-promises': ['error', { checksVoidReturn: false }],
+    // Ids, timestamps and tokens are never "", and the body parser turns empty input into null,
+    // so `if (value)` on a nullable string or boolean says what the code means.
+    'typescript/strict-boolean-expressions': [
+      'error',
+      { allowNullableString: true, allowNullableBoolean: true },
+    ],
     'oxc/no-accumulating-spread': 'error',
     'anti-slop/no-array-filter-map': 'error',
     'anti-slop/no-reduce-accumulator-copy': 'error',
@@ -188,6 +203,16 @@ export default defineConfig({
           },
         ],
       },
+    },
+    {
+      // AdonisJS types NextFn and ExceptionHandler.handle() as returning any, and both must be
+      // returned.
+      files: [
+        'apps/backend/app/**/middleware/**',
+        'apps/backend/app/**/routes.ts',
+        'apps/backend/app/core/exceptions/handler.ts',
+      ],
+      rules: { 'typescript/no-unsafe-return': 'off' },
     },
   ],
 })

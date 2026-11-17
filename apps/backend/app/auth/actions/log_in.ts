@@ -73,7 +73,7 @@ export default class LogIn {
 
     // Enabling 2FA revokes every other session once it commits: a token created before that is
     // revoked, and one created after sees the confirmation here.
-    if (user.twoFactorConfirmedAt) {
+    if (user.twoFactorConfirmedAt !== null) {
       await User.accessTokens.delete(user, token.identifier)
 
       return challenge(user)

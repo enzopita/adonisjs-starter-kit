@@ -17,7 +17,8 @@ export interface ListSessionsInput {
 /** The user's own sessions, newest-used first, excluding impersonation tokens and expired ones. */
 export default class ListSessions {
   async handle({ userId, currentTokenId }: ListSessionsInput) {
-    const rows: Omit<SessionRow, 'current'>[] = await db
+    const rows = await db
+      .query<Omit<SessionRow, 'current'>>()
       .from('auth_access_tokens')
       .where('tokenable_id', userId)
       .whereNull('impersonator_id')

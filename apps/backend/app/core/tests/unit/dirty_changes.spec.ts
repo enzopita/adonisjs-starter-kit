@@ -9,7 +9,9 @@ test.group('Core | dirtyChanges', () => {
       type: 'role.updated',
       subject_type: 'role',
       ip: '127.0.0.1',
-    })!
+    })
+
+    if (row === null) throw new Error('expected a row from the adapter result')
 
     row.merge({ type: 'role.deleted', ip: '10.0.0.1' })
 

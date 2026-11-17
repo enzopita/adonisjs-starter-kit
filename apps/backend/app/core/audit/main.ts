@@ -86,7 +86,10 @@ export function dirtyChanges<Row extends LucidRow, K extends keyof Row & string>
   const changes: Changes<Row, K> = {}
 
   for (const key of keys) {
-    if (key in row.$dirty) changes[key] = { from: row.$original[key], to: row[key] }
+    if (key in row.$dirty) {
+      // SAFETY: Lucid types $original as ModelObject; it holds the same columns as the row.
+      changes[key] = { from: row.$original[key] as Row[K], to: row[key] }
+    }
   }
 
   return changes

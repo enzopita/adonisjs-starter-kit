@@ -22,6 +22,7 @@ export default class GetPermissions {
     if (!tenantId) return new Set()
 
     const fromRole = db
+      .query<{ permission: string }>()
       .from('role_assignments')
       .join('roles', 'roles.id', 'role_assignments.role_id')
       .where('role_assignments.tenant_id', tenantId)
@@ -34,7 +35,7 @@ export default class GetPermissions {
       .where('user_id', user.id)
       .select('permission')
 
-    const rows: { permission: string }[] = await fromRole.unionAll(granted)
+    const rows = await fromRole.unionAll(granted)
 
     return new Set(rows.flatMap(({ permission }) => (isAssignable(permission) ? [permission] : [])))
   }

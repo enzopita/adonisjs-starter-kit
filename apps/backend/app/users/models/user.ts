@@ -37,8 +37,8 @@ class UuidAccessTokensProvider<Model extends LucidModel> extends DbAccessTokensP
 
     const db = await this.getDb()
 
-    const dbRow: (AccessTokenDbColumns & { impersonator_id: string | null }) | null = await db
-      .query()
+    const dbRow = await db
+      .query<AccessTokenDbColumns & { impersonator_id: string | null }>()
       .from(this.table)
       .where({ id: decoded.identifier, type: this.type })
       .limit(1)

@@ -20,7 +20,7 @@ export default class SessionsController {
    */
   async index({ auth, serialize }: HttpContext) {
     const user = auth.getUserOrFail()
-    const currentTokenId = String(user.currentAccessToken!.identifier)
+    const currentTokenId = String(user.currentAccessToken.identifier)
 
     const rows = await new ListSessions().handle({ userId: user.id, currentTokenId })
 
@@ -57,7 +57,7 @@ export default class SessionsController {
 
     if (user.currentAccessToken?.impersonatorId) throw new ImpersonatingException()
 
-    const keepTokenId = String(user.currentAccessToken!.identifier)
+    const keepTokenId = String(user.currentAccessToken.identifier)
     const revoked = await new RevokeSessions().handle({ user, keepTokenId })
 
     if (!revoked) audit.unchanged()

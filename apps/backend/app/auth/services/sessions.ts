@@ -1,3 +1,4 @@
+import type { AccessToken } from '@adonisjs/auth/access_tokens'
 import db from '@adonisjs/lucid/services/db'
 import User, { SESSION_IDLE_TIMEOUT_DAYS } from '#users/models/user'
 import AccountDisabledException from '#auth/exceptions/account_disabled_exception'
@@ -35,4 +36,12 @@ export async function openSession({ user, userAgent, ipAddress }: OpenSessionInp
   }
 
   return token
+}
+
+/** The secret to hand the client; only a token created in this request still carries it. */
+export function releaseToken(token: AccessToken): string {
+  if (token.value === undefined)
+    throw new Error('Only a newly created access token carries its secret')
+
+  return token.value.release()
 }

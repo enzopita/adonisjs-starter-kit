@@ -60,11 +60,13 @@ async function seed() {
 
   const insert = async (tenant: Tenant, name: string) => {
     const [row] = await db
-      .table('tenancy_probes')
+      .table<{ id: string }>('tenancy_probes')
       .insert({ tenant_id: tenant.id, owner_id: owner.id, name })
       .returning('id')
 
-    return String(row.id)
+    if (row === undefined) throw new Error(`inserting ${name} returned no id`)
+
+    return row.id
   }
 
   const acmeId = await insert(acme, 'probe 0')
@@ -76,7 +78,12 @@ async function seed() {
 }
 
 const namesOf = (tenant: Tenant) =>
-  db.from('tenancy_probes').where('tenant_id', tenant.id).orderBy('name').select('name')
+  db
+    .query<{ name: string }>()
+    .from('tenancy_probes')
+    .where('tenant_id', tenant.id)
+    .orderBy('name')
+    .select('name')
 
 test.group('Tenancy | withTenant', group => {
   group.each.setup(() => testUtils.db().wrapInGlobalTransaction())

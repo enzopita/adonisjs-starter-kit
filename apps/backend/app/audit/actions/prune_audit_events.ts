@@ -40,7 +40,7 @@ export default class PruneAuditEvents {
       await audit.note('audit.pruned', {
         tenantId: null,
         subject: null,
-        data: { count: deleted, before: before.toISO()! },
+        data: { count: deleted, before: before.toISO() },
       })
     }
 

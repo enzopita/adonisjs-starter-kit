@@ -1,6 +1,7 @@
 import User from '#users/models/user'
 import db from '@adonisjs/lucid/services/db'
 import PlatformAdmin from '#access/models/platform_admin'
+import { paginationMeta } from '#core/pagination'
 
 export interface ListUsersInput {
   search?: string
@@ -28,7 +29,8 @@ export default class ListUsers {
 
     const userIds = users.all().map(user => user.id)
 
-    const memberships: { userId: string; count: string }[] = await db
+    const memberships = await db
+      .query<{ userId: string; count: string }>()
       .from('tenant_memberships')
       .whereIn('user_id', userIds)
       .groupBy('user_id')
@@ -46,6 +48,6 @@ export default class ListUsers {
       tenantCount: tenantCountByUser.get(user.id) ?? 0,
     }))
 
-    return { rows, meta: users.getMeta() }
+    return { rows, meta: paginationMeta(users) }
   }
 }

@@ -1,4 +1,4 @@
-import type { TuyauError } from '@tuyau/core/client'
+import { TuyauError } from '@tuyau/core/client'
 import { t } from '@/features/core/i18n'
 
 /** Codes the API returns for expected failures: every one carries a `code`. */
@@ -77,4 +77,9 @@ export function formErrors(error: TuyauError): FormErrors {
   }
 
   return Object.keys(fields).length > 0 ? { fields } : { fields, form: errorMessage(error) }
+}
+
+/** `instanceof` alone narrows to `TuyauError<any>`, whose body then reads as `any`. */
+export function isTuyauError(error: unknown): error is TuyauError {
+  return error instanceof TuyauError
 }

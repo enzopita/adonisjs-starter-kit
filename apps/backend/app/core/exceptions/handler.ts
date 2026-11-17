@@ -41,7 +41,7 @@ export default class HttpExceptionHandler extends ExceptionHandler {
     }
 
     if (error instanceof limiterErrors.E_TOO_MANY_REQUESTS) {
-      for (const [name, value] of Object.entries(error.getDefaultHeaders())) {
+      for (const [name, value] of Object.entries<string | number>(error.getDefaultHeaders())) {
         ctx.response.header(name, value)
       }
 

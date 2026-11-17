@@ -151,7 +151,8 @@ export function SessionsCard() {
         confirmLabel={t('auth.sessionsCard.signOut')}
         pending={revoke.isPending}
         onConfirm={() => {
-          if (confirming && confirming !== 'all') revoke.mutate({ params: { id: confirming.id } })
+          if (confirming !== null && confirming !== 'all')
+            revoke.mutate({ params: { id: confirming.id } })
         }}
       />
       <ConfirmDialog

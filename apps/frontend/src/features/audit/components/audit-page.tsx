@@ -71,7 +71,10 @@ export function AuditPage({
 
   const filter = (next: AuditSearch) => onSearchChange({ ...search, page: undefined, ...next })
   const filtered = Boolean(search.event || search.actor || search.from || search.to)
-  const actor = search.actor && events.data.find(row => row.actor?.id === search.actor)?.actor
+
+  const actor = search.actor
+    ? events.data.find(row => row.actor?.id === search.actor)?.actor
+    : undefined
 
   return (
     <>

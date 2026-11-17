@@ -5,6 +5,7 @@ import type {} from '#auth/types/audit'
 import { loginValidator } from '#auth/validators/auth'
 import type { HttpContext } from '@adonisjs/core/http'
 import UserTransformer from '#users/transformers/user_transformer'
+import { releaseToken } from '#auth/services/sessions'
 
 export default class AccessTokensController {
   /**
@@ -36,7 +37,7 @@ export default class AccessTokensController {
     return serialize({
       twoFactorRequired: false as const,
       user: UserTransformer.transform(result.user),
-      token: result.token.value!.release(),
+      token: releaseToken(result.token),
     })
   }
 
@@ -50,9 +51,7 @@ export default class AccessTokensController {
   async destroy({ auth, i18n, serialize }: HttpContext) {
     const user = auth.getUserOrFail()
 
-    if (user.currentAccessToken) {
-      await User.accessTokens.delete(user, user.currentAccessToken.identifier)
-    }
+    await User.accessTokens.delete(user, user.currentAccessToken.identifier)
 
     await audit.note('auth.logged_out', {
       tenantId: null,

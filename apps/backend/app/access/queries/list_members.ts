@@ -15,7 +15,8 @@ export interface MemberRow {
 /** TenantMembership isn't tenant-scoped (see docs/architecture.md), so every query here filters tenant_id explicitly. */
 export default class ListMembers {
   async handle({ tenantId }: ListMembersInput): Promise<MemberRow[]> {
-    const memberships: { userId: string }[] = await db
+    const memberships = await db
+      .query<{ userId: string }>()
       .from('tenant_memberships')
       .where('tenant_id', tenantId)
       .select('user_id as userId')
@@ -27,14 +28,16 @@ export default class ListMembers {
       .preload('avatar')
       .orderByRaw('coalesce(full_name, email)')
 
-    const roleAssignments: { userId: string; roleId: string }[] = await db
+    const roleAssignments = await db
+      .query<{ userId: string; roleId: string }>()
       .from('role_assignments')
       .where('tenant_id', tenantId)
       .select('user_id as userId', 'role_id as roleId')
 
     const roleByUser = new Map(roleAssignments.map(row => [row.userId, row.roleId]))
 
-    const grants: { userId: string; permission: string }[] = await db
+    const grants = await db
+      .query<{ userId: string; permission: string }>()
       .from('permission_grants')
       .where('tenant_id', tenantId)
       .select('user_id as userId', 'permission')

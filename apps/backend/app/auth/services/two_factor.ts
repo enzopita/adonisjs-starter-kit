@@ -121,11 +121,12 @@ export function verifySecondFactor(client: QueryClientContract, user: User, fact
 
 export async function countRecoveryCodes(client: QueryClientContract, userId: string) {
   const [row] = await client
+    .query<{ total: string }>()
     .from('two_factor_recovery_codes')
     .where('user_id', userId)
     .count('* as total')
 
-  return Number(row.total)
+  return Number(row?.total ?? 0)
 }
 
 /**

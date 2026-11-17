@@ -38,7 +38,7 @@ export const twoFactorLoginIpThrottle = throttle('two_factor_login_ip', ctx => {
 
 /** The signed-in endpoints that check a code (and a password): confirm, disable, regenerate. */
 export const twoFactorManageThrottle = throttle('two_factor_manage', ctx => {
-  return limiter.allowRequests(10).every('15 mins').usingKey(ctx.auth.user!.id)
+  return limiter.allowRequests(10).every('15 mins').usingKey(ctx.auth.getUserOrFail().id)
 })
 
 export const signupThrottle = throttle('signup', ctx => {
@@ -46,14 +46,14 @@ export const signupThrottle = throttle('signup', ctx => {
 })
 
 export const invitationsCreateThrottle = throttle('invitations_create', ctx => {
-  const userId = ctx.auth.user!.id
-  const tenantId = ctx.tenant!.id
+  const userId = ctx.auth.getUserOrFail().id
+  const tenantId = ctx.tenant.id
 
   return limiter.allowRequests(20).every('1 hour').usingKey(`${userId}_${tenantId}`)
 })
 
 export const invitationAcceptThrottle = throttle('invitation_accept', ctx => {
-  return limiter.allowRequests(10).every('15 mins').usingKey(ctx.auth.user!.id)
+  return limiter.allowRequests(10).every('15 mins').usingKey(ctx.auth.getUserOrFail().id)
 })
 
 export const passwordForgotIpThrottle = throttle('password_forgot_ip', ctx => {
@@ -79,7 +79,7 @@ export const emailVerifyThrottle = throttle('email_verify', ctx => {
 })
 
 export const emailVerificationResendThrottle = throttle('email_verification_resend', ctx => {
-  return limiter.allowRequests(5).every('1 hour').usingKey(ctx.auth.user!.id)
+  return limiter.allowRequests(5).every('1 hour').usingKey(ctx.auth.getUserOrFail().id)
 })
 
 /**

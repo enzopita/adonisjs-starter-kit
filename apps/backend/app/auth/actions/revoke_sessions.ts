@@ -19,6 +19,7 @@ export interface RevokeSessionsInput {
 export default class RevokeSessions {
   async handle({ user, sessionId, keepTokenId }: RevokeSessionsInput) {
     const query = db
+      .query<{ id: string }>()
       .from('auth_access_tokens')
       .where('tokenable_id', user.id)
       .whereNull('impersonator_id')
@@ -27,7 +28,7 @@ export default class RevokeSessions {
 
     if (keepTokenId) query.whereNot('id', keepTokenId)
 
-    const rows: { id: string }[] = await query.select('id')
+    const rows = await query.select('id')
 
     for (const row of rows) {
       await User.accessTokens.delete(user, row.id)

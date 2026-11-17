@@ -26,8 +26,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm format:check
-      - run: pnpm lint
+      # Typecheck generates the route tree and the backend's .adonisjs types the type-aware lint reads.
       - run: pnpm typecheck
+      - run: pnpm lint
 
   backend-test:
     name: Backend tests

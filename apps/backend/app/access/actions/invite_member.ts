@@ -29,6 +29,7 @@ export default class InviteMember {
    */
   async handle({ tenantId, email, roleId, invitedById, locale }: InviteMemberInput) {
     const alreadyMember = await db
+      .query<{ user_id: string }>()
       .from('tenant_memberships')
       .join('users', 'users.id', 'tenant_memberships.user_id')
       .where('tenant_memberships.tenant_id', tenantId)
