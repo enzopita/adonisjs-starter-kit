@@ -157,6 +157,8 @@ export default defineConfig({
     'typescript/no-unsafe-call': 'error',
     'typescript/no-unsafe-member-access': 'error',
     'typescript/no-unsafe-return': 'error',
+    // A promise in a condition or a spread is a missing await; async handlers are fine.
+    'typescript/no-misused-promises': ['error', { checksVoidReturn: false }],
     'oxc/no-accumulating-spread': 'error',
     'anti-slop/no-array-filter-map': 'error',
     'anti-slop/no-reduce-accumulator-copy': 'error',
