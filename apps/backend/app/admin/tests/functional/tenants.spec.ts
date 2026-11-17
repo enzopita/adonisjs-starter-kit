@@ -113,11 +113,11 @@ test.group('Admin | tenants', group => {
       .loginAs(viewer)
 
     first.assertStatus(200)
-    assert.containsSubset(first.body(), {
+    assert.containSubset(first.body(), {
       data: [{ name: 'Acme Corp', memberCount: 0, suspendedAt: null }],
       metadata: { total: 2 },
     })
-    assert.containsSubset(second.body().data, [{ name: 'Beta Corp', memberCount: 2 }])
+    assert.containSubset(second.body().data, [{ name: 'Beta Corp', memberCount: 2 }])
   })
 
   // Regression: the detail leaks another tenant's members or roles, or mislabels an admin.
@@ -155,7 +155,7 @@ test.group('Admin | tenants', group => {
         [staff.email, null],
       ],
     )
-    assert.containsSubset(response.body().data.members, [
+    assert.containSubset(response.body().data.members, [
       { user: { id: staff.id }, platformAdmin: true, disabledAt: null },
       { user: { id: owner.id }, platformAdmin: false },
     ])
@@ -219,7 +219,7 @@ test.group('Admin | tenants', group => {
     foreign.assertBodyContains({ code: 'E_TENANT_ACCESS_DENIED' })
 
     const listed = await client.visit('tenants.tenants.index').loginAs(member)
-    assert.containsSubset(listed.body().data, [
+    assert.containSubset(listed.body().data, [
       { id: acme.tenant.id, suspendedAt: suspended.body().data.suspendedAt },
     ])
 

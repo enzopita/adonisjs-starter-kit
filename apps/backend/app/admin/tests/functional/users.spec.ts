@@ -41,7 +41,7 @@ test.group('Admin | users', group => {
       .loginAs(viewer)
 
     response.assertStatus(200)
-    assert.containsSubset(response.body(), {
+    assert.containSubset(response.body(), {
       data: [
         {
           user: { email: 'ada@example.com', fullName: 'Ada Lovelace' },
@@ -52,7 +52,7 @@ test.group('Admin | users', group => {
       ],
       metadata: { total: 2 },
     })
-    assert.containsSubset(admins.body().data, [{ platformAdmin: true, tenantCount: 0 }])
+    assert.containSubset(admins.body().data, [{ platformAdmin: true, tenantCount: 0 }])
   })
 
   // Regression: a disabled user keeps a working session or can sign in again, the refusal
@@ -165,7 +165,7 @@ test.group('Admin | users', group => {
       return list.body().data[0]
     }
 
-    assert.containsSubset(await listRow(), { user: { twoFactorEnabled: true } })
+    assert.containSubset(await listRow(), { user: { twoFactorEnabled: true } })
 
     // The admin's own request locale (en-US here) must not leak into the user's mail: see the
     // locale regression test below.
@@ -175,7 +175,7 @@ test.group('Admin | users', group => {
       .loginAs(viewer)
 
     reset.assertBody({ data: { id: ada.id, twoFactorEnabled: false } })
-    assert.containsSubset(await listRow(), { user: { twoFactorEnabled: false } })
+    assert.containSubset(await listRow(), { user: { twoFactorEnabled: false } })
 
     const stale = await client.visit('profile.profile.show').bearerToken(session.value!.release())
     stale.assertStatus(401)

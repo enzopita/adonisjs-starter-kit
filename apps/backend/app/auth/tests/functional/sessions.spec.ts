@@ -30,7 +30,7 @@ test.group('Auth | sessions', group => {
     const response = await client.visit('profile.sessions.index').bearerToken(token)
 
     response.assertStatus(200)
-    assert.containsSubset(response.body().data, [
+    assert.containSubset(response.body().data, [
       { id: sessionIdOf(token), userAgent: 'ada-browser/1.0', current: true },
     ])
   })

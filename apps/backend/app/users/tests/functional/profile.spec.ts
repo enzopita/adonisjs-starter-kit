@@ -26,7 +26,7 @@ test.group('Users | profile', group => {
       .loginAs(user)
 
     response.assertStatus(200)
-    assert.containsSubset(response.body().data, { locale: 'pt-BR', timezone: 'America/Sao_Paulo' })
+    assert.containSubset(response.body().data, { locale: 'pt-BR', timezone: 'America/Sao_Paulo' })
   })
 
   test('updates both fields', async ({ client, assert }) => {
@@ -38,7 +38,7 @@ test.group('Users | profile', group => {
       .loginAs(user)
 
     response.assertStatus(200)
-    assert.containsSubset(response.body().data, { locale: 'pt-BR', timezone: 'UTC' })
+    assert.containSubset(response.body().data, { locale: 'pt-BR', timezone: 'UTC' })
   })
 
   test('rejects an empty update, an unsupported locale or an unrecognized timezone', async ({

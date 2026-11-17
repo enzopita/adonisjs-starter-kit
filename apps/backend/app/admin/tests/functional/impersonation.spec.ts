@@ -45,7 +45,7 @@ test.group('Admin | impersonation', group => {
       .headers(acme.headers)
       .bearerToken(token)
 
-    assert.containsSubset(trail.body().data, [
+    assert.containSubset(trail.body().data, [
       {
         actor: { id: ada.id },
         impersonator: { id: viewer.id, email: viewer.email },

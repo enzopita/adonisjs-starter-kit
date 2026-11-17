@@ -150,6 +150,7 @@ export default defineConfig({
   ],
 
   rules: {
+    'typescript/no-deprecated': 'error',
     'oxc/no-accumulating-spread': 'error',
     'anti-slop/no-array-filter-map': 'error',
     'anti-slop/no-reduce-accumulator-copy': 'error',

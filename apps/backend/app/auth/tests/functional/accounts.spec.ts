@@ -50,7 +50,7 @@ test.group('Auth | accounts', group => {
       timezone: 'America/Sao_Paulo',
     })
 
-    assert.containsSubset(chosen.body().data.user, {
+    assert.containSubset(chosen.body().data.user, {
       locale: 'pt-BR',
       timezone: 'America/Sao_Paulo',
     })
@@ -60,7 +60,7 @@ test.group('Auth | accounts', group => {
       .header('accept-language', 'pt-BR')
       .json({ ...account, email: 'fallback@example.com' })
 
-    assert.containsSubset(fallback.body().data.user, { locale: 'pt-BR', timezone: null })
+    assert.containSubset(fallback.body().data.user, { locale: 'pt-BR', timezone: null })
   })
 
   // Regression: an unsupported locale or an unrecognized timezone name is stored instead of
