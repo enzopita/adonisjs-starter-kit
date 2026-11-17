@@ -14,8 +14,9 @@ export default {
   },
   targets: [
     {
-      // The tests assert English copy; without this they follow the machine's language.
-      engine: web({ locale: 'en-US' }),
+      // The tests assert English copy and UTC times; without these they follow the machine's
+      // language and zone, like the backend's TZ=UTC.
+      engine: web({ locale: 'en-US', timezoneId: 'UTC' }),
       app: {
         url: 'http://localhost:5173',
         readyUrl: 'http://localhost:3333/',
