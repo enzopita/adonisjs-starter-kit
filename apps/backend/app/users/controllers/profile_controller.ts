@@ -13,9 +13,9 @@ export default class ProfileController {
    */
   async show({ auth, serialize }: HttpContext) {
     const user = auth.getUserOrFail();
-    await user.load((preloader) => preloader.load('avatar'));
+    await user.load('avatar');
 
-    return serialize(UserTransformer.transform(user));
+    return await serialize(UserTransformer.transform(user));
   }
 
   /**
@@ -34,8 +34,9 @@ export default class ProfileController {
       locale,
       timezone,
     });
-    await user.load((preloader) => preloader.load('avatar'));
 
-    return serialize(UserTransformer.transform(user));
+    await user.load('avatar');
+
+    return await serialize(UserTransformer.transform(user));
   }
 }

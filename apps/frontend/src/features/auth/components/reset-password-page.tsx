@@ -16,6 +16,7 @@ const route = getRouteApi('/reset-password/$token');
 export function ResetPasswordPage() {
   const { token } = route.useParams();
   const navigate = useNavigate();
+
   const resetPassword = useMutation(
     queries.auth.passwordResets.update.mutationOptions()
   );
@@ -28,7 +29,9 @@ export function ResetPasswordPage() {
         resetPassword.mutateAsync({ body: { token, ...value } })
       );
 
-      if (!reset) return;
+      if (!reset) {
+        return;
+      }
 
       // The API revoked every session for this account, this browser's included.
       session.signOut();

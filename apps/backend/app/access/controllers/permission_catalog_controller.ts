@@ -13,6 +13,6 @@ export default class PermissionCatalogController {
    * hold, grouped by area, for rendering role and permission editors.
    */
   async show({ serialize }: HttpContext) {
-    return serialize({ groups: PERMISSION_GROUPS });
+    return await serialize({ groups: PERMISSION_GROUPS });
   }
 }

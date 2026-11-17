@@ -10,6 +10,7 @@ import { selectWorkspace } from '@/features/tenancy/workspace';
 
 export function CreateWorkspaceForm({ onCreated }: { onCreated?: () => void }) {
   const navigate = useNavigate();
+
   const createTenant = useMutation(
     queries.tenants.tenants.store.mutationOptions()
   );
@@ -22,7 +23,9 @@ export function CreateWorkspaceForm({ onCreated }: { onCreated?: () => void }) {
         createTenant.mutateAsync({ body: value })
       );
 
-      if (!created) return;
+      if (!created) {
+        return;
+      }
 
       selectWorkspace(created.data.id);
       onCreated?.();

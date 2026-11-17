@@ -23,7 +23,7 @@ export default class MembersController {
     const members = await new ListMembers().handle({ tenantId: tenant.id });
 
     // Depth 3: members -> user -> avatar, the one relationship UserTransformer embeds.
-    return serialize({
+    return await serialize({
       members: MemberTransformer.transform(members).depth(3),
     });
   }

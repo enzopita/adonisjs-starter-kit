@@ -1,3 +1,4 @@
+// oxlint-disable max-classes-per-file -- the probe models are fixtures that exist only for this spec.
 import { compose } from '@adonisjs/core/helpers';
 import testUtils from '@adonisjs/core/services/test_utils';
 import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm';
@@ -63,11 +64,15 @@ async function seed() {
 
   const insert = async (tenant: Tenant, name: string) => {
     const [row] = await db
-      .table('tenancy_probes')
+      .table<{ id: string }>('tenancy_probes')
       .insert({ tenant_id: tenant.id, owner_id: owner.id, name })
       .returning('id');
 
-    return String(row.id);
+    if (row === undefined) {
+      throw new Error(`inserting ${name} returned no id`);
+    }
+
+    return row.id;
   };
 
   const acmeId = await insert(acme, 'probe 0');
@@ -88,6 +93,7 @@ async function seed() {
 
 const namesOf = (tenant: Tenant) =>
   db
+    .query<{ name: string }>()
     .from('tenancy_probes')
     .where('tenant_id', tenant.id)
     .orderBy('name')
@@ -168,6 +174,7 @@ test.group('Tenancy | withTenant', (group) => {
         .where('id', ownerId)
         .preload('probes')
         .firstOrFail();
+
       assert.sameMembers(
         owner.probes.map((probe) => probe.id),
         acmeIds
@@ -182,10 +189,9 @@ test.group('Tenancy | withTenant', (group) => {
       assert.isNull(
         await owner.related('probes').query().where('name', 'probe 2').first()
       );
-      assert.equal(
-        (await owner.related('probes').query().paginate(1, 10)).total,
-        2
-      );
+
+      const page = await owner.related('probes').query().paginate(1, 10);
+      assert.equal(page.total, 2);
     });
   });
 
@@ -207,18 +213,20 @@ test.group('Tenancy | withTenant', (group) => {
     await runInTenant(acme.id, async () => {
       await assert.rejects(
         () => Probe.create({ ownerId, name: 'smuggled', tenantId: globex.id }),
-        /into another tenant/
+        /into another tenant/u
       );
 
       const probe = await Probe.findOrFail(acmeId);
       await assert.rejects(
         () => probe.merge({ tenantId: globex.id }).save(),
-        /into another tenant/
+        /into another tenant/u
       );
     });
 
+    const globexNames = await namesOf(globex);
+
     assert.deepEqual(
-      (await namesOf(globex)).map((row) => row.name),
+      globexNames.map((row) => row.name),
       ['probe 2', 'probe 3']
     );
   });
@@ -230,7 +238,7 @@ test.group('Tenancy | withTenant', (group) => {
 
     await assert.rejects(
       () => runAsSystem(() => Probe.create({ ownerId, name: 'orphan' })),
-      /needs an explicit tenantId/
+      /needs an explicit tenantId/u
     );
   });
 
@@ -265,6 +273,7 @@ test.group('Tenancy | withTenant', (group) => {
 
   test('existsInTenant rejects an id of another tenant', async ({ assert }) => {
     const { acme, acmeId, globexId } = await seed();
+
     const validator = vine.create({
       probeId: vine.string().exists(existsInTenant(Probe)),
     });

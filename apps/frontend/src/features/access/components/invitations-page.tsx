@@ -40,9 +40,9 @@ type Invitation = Awaited<
 type Role = Awaited<ReturnType<typeof api.access.roles.index>>['data'][number];
 
 function roleName(roles: readonly Role[], roleId: string | null) {
-  return roleId
-    ? (roles.find((role) => role.id === roleId)?.name ?? null)
-    : null;
+  return roleId === null
+    ? null
+    : (roles.find((role) => role.id === roleId)?.name ?? null);
 }
 
 /** The API always sets both dates; the nullable type here only reflects the column's general shape. */
@@ -82,7 +82,11 @@ function Invitations() {
         title={t('access.invitationsPage.title')}
         description={t('access.invitationsPage.description')}
         actions={
-          <Button onClick={() => setInviting(true)}>
+          <Button
+            onClick={() => {
+              setInviting(true);
+            }}
+          >
             <MailPlusIcon data-icon="inline-start" />
             {t('access.invitationsPage.inviteMember')}
           </Button>
@@ -104,7 +108,11 @@ function Invitations() {
               </EmptyDescription>
             </EmptyHeader>
             <EmptyContent>
-              <Button onClick={() => setInviting(true)}>
+              <Button
+                onClick={() => {
+                  setInviting(true);
+                }}
+              >
                 <MailPlusIcon data-icon="inline-start" />
                 {t('access.invitationsPage.inviteFirstMember')}
               </Button>
@@ -140,12 +148,12 @@ function Invitations() {
                     {invitation.email}
                   </TableCell>
                   <TableCell>
-                    {name ? (
-                      <Badge variant="secondary">{name}</Badge>
-                    ) : (
+                    {name === null ? (
                       <span className="text-muted-foreground">
                         {t('access.invitationsPage.noRole')}
                       </span>
+                    ) : (
+                      <Badge variant="secondary">{name}</Badge>
                     )}
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
@@ -175,7 +183,9 @@ function Invitations() {
                           email: invitation.email,
                         }
                       )}
-                      onClick={() => setRevoking(invitation)}
+                      onClick={() => {
+                        setRevoking(invitation);
+                      }}
                     >
                       <Trash2Icon />
                     </Button>
@@ -203,7 +213,11 @@ function Invitations() {
           invitation={revoking}
           tenantId={tenantId}
           open
-          onOpenChange={(open) => !open && setRevoking(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setRevoking(null);
+            }
+          }}
         />
       )}
     </>
@@ -243,12 +257,12 @@ function RevokeInvitationDialog({
       description={t('access.invitationsPage.revokeDescription')}
       confirmLabel={t('access.invitationsPage.revokeConfirm')}
       pending={revokeInvitation.isPending}
-      onConfirm={() =>
+      onConfirm={() => {
         revokeInvitation.mutate({
           params: { id: invitation.id },
           ...tenantHeaders(tenantId),
-        })
-      }
+        });
+      }}
     />
   );
 }

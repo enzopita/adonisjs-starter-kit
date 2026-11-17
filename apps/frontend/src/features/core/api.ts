@@ -15,13 +15,15 @@ const client = createTuyau({
 
         request.headers.set('Accept-Language', locale);
 
-        if (token) request.headers.set('Authorization', `Bearer ${token}`);
+        if (token) {
+          request.headers.set('Authorization', `Bearer ${token}`);
+        }
       },
     ],
   },
 });
 
-export const api = client.api;
+export const { api } = client;
 
 export const queries = createTuyauReactQueryClient({ client });
 

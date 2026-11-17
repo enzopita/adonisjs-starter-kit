@@ -18,7 +18,7 @@ export default class MyPermissionsController {
       ALL_PERMISSIONS.map((permission) => bouncer.allows(can, permission))
     );
 
-    return serialize({
+    return await serialize({
       permissions: ALL_PERMISSIONS.filter((_, index) => allowed[index]),
     });
   }

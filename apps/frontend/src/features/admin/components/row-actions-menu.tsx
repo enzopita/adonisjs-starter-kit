@@ -37,7 +37,9 @@ export function RowActionsMenu({
             key={action.key}
             variant={action.destructive ? 'destructive' : 'default'}
             disabled={action.disabled}
-            onClick={action.onSelect}
+            onClick={() => {
+              action.onSelect();
+            }}
             className="whitespace-nowrap"
           >
             <action.icon />

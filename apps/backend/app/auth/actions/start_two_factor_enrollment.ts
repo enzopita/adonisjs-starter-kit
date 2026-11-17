@@ -16,14 +16,15 @@ export interface StartTwoFactorEnrollmentInput {
  */
 export default class StartTwoFactorEnrollment {
   async handle({ user }: StartTwoFactorEnrollmentInput) {
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const locked = await User.query({ client: trx })
         .where('id', user.id)
         .forUpdate()
         .firstOrFail();
 
-      if (locked.twoFactorConfirmedAt)
+      if (locked.twoFactorConfirmedAt) {
         throw new TwoFactorAlreadyEnabledException();
+      }
 
       const secret = newTwoFactorSecret(locked.email);
 

@@ -15,7 +15,7 @@ export default class ApiException<
     return { code: this.code, message: this.message };
   }
 
-  async handle(error: this, { response }: HttpContext) {
+  handle(error: this, { response }: HttpContext) {
     response.status(error.status).send(error.toResponse());
   }
 }

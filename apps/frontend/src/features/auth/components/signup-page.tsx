@@ -13,6 +13,7 @@ const route = getRouteApi('/signup');
 /** Signing up reruns the route guards, which send the user on to `?redirect=`. */
 export function SignupPage() {
   const { redirect: redirectTo } = route.useSearch();
+
   const createAccount = useMutation(
     queries.auth.newAccount.store.mutationOptions()
   );
@@ -40,7 +41,9 @@ export function SignupPage() {
         })
       );
 
-      if (created) session.signIn(created.data.token);
+      if (created) {
+        session.signIn(created.data.token);
+      }
     },
   });
 

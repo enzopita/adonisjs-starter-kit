@@ -10,9 +10,9 @@ import { t } from '@/features/core/i18n';
 /** The platform admin area. Its pages' loaders skip their requests for anyone else. */
 export const Route = createFileRoute('/_app/admin')({
   beforeLoad: async ({ context: { queryClient } }) => {
-    const { platformAdmin, twoFactorRequired } = (
-      await queryClient.query(adminMeQuery())
-    ).data;
+    const {
+      data: { platformAdmin, twoFactorRequired },
+    } = await queryClient.query(adminMeQuery());
 
     return { platformAdmin, canUseArea: platformAdmin && !twoFactorRequired };
   },

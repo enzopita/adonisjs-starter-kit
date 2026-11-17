@@ -9,7 +9,7 @@ import {
   totpCode,
 } from './support/api.ts';
 
-const RECOVERY_CODE = /^[a-z0-9]{5}-[a-z0-9]{5}$/;
+const RECOVERY_CODE = /^[a-z0-9]{5}-[a-z0-9]{5}$/u;
 
 test('a member enrolls two-factor from the profile, then signs in with a fresh code', async ({
   app,
@@ -22,6 +22,7 @@ test('a member enrolls two-factor from the profile, then signs in with a fresh c
   await app.open('/profile');
 
   await screen.getByRole('button', 'Enable').tap();
+
   const secret = await screen
     .getByLabel('Can’t scan it? Enter this secret manually')
     .inputValue();
@@ -58,7 +59,7 @@ test('a member enrolls two-factor from the profile, then signs in with a fresh c
 
   await screen.getByRole('button', 'Account menu').tap();
   await screen.getByRole('menuitem', 'Log out').tap();
-  await expect(browser).toHaveURL(/\/login/);
+  await expect(browser).toHaveURL(/\/login/u);
 
   await screen.getByLabel('Email').fill(user.email);
   await screen.getByLabel('Password').fill(user.password);
@@ -128,7 +129,7 @@ test('a platform admin without two-factor sees the enroll prompt instead of the 
   ).toBeHidden();
 
   await screen.getByRole('link', 'Set up two-factor authentication').tap();
-  await expect(browser).toHaveURL(/\/profile/);
+  await expect(browser).toHaveURL(/\/profile/u);
   await expect(
     screen.getByRole('heading', 'Two-factor authentication')
   ).toBeVisible();

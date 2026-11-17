@@ -15,7 +15,7 @@ export interface UpdateRoleInput {
 
 export default class UpdateRole {
   async handle({ tenantId, id, name, permissions }: UpdateRoleInput) {
-    return db.transaction((trx) =>
+    return await db.transaction((trx) =>
       new KeepAManager().handle(trx, tenantId, async () => {
         const role = await Role.query({ client: trx })
           .where('id', id)

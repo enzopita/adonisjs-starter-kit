@@ -34,13 +34,15 @@ export type AdminUserRow = {
 };
 
 export function UserStatus({ row }: { row: AdminUserRow }) {
-  if (row.platformAdmin)
+  if (row.platformAdmin) {
     return <Badge variant="secondary">{t('admin.userActions.admin')}</Badge>;
+  }
 
-  if (row.disabledAt)
+  if (row.disabledAt) {
     return (
       <Badge variant="destructive">{t('admin.userActions.disabled')}</Badge>
     );
+  }
 
   return <Badge variant="outline">{t('admin.userActions.active')}</Badge>;
 }
@@ -67,7 +69,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
   const [confirming, setConfirming] = useState<Confirming>(null);
 
   const closeDialog = (open: boolean) => {
-    if (!open) setConfirming(null);
+    if (!open) {
+      setConfirming(null);
+    }
   };
 
   const impersonate = useMutation(
@@ -130,7 +134,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
   const params = { params: { id: row.user.id } };
   const isSelf = row.user.id === me.data.id;
 
-  if (row.platformAdmin && isSelf) return null;
+  if (row.platformAdmin && isSelf) {
+    return null;
+  }
 
   // The API refuses a platform admin's (`node ace admin:reset-two-factor` covers them) and a
   // disabled user's.
@@ -141,7 +147,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
           label: t('admin.userActions.resetTwoFactor'),
           icon: KeyRoundIcon,
           destructive: true,
-          onSelect: () => setConfirming('resetTwoFactor'),
+          onSelect: () => {
+            setConfirming('resetTwoFactor');
+          },
         },
       ]
     : [];
@@ -154,7 +162,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
           label: t('admin.userActions.removeAdmin'),
           icon: ShieldMinusIcon,
           destructive: true,
-          onSelect: () => setConfirming('revoke'),
+          onSelect: () => {
+            setConfirming('revoke');
+          },
         },
       ];
     }
@@ -166,7 +176,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
           label: t('admin.userActions.enable'),
           icon: CircleCheckIcon,
           disabled: enable.isPending,
-          onSelect: () => enable.mutate(params),
+          onSelect: () => {
+            enable.mutate(params);
+          },
         },
       ];
     }
@@ -177,13 +189,17 @@ export function UserActions({ row }: { row: AdminUserRow }) {
         label: t('admin.userActions.impersonate'),
         icon: VenetianMaskIcon,
         disabled: impersonate.isPending,
-        onSelect: () => impersonate.mutate(params),
+        onSelect: () => {
+          impersonate.mutate(params);
+        },
       },
       {
         key: 'makeAdmin',
         label: t('admin.userActions.makeAdmin'),
         icon: ShieldPlusIcon,
-        onSelect: () => setConfirming('grant'),
+        onSelect: () => {
+          setConfirming('grant');
+        },
       },
       ...resetAction,
       {
@@ -191,7 +207,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
         label: t('admin.userActions.disable'),
         icon: BanIcon,
         destructive: true,
-        onSelect: () => setConfirming('disable'),
+        onSelect: () => {
+          setConfirming('disable');
+        },
       },
     ];
   }
@@ -212,7 +230,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
         description={t('admin.userActions.removeAdminDescription')}
         confirmLabel={t('admin.userActions.removeAdmin')}
         pending={revoke.isPending}
-        onConfirm={() => revoke.mutate(params)}
+        onConfirm={() => {
+          revoke.mutate(params);
+        }}
       />
       <ConfirmDialog
         open={confirming === 'grant'}
@@ -221,7 +241,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
         description={t('admin.userActions.makeAdminDescription')}
         confirmLabel={t('admin.userActions.makeAdmin')}
         pending={grant.isPending}
-        onConfirm={() => grant.mutate(params)}
+        onConfirm={() => {
+          grant.mutate(params);
+        }}
       />
       <ConfirmDialog
         open={confirming === 'resetTwoFactor'}
@@ -230,7 +252,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
         description={t('admin.userActions.resetTwoFactorDescription')}
         confirmLabel={t('admin.userActions.resetTwoFactor')}
         pending={resetTwoFactor.isPending}
-        onConfirm={() => resetTwoFactor.mutate(params)}
+        onConfirm={() => {
+          resetTwoFactor.mutate(params);
+        }}
       />
       <ConfirmDialog
         open={confirming === 'disable'}
@@ -239,7 +263,9 @@ export function UserActions({ row }: { row: AdminUserRow }) {
         description={t('admin.userActions.disableDescription')}
         confirmLabel={t('admin.userActions.disable')}
         pending={disable.isPending}
-        onConfirm={() => disable.mutate(params)}
+        onConfirm={() => {
+          disable.mutate(params);
+        }}
       />
     </div>
   );

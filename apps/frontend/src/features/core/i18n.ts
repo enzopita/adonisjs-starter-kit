@@ -16,7 +16,9 @@ export function resolveLocale(languages: readonly string[]): Locale {
       locale.startsWith(`${language.split('-')[0]}-`)
     );
 
-    if (match) return match;
+    if (match) {
+      return match;
+    }
   }
 
   return 'en-US';
@@ -79,6 +81,8 @@ export function t(
     formats.set(key, format);
   }
 
-  // SAFETY: with only string and number values, IntlMessageFormat returns a single string.
-  return format.format(values) as string;
+  const message = format.format<string>(values);
+
+  // Parts only come back for rich-text values, which `values` can't hold.
+  return Array.isArray(message) ? message.join('') : message;
 }

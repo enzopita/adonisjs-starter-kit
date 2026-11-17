@@ -18,6 +18,7 @@ test("changes a member's role and it persists after reload", async ({
   const tenant = await createTenant(owner);
   const role = await createRole(owner, tenant);
   const member = await addMember(owner, tenant, 'Ada Lovelace');
+
   const select = () =>
     screen.getByRole('combobox', `Role for ${member.fullName}`);
 
@@ -65,6 +66,7 @@ test('demoting the last manager shows the error and keeps their role', async ({
 }) => {
   const owner = await signUp();
   await createTenant(owner);
+
   const select = () =>
     screen.getByRole('combobox', `Role for ${owner.fullName}`);
 

@@ -26,19 +26,23 @@ export interface ConfirmTwoFactorInput {
  */
 export default class ConfirmTwoFactor {
   async handle({ user, password, code }: ConfirmTwoFactorInput) {
-    if (!(await user.verifyPassword(password)))
+    if (!(await user.verifyPassword(password))) {
       throw new InvalidPasswordException();
+    }
 
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const locked = await User.query({ client: trx })
         .where('id', user.id)
         .forUpdate()
         .firstOrFail();
 
-      if (locked.twoFactorConfirmedAt)
+      if (locked.twoFactorConfirmedAt) {
         throw new TwoFactorAlreadyEnabledException();
+      }
 
-      if (!locked.twoFactorSecret) throw new TwoFactorNotStartedException();
+      if (locked.twoFactorSecret === null) {
+        throw new TwoFactorNotStartedException();
+      }
 
       if (!(await verifySecondFactor(trx, locked, { type: 'totp', code }))) {
         throw new InvalidTwoFactorCodeException();

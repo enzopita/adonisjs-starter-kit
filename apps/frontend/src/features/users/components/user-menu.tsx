@@ -90,7 +90,11 @@ export function UserMenu({
           </DropdownMenuSubContent>
         </DropdownMenuSub>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={onLogOut}>
+        <DropdownMenuItem
+          onClick={() => {
+            void onLogOut();
+          }}
+        >
           <LogOutIcon />
           {t('users.userMenu.logOut')}
         </DropdownMenuItem>

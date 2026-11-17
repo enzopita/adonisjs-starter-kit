@@ -8,13 +8,13 @@ import {
 import { Input } from '@monorepo/ui/components/input';
 import { createFormHook, createFormHookContexts } from '@tanstack/react-form';
 import type { AnyFormApi } from '@tanstack/react-form';
-import { TuyauError } from '@tuyau/core/client';
 import { CircleAlertIcon } from 'lucide-react';
 import { useId } from 'react';
 import type { ComponentProps, ReactNode } from 'react';
+import { z } from 'zod';
 
 import { PendingButton } from '@/features/core/components/pending-button';
-import { formErrors } from '@/features/core/errors';
+import { formErrors, isTuyauError } from '@/features/core/errors';
 
 const { fieldContext, formContext, useFieldContext, useFormContext } =
   createFormHookContexts();
@@ -30,8 +30,8 @@ type TextFieldProps = Omit<
 function TextField({ label, description, ...props }: TextFieldProps) {
   const field = useFieldContext<string>();
   const id = useId();
-  // SAFETY: every error this app puts on a field is a message string (see withFormErrors).
-  const error = field.state.meta.errors[0] as string | undefined;
+  // Every error this app puts on a field is a message string (see withFormErrors).
+  const error = z.string().safeParse(field.state.meta.errors[0]).data;
 
   return (
     <Field data-invalid={error !== undefined}>
@@ -40,12 +40,16 @@ function TextField({ label, description, ...props }: TextFieldProps) {
         id={id}
         name={field.name}
         value={field.state.value}
-        onChange={(event) => field.handleChange(event.target.value)}
+        onChange={(event) => {
+          field.handleChange(event.target.value);
+        }}
         onBlur={field.handleBlur}
         aria-invalid={error !== undefined}
         {...props}
       />
-      {description && <FieldDescription>{description}</FieldDescription>}
+      {description !== undefined && (
+        <FieldDescription>{description}</FieldDescription>
+      )}
       <FieldError>{error}</FieldError>
     </Field>
   );
@@ -80,14 +84,18 @@ function FormAlert() {
   const form = useFormContext();
 
   return (
-    <form.Subscribe selector={(state) => state.errorMap.onSubmit}>
+    <form.Subscribe
+      selector={(state) =>
+        z.string().min(1).safeParse(state.errorMap.onSubmit).data
+      }
+    >
       {(error) =>
-        error ? (
+        error === undefined ? null : (
           <Alert variant="destructive">
             <CircleAlertIcon />
-            <AlertDescription>{String(error)}</AlertDescription>
+            <AlertDescription>{error}</AlertDescription>
           </Alert>
-        ) : null
+        )
       }
     </form.Subscribe>
   );
@@ -125,7 +133,9 @@ export async function withFormErrors<Result>(
   try {
     return await write;
   } catch (error) {
-    if (!(error instanceof TuyauError)) throw error;
+    if (!isTuyauError(error)) {
+      throw error;
+    }
 
     formApi.setErrorMap({ onSubmit: formErrors(error) });
 

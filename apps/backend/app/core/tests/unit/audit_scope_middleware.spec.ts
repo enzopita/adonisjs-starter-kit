@@ -18,9 +18,8 @@ type Request = {
 async function handle({ method, status, records, exempt }: Request) {
   const ctx = await testUtils.createHttpContext();
   ctx.request.request.method = method;
-  ctx.auth = (await app.container.make('auth.manager')).createAuthenticator(
-    ctx
-  );
+  const auth = await app.container.make('auth.manager');
+  ctx.auth = auth.createAuthenticator(ctx);
 
   await new AuditScopeMiddleware().handle(ctx, async () => {
     if (records) {
@@ -31,10 +30,19 @@ async function handle({ method, status, records, exempt }: Request) {
       });
     }
 
-    if (exempt === 'unaudited')
-      currentAuditScope()!.unaudited = 'provider_callback';
+    const scope = currentAuditScope();
 
-    if (exempt === 'unchanged') audit.unchanged();
+    if (scope === undefined) {
+      throw new Error('expected an audit scope inside the middleware');
+    }
+
+    if (exempt === 'unaudited') {
+      scope.unaudited = 'provider_callback';
+    }
+
+    if (exempt === 'unchanged') {
+      audit.unchanged();
+    }
 
     ctx.response.status(status);
   });
@@ -71,14 +79,14 @@ test.group('Core | audit scope middleware', (group) => {
     });
   });
 
-  test('fails an exempted write that recorded an event anyway: the exemption is wrong', async ({
-    assert,
-  }) => {
-    for (const exempt of ['unaudited', 'unchanged'] as const) {
+  test(
+    'fails a write exempted as {exempt} that recorded an event anyway: the exemption is wrong'
+  )
+    .with([{ exempt: 'unaudited' }, { exempt: 'unchanged' }] as const)
+    .run(async ({ assert }, { exempt }) => {
       await assert.rejects(
         () => handle({ method: 'POST', status: 200, records: true, exempt }),
         AuditExemptionMisusedException
       );
-    }
-  });
+    });
 });

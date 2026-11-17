@@ -13,7 +13,7 @@ import User from '#users/models/user';
 async function signUpWithTwoFactor(client: ApiClient, email: string) {
   await signUp(client, email);
 
-  return enableTwoFactor(await User.findByOrFail('email', email));
+  return await enableTwoFactor(await User.findByOrFail('email', email));
 }
 
 /**
@@ -24,6 +24,7 @@ async function enroll(client: ApiClient, token: string) {
   const started = await client
     .visit('profile.two_factor.store')
     .bearerToken(token);
+
   const { secret } = started.body().data;
 
   const confirmed = await client
@@ -42,10 +43,11 @@ function login(client: ApiClient, email: string) {
 
 async function challengeFor(client: ApiClient, email: string) {
   const response = await login(client, email);
-  const data = response.body().data;
+  const { data } = response.body();
 
-  if (!data.twoFactorRequired)
+  if (!data.twoFactorRequired) {
     throw new Error('expected a two-factor challenge');
+  }
 
   return data.challenge;
 }
@@ -80,15 +82,18 @@ test.group('Auth | two-factor login', (group) => {
     });
 
     second.assertStatus(200);
+
     const profile = await client
       .visit('profile.profile.show')
       .bearerToken(second.body().data.token);
+
     profile.assertStatus(200);
     assert.isTrue(profile.body().data.twoFactorEnabled);
 
     const loggedIn = await AuditEvent.query()
       .where('type', 'auth.logged_in')
       .firstOrFail();
+
     assert.deepEqual(loggedIn.data, {
       email: 'ada@example.com',
       factor: 'totp',
@@ -107,15 +112,19 @@ test.group('Auth | two-factor login', (group) => {
 
     wrong.assertStatus(400);
     wrong.assertBodyContains({ code: 'E_INVALID_TWO_FACTOR_CODE' });
-    assert.equal(
-      (await AuditEvent.query().where('type', 'auth.two_factor_failed')).length,
-      1
+
+    const failures = await AuditEvent.query().where(
+      'type',
+      'auth.two_factor_failed'
     );
+
+    assert.equal(failures.length, 1);
 
     const right = await secondStep(client, {
       challenge,
       code: totpCode(secret),
     });
+
     right.assertStatus(200);
   });
 
@@ -156,18 +165,23 @@ test.group('Auth | two-factor login', (group) => {
       client,
       await signUp(client, 'ada@example.com')
     );
+
     const [recoveryCode] = recoveryCodes;
+
+    if (recoveryCode === undefined) {
+      throw new Error('expected recovery codes from enrollment');
+    }
 
     const used = await secondStep(client, {
       challenge: await challengeFor(client, 'ada@example.com'),
-      recoveryCode: recoveryCode!.toUpperCase(),
+      recoveryCode: recoveryCode.toUpperCase(),
     });
 
     used.assertStatus(200);
 
     const again = await secondStep(client, {
       challenge: await challengeFor(client, 'ada@example.com'),
-      recoveryCode: recoveryCode!,
+      recoveryCode,
     });
 
     again.assertStatus(400);
@@ -176,6 +190,7 @@ test.group('Auth | two-factor login', (group) => {
     const recorded = await AuditEvent.query()
       .where('type', 'auth.recovery_code_used')
       .firstOrFail();
+
     assert.deepEqual(recorded.data, { email: 'ada@example.com', remaining: 9 });
   });
 
@@ -235,7 +250,7 @@ test.group('Auth | two-factor login', (group) => {
   }) => {
     const secret = await signUpWithTwoFactor(client, 'ada@example.com');
 
-    for (let attempt = 0; attempt < 5; attempt++) {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
       const response = await secondStep(client, {
         challenge: await challengeFor(client, 'ada@example.com'),
         code: '000000',
@@ -264,9 +279,8 @@ test.group('Auth | two-factor enrollment', (group) => {
   }) => {
     const other = await signUp(client, 'ada@example.com');
 
-    const { token: current } = sessionOf(
-      (await login(client, 'ada@example.com')).body().data
-    );
+    const signIn = await login(client, 'ada@example.com');
+    const { token: current } = sessionOf(signIn.body().data);
 
     const started = await client
       .visit('profile.two_factor.store')
@@ -274,7 +288,7 @@ test.group('Auth | two-factor enrollment', (group) => {
 
     started.assertStatus(200);
     const { secret, uri } = started.body().data;
-    assert.match(uri, /^otpauth:\/\/totp\/.+:ada%40example\.com\?/);
+    assert.match(uri, /^otpauth:\/\/totp\/.+:ada%40example\.com\?/u);
     assert.include(uri, `secret=${secret}`);
 
     const wrongPassword = await client
@@ -302,45 +316,60 @@ test.group('Auth | two-factor enrollment', (group) => {
     assert.lengthOf(recoveryCodes, 10);
     assert.lengthOf(new Set(recoveryCodes), 10);
 
-    for (const code of recoveryCodes)
-      assert.match(code, /^[a-z2-9]{5}-[a-z2-9]{5}$/);
+    for (const code of recoveryCodes) {
+      assert.match(code, /^[a-z2-9]{5}-[a-z2-9]{5}$/u);
+    }
 
-    const stored: { code_hash: string }[] = await db.from(
-      'two_factor_recovery_codes'
-    );
+    const stored = await db
+      .query<{ code_hash: string }>()
+      .from('two_factor_recovery_codes');
+
     assert.lengthOf(stored, 10);
 
-    for (const row of stored) assert.notInclude(recoveryCodes, row.code_hash);
+    for (const row of stored) {
+      assert.notInclude(recoveryCodes, row.code_hash);
+    }
 
     const user = await User.findByOrFail('email', 'ada@example.com');
-    assert.notInclude(user.twoFactorSecret!, secret);
 
-    (
-      await client.visit('profile.profile.show').bearerToken(other)
-    ).assertStatus(401);
+    if (user.twoFactorSecret === null) {
+      throw new Error('expected a stored two-factor secret');
+    }
+
+    assert.notInclude(user.twoFactorSecret, secret);
+
+    const otherSession = await client
+      .visit('profile.profile.show')
+      .bearerToken(other);
+
+    otherSession.assertStatus(401);
 
     const profile = await client
       .visit('profile.profile.show')
       .bearerToken(current);
+
     profile.assertStatus(200);
     assert.isTrue(profile.body().data.twoFactorEnabled);
 
     const status = await client
       .visit('profile.two_factor.show')
       .bearerToken(current);
+
     status.assertBody({ data: { enabled: true, recoveryCodesLeft: 10 } });
 
     const restart = await client
       .visit('profile.two_factor.store')
       .bearerToken(current);
+
     restart.assertStatus(409);
     restart.assertBodyContains({ code: 'E_TWO_FACTOR_ALREADY_ENABLED' });
 
-    assert.equal(
-      (await AuditEvent.query().where('type', 'auth.two_factor_enabled'))
-        .length,
-      1
+    const enabled = await AuditEvent.query().where(
+      'type',
+      'auth.two_factor_enabled'
     );
+
+    assert.equal(enabled.length, 1);
   });
 
   // Regression: a started but unconfirmed secret locks the user out of a password-only login.
@@ -370,6 +399,7 @@ test.group('Auth | two-factor enrollment', (group) => {
     const started = await client
       .visit('profile.two_factor.store')
       .bearerToken(token);
+
     started.assertStatus(403);
     started.assertBodyContains({ code: 'E_IMPERSONATING' });
 
@@ -391,6 +421,7 @@ test.group('Auth | two-factor disable and recovery codes', (group) => {
     assert,
   }) => {
     const token = await signUp(client, 'ada@example.com');
+
     const secret = await enableTwoFactor(
       await User.findByOrFail('email', 'ada@example.com')
     );
@@ -424,6 +455,7 @@ test.group('Auth | two-factor disable and recovery codes', (group) => {
     const profile = await client
       .visit('profile.profile.show')
       .bearerToken(token);
+
     assert.isFalse(profile.body().data.twoFactorEnabled);
   });
 
@@ -445,16 +477,20 @@ test.group('Auth | two-factor disable and recovery codes', (group) => {
     const [newCode] = regenerated.body().data.recoveryCodes;
     assert.notEqual(newCode, oldCode);
 
+    if (oldCode === undefined || newCode === undefined) {
+      throw new Error('expected recovery codes before and after regenerating');
+    }
+
     const withOld = await secondStep(client, {
       challenge: await challengeFor(client, 'ada@example.com'),
-      recoveryCode: oldCode!,
+      recoveryCode: oldCode,
     });
 
     withOld.assertStatus(400);
 
     const withNew = await secondStep(client, {
       challenge: await challengeFor(client, 'ada@example.com'),
-      recoveryCode: newCode!,
+      recoveryCode: newCode,
     });
 
     withNew.assertStatus(200);

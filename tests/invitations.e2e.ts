@@ -125,9 +125,11 @@ test('a new person opens the mailed link signed out, creates an account, and acc
 }) => {
   const owner = await signUp();
   const tenant = await createTenant(owner);
+
   const role = await createRole(owner, tenant, unique('Support'), [
     'members.manage',
   ]);
+
   const email = uniqueEmail('newcomer');
   const password = randomUUID().slice(0, 24);
 
@@ -215,10 +217,9 @@ test('the wrong signed-in account sees the mismatch state', async ({
   // Regression: the button only dropped the token from this browser, leaving it valid server-side.
   const outcome = await api('/account/profile', {
     token: wrongAccount.token,
-  }).then(
-    () => 'ok',
-    (error) => String(error)
-  );
+  })
+    .then(() => 'ok')
+    .catch(String);
 
   expect(outcome).toContain('answered 401');
 });

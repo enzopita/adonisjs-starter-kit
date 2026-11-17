@@ -17,12 +17,17 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
     app.booting(async () => {
       await import('#start/env');
     });
-    app.listen('SIGTERM', () => app.terminate());
-    app.listenIf(app.managedByPm2, 'SIGINT', () => app.terminate());
+    app.listen('SIGTERM', () => {
+      void app.terminate();
+    });
+    app.listenIf(app.managedByPm2, 'SIGINT', () => {
+      void app.terminate();
+    });
   })
   .httpServer()
   .start()
-  .catch(async (error) => {
+  // oxlint-disable-next-line promise/prefer-await-to-callbacks, anti-slop/no-unknown-parameters -- a rejection handler takes whatever was thrown; a top-level await instead would keep a long-running command's module pending.
+  .catch(async (error: unknown) => {
     process.exitCode = 1;
     await prettyPrintError(error);
   });

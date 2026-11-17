@@ -19,12 +19,12 @@ export default class TenantsController {
     const userId = auth.getUserOrFail().id;
 
     const tenants = await Tenant.query()
-      .whereHas('memberships', (memberships) =>
-        memberships.where('user_id', userId)
-      )
+      .whereHas('memberships', (memberships) => {
+        memberships.where('user_id', userId);
+      })
       .orderBy('name');
 
-    return serialize(TenantTransformer.transform(tenants));
+    return await serialize(TenantTransformer.transform(tenants));
   }
 
   /**
@@ -42,6 +42,6 @@ export default class TenantsController {
       locale: i18n.locale,
     });
 
-    return serialize(TenantTransformer.transform(tenant));
+    return await serialize(TenantTransformer.transform(tenant));
   }
 }

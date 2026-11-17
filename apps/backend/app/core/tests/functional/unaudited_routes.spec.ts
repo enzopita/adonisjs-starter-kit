@@ -18,7 +18,9 @@ test.group('Core | unaudited routes', () => {
 
         const marker = named.find((item) => item.name === 'unaudited');
 
-        if (!marker) return [];
+        if (!marker) {
+          return [];
+        }
 
         const guarded = named.some(
           (item) => item.name === 'auth' || item.name === 'tenant'

@@ -16,16 +16,15 @@ import {
   useRouter,
 } from '@tanstack/react-router';
 import type { ErrorComponentProps } from '@tanstack/react-router';
-import { TuyauError } from '@tuyau/core/client';
 import { CircleAlertIcon } from 'lucide-react';
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 
 import { AdminMenuItem } from '@/features/admin/components/admin-menu-item';
 import { ImpersonationBanner } from '@/features/admin/components/impersonation-banner';
 import { adminMeQuery } from '@/features/admin/queries';
 import { queries } from '@/features/core/api';
 import { AppMark } from '@/features/core/components/app-mark';
-import { errorMessage } from '@/features/core/errors';
+import { errorMessage, isTuyauError } from '@/features/core/errors';
 import { locale, resolveLocale, t } from '@/features/core/i18n';
 import { LOCALES } from '@/features/core/locales';
 import type { Locale } from '@/features/core/locales';
@@ -43,8 +42,8 @@ export const Route = createFileRoute('/_app')({
       throw redirect({ to: '/login', search: returnTo(location.href) });
     }
   },
-  loader: ({ context: { queryClient } }) =>
-    Promise.all([
+  loader: async ({ context: { queryClient } }) =>
+    await Promise.all([
       queryClient.query(profileQuery()),
       queryClient.query(tenantsQuery()),
       queryClient.query(adminMeQuery()),
@@ -70,18 +69,22 @@ function useSyncPreferences(
   impersonating: boolean
 ) {
   const synced = useRef(false);
+
   const updateProfile = useMutation(
     queries.profile.profile.update.mutationOptions()
   );
 
-  useEffect(() => {
-    if (synced.current || impersonating) return;
+  const sync = useEffectEvent(() => {
+    if (synced.current || impersonating) {
+      return;
+    }
 
     synced.current = true;
 
     // Fresh browser detection, not the persisted `locale`: on a shared browser that value can be a
     // previous account's choice, and this account must never inherit it.
     const nextLocale = user.locale ?? resolveLocale(navigator.languages);
+
     const nextTimeZone =
       user.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone;
 
@@ -113,7 +116,10 @@ function useSyncPreferences(
     } else {
       reloadIfStale();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- runs once per page load, guarded above.
+  });
+
+  useEffect(() => {
+    sync();
   }, []);
 }
 
@@ -124,8 +130,7 @@ function AppLayout() {
 
   useSyncPreferences(
     {
-      // SAFETY: the backend only ever stores a locale from localeRule()'s supportedLocales.
-      locale: user.data.locale as Locale | null,
+      locale: LOCALES.find((value) => value === user.data.locale) ?? null,
       timezone: user.data.timezone,
     },
     impersonating
@@ -134,7 +139,7 @@ function AppLayout() {
   return (
     <div className="flex min-h-svh flex-col">
       {impersonating && <ImpersonationBanner user={user.data} />}
-      {!user.data.emailVerifiedAt && (
+      {user.data.emailVerifiedAt === null && (
         <UnverifiedEmailBanner email={user.data.email} />
       )}
       <header className="bg-background sticky top-0 z-30 flex h-12 items-center gap-2 border-b px-3 md:px-4">
@@ -165,13 +170,17 @@ function AppError({ error }: ErrorComponentProps) {
           <h1>{t('routes.app.wentWrong')}</h1>
         </EmptyTitle>
         <EmptyDescription>
-          {error instanceof TuyauError
+          {isTuyauError(error)
             ? errorMessage(error)
             : t('routes.app.pageFailed')}
         </EmptyDescription>
       </EmptyHeader>
       <EmptyContent>
-        <Button onClick={() => router.invalidate()}>
+        <Button
+          onClick={() => {
+            void router.invalidate();
+          }}
+        >
           {t('routes.app.tryAgain')}
         </Button>
       </EmptyContent>

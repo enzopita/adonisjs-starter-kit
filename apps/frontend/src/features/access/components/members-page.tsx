@@ -136,7 +136,9 @@ function Members() {
                       variant="ghost"
                       size="icon-sm"
                       aria-label={t('access.membersPage.historyFor', { name })}
-                      onClick={() => setViewingHistory(member)}
+                      onClick={() => {
+                        setViewingHistory(member);
+                      }}
                     >
                       <HistoryIcon />
                     </Button>
@@ -146,7 +148,9 @@ function Members() {
                       aria-label={t('access.membersPage.editPermissionsFor', {
                         name,
                       })}
-                      onClick={() => setEditing(member)}
+                      onClick={() => {
+                        setEditing(member);
+                      }}
                     >
                       <KeyRoundIcon />
                     </Button>
@@ -169,7 +173,11 @@ function Members() {
           groups={catalog.data.groups}
           tenantId={tenantId}
           open
-          onOpenChange={(open) => !open && setEditing(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditing(null);
+            }
+          }}
         />
       )}
 
@@ -181,7 +189,11 @@ function Members() {
           tenantId={tenantId}
           permissionLabel={(key) => permissionLabel(key).label}
           open
-          onOpenChange={(open) => !open && setViewingHistory(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setViewingHistory(null);
+            }
+          }}
         />
       )}
     </>

@@ -28,7 +28,7 @@ export default class InvitationsController {
 
     const invitations = await Invitation.query().orderBy('createdAt', 'desc');
 
-    return serialize(InvitationTransformer.transform(invitations));
+    return await serialize(InvitationTransformer.transform(invitations));
   }
 
   /**
@@ -50,6 +50,7 @@ export default class InvitationsController {
     serialize,
   }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.membersManage);
+
     const { email, roleId } = await request.validateUsing(
       inviteMemberValidator
     );
@@ -62,7 +63,7 @@ export default class InvitationsController {
       locale: i18n.locale,
     });
 
-    return serialize(InvitationTransformer.transform(invitation));
+    return await serialize(InvitationTransformer.transform(invitation));
   }
 
   /**
@@ -79,6 +80,6 @@ export default class InvitationsController {
 
     await new RevokeInvitation().handle({ tenantId: tenant.id, id: params.id });
 
-    return serialize({ id: params.id });
+    return await serialize({ id: params.id });
   }
 }

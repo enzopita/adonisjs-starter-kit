@@ -55,21 +55,27 @@ async function acceptTotp(
   user: User,
   code: string
 ) {
-  const base32 = user.twoFactorSecret
-    ? encryption.decrypt<string>(user.twoFactorSecret, SECRET_PURPOSE)
-    : null;
+  const base32 =
+    user.twoFactorSecret === null
+      ? null
+      : encryption.decrypt<string>(user.twoFactorSecret, SECRET_PURPOSE);
 
-  if (!base32) return false;
+  if (base32 === null) {
+    return false;
+  }
 
   const totp = totpOf(base32);
   const timestamp = Date.now();
+
   const delta = totp.validate({
-    token: code.replace(/\s/g, ''),
+    token: code.replaceAll(/\s/gu, ''),
     timestamp,
     window: 1,
   });
 
-  if (delta === null) return false;
+  if (delta === null) {
+    return false;
+  }
 
   const step = totp.counter({ timestamp }) + delta;
 
@@ -88,7 +94,7 @@ async function acceptTotp(
 
 const recoveryCodeHash = (code: string) =>
   encryption.blindIndex(
-    code.toLowerCase().replace(/[^a-z0-9]/g, ''),
+    code.toLowerCase().replaceAll(/[^a-z0-9]/gu, ''),
     RECOVERY_CODE_PURPOSE
   );
 
@@ -167,11 +173,12 @@ export async function countRecoveryCodes(
   userId: string
 ) {
   const [row] = await client
+    .query<{ total: string }>()
     .from('two_factor_recovery_codes')
     .where('user_id', userId)
     .count('* as total');
 
-  return Number(row.total);
+  return Number(row?.total ?? 0);
 }
 
 /**

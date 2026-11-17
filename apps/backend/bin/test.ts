@@ -1,8 +1,8 @@
-process.env.NODE_ENV = 'test';
-
 import 'reflect-metadata';
 import { Ignitor, prettyPrintError } from '@adonisjs/core/ignitor';
 import { configure, processCLIArgs, run } from '@japa/runner';
+
+process.env.NODE_ENV = 'test';
 
 const APP_ROOT = new URL('../', import.meta.url);
 
@@ -19,8 +19,12 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
     app.booting(async () => {
       await import('#start/env');
     });
-    app.listen('SIGTERM', () => app.terminate());
-    app.listenIf(app.managedByPm2, 'SIGINT', () => app.terminate());
+    app.listen('SIGTERM', () => {
+      void app.terminate();
+    });
+    app.listenIf(app.managedByPm2, 'SIGINT', () => {
+      void app.terminate();
+    });
   })
   .testRunner()
   .configure(async (app) => {
@@ -31,11 +35,12 @@ new Ignitor(APP_ROOT, { importer: IMPORTER })
       ...app.rcFile.tests,
       ...config,
       setup: runnerHooks.setup,
-      teardown: runnerHooks.teardown.concat([() => app.terminate()]),
+      teardown: [...runnerHooks.teardown, () => app.terminate()],
     });
   })
   .run(() => run())
-  .catch(async (error) => {
+  // oxlint-disable-next-line promise/prefer-await-to-callbacks, anti-slop/no-unknown-parameters -- a rejection handler takes whatever was thrown; a top-level await instead would keep a long-running command's module pending.
+  .catch(async (error: unknown) => {
     process.exitCode = 1;
     await prettyPrintError(error);
   });

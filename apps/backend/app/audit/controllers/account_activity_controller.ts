@@ -23,7 +23,7 @@ export default class AccountActivityController {
       ...pages,
     });
 
-    return serialize(
+    return await serialize(
       AuditEventTransformer.paginate(rows, meta).useVariant('forAccount')
     );
   }

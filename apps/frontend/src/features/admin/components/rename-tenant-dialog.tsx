@@ -32,7 +32,9 @@ export function RenameTenantDialog({
         rename.mutateAsync({ params: { id: tenant.id }, body: value })
       );
 
-      if (!saved) return;
+      if (!saved) {
+        return;
+      }
 
       onOpenChange(false);
       toast.success(

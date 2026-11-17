@@ -80,7 +80,7 @@ export default defineConfig({
       {
         files: ['app/**/tests/functional/**/*.spec.{ts,js}'],
         name: 'functional',
-        timeout: 30000,
+        timeout: 30_000,
       },
     ],
     forceExit: false,
@@ -114,7 +114,7 @@ export default defineConfig({
         },
       }),
       // The docs routes exist only outside production, so the typed client must not offer them.
-      generateRegistry({ routes: { except: [/^openapi\./] } }),
+      generateRegistry({ routes: { except: [/^openapi\./u] } }),
     ],
   },
 });

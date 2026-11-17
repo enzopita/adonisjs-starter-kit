@@ -18,9 +18,11 @@ test.group('Attachments | prune', (group) => {
     assert,
   }) => {
     using fakeDisk = drive.fake();
+
     const attachment = await AttachmentFactory.merge({
       createdAt: twoDaysAgo(),
     }).create();
+
     await fakeDisk.put(attachment.key, 'contents');
 
     assert.equal(await new PruneAttachments().handle(), 1);
@@ -33,9 +35,11 @@ test.group('Attachments | prune', (group) => {
     assert,
   }) => {
     using fakeDisk = drive.fake();
+
     const attachment = await AttachmentFactory.merge({
       createdAt: twoDaysAgo(),
     }).create();
+
     await fakeDisk.put(attachment.key, 'contents');
 
     await new PruneAttachments().handle();
@@ -60,9 +64,11 @@ test.group('Attachments | prune', (group) => {
     await db.rawQuery(
       'CREATE TABLE prune_consumers (file_attachment_id uuid REFERENCES attachments (id))'
     );
+
     const attachment = await AttachmentFactory.merge({
       createdAt: twoDaysAgo(),
     }).create();
+
     await fakeDisk.put(attachment.key, 'contents');
     await db
       .table('prune_consumers')

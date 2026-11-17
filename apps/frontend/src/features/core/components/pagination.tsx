@@ -19,7 +19,9 @@ export function Pagination({
 }) {
   const { currentPage, lastPage, perPage, total } = metadata;
 
-  if (lastPage <= 1) return null;
+  if (lastPage <= 1) {
+    return null;
+  }
 
   return (
     <nav
@@ -38,7 +40,9 @@ export function Pagination({
           variant="outline"
           size="sm"
           disabled={currentPage <= 1}
-          onClick={() => onPageChange(currentPage - 1)}
+          onClick={() => {
+            onPageChange(currentPage - 1);
+          }}
         >
           <ChevronLeftIcon data-icon="inline-start" />
           {t('core.pagination.previous')}
@@ -50,7 +54,9 @@ export function Pagination({
           variant="outline"
           size="sm"
           disabled={currentPage >= lastPage}
-          onClick={() => onPageChange(currentPage + 1)}
+          onClick={() => {
+            onPageChange(currentPage + 1);
+          }}
         >
           {t('core.pagination.next')}
           <ChevronRightIcon data-icon="inline-end" />

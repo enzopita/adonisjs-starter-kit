@@ -34,12 +34,17 @@ export default class ResetTwoFactor {
         .forUpdate()
         .firstOrFail();
 
-      if (protectPlatformAdmins) await ensureNotPlatformAdmin(locked.id, trx);
+      if (protectPlatformAdmins) {
+        await ensureNotPlatformAdmin(locked.id, trx);
+      }
 
-      if (locked.disabledAt) throw new UserDisabledException();
+      if (locked.disabledAt) {
+        throw new UserDisabledException();
+      }
 
-      if (!locked.twoFactorConfirmedAt)
+      if (!locked.twoFactorConfirmedAt) {
         throw new TwoFactorNotEnabledException();
+      }
 
       await clearTwoFactor(trx, locked);
 

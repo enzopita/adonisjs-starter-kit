@@ -14,10 +14,12 @@ test.group('Users | avatar', (group) => {
       email: 'owner@example.com',
       password: 'password123',
     });
+
     const thief = await User.create({
       email: 'thief@example.com',
       password: 'password123',
     });
+
     const attachment = await AttachmentFactory.merge({
       uploaderId: owner.id,
     }).create();
@@ -57,10 +59,12 @@ test.group('Users | avatar', (group) => {
     assert,
   }) => {
     using _fakeDisk = drive.fake();
+
     const user = await User.create({
       email: 'png@example.com',
       password: 'password123',
     });
+
     const attachment = await AttachmentFactory.merge({
       uploaderId: user.id,
     }).create();
@@ -85,9 +89,11 @@ test.group('Users | avatar', (group) => {
       email: 'clear@example.com',
       password: 'password123',
     });
+
     const attachment = await AttachmentFactory.merge({
       uploaderId: user.id,
     }).create();
+
     user.avatarAttachmentId = attachment.id;
     await user.save();
 
@@ -110,9 +116,11 @@ test.group('Users | avatar', (group) => {
       email: 'audit@example.com',
       password: 'password123',
     });
+
     const attachment = await AttachmentFactory.merge({
       uploaderId: user.id,
     }).create();
+
     user.avatarAttachmentId = attachment.id;
     await user.save();
 

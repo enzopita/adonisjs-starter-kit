@@ -36,13 +36,16 @@ export default class InviteMember {
     locale,
   }: InviteMemberInput) {
     const alreadyMember = await db
+      .query<{ user_id: string }>()
       .from('tenant_memberships')
       .join('users', 'users.id', 'tenant_memberships.user_id')
       .where('tenant_memberships.tenant_id', tenantId)
       .where('users.email', email)
       .first();
 
-    if (alreadyMember) throw new AlreadyMemberException();
+    if (alreadyMember) {
+      throw new AlreadyMemberException();
+    }
 
     const { raw: token, hash: tokenHash } = newToken();
 
@@ -58,9 +61,8 @@ export default class InviteMember {
         { client: trx }
       );
 
-      const role = roleId
-        ? await Role.findOrFail(roleId, { client: trx })
-        : null;
+      const role =
+        roleId === null ? null : await Role.findOrFail(roleId, { client: trx });
 
       await audit.record(trx, 'invitation.sent', {
         tenantId,

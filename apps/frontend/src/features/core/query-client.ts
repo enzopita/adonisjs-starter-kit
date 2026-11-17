@@ -8,8 +8,9 @@ import { session } from '@/features/core/session';
  * expired impersonation returns the admin to their own session instead.
  */
 function signOutOnUnauthorized(error: Error) {
-  if (error instanceof TuyauError && error.status === 401)
+  if (error instanceof TuyauError && error.status === 401) {
     session.stopImpersonating();
+  }
 }
 
 export const queryClient: QueryClient = new QueryClient({
@@ -18,7 +19,9 @@ export const queryClient: QueryClient = new QueryClient({
     onError: signOutOnUnauthorized,
     // Any write can change what a screen shows, your own permissions included; the mutation
     // stays pending until the screens on display have refetched.
-    onSuccess: () => queryClient.invalidateQueries(),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries();
+    },
   }),
   defaultOptions: {
     queries: { staleTime: 30_000, retry: false },

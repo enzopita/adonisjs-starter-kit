@@ -14,9 +14,11 @@ export default class GrantPlatformAdmin {
   async handle({ email }: GrantPlatformAdminInput) {
     const user = await User.findBy('email', email.toLowerCase());
 
-    if (!user) return null;
+    if (!user) {
+      return null;
+    }
 
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const granted = await grantPlatformAdmin(user.id, trx);
 
       if (granted) {

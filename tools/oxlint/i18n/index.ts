@@ -4,7 +4,7 @@ const LETTER = /\p{L}/u;
 
 /** Props whose string value a person reads, on DOM elements and on this app's components. */
 const TEXT_PROP =
-  /(label|title|description|placeholder|alt|text|message|heading)$/i;
+  /(?:label|title|description|placeholder|alt|text|message|heading)$/iu;
 
 type Node = {
   type: string;
@@ -14,8 +14,9 @@ type Node = {
 
 /** A string or template literal with a letter in its text; numbers and punctuation pass. */
 function hasLetters(node: Node | null | undefined): boolean {
-  if (node?.type === 'Literal')
-    return /^['"]/.test(node.raw ?? '') && LETTER.test(node.raw ?? '');
+  if (node?.type === 'Literal') {
+    return /^['"]/u.test(node.raw ?? '') && LETTER.test(node.raw ?? '');
+  }
 
   if (node?.type === 'TemplateLiteral') {
     return (node.quasis ?? []).some((quasi) =>
@@ -40,29 +41,35 @@ const noUntranslatedTextRule = defineRule({
   createOnce(context) {
     return {
       JSXText(node) {
-        if (LETTER.test(node.value))
+        if (LETTER.test(node.value)) {
           context.report({ node, messageId: 'untranslated' });
+        }
       },
       JSXAttribute(node) {
         if (
           node.name.type !== 'JSXIdentifier' ||
           !TEXT_PROP.test(node.name.name)
-        )
+        ) {
           return;
+        }
 
         const value =
           node.value?.type === 'JSXExpressionContainer'
             ? node.value.expression
             : node.value;
 
-        if (hasLetters(value))
+        if (hasLetters(value)) {
           context.report({ node, messageId: 'untranslated' });
+        }
       },
       JSXExpressionContainer(node) {
-        if (node.parent.type === 'JSXAttribute') return;
+        if (node.parent.type === 'JSXAttribute') {
+          return;
+        }
 
-        if (hasLetters(node.expression))
+        if (hasLetters(node.expression)) {
           context.report({ node, messageId: 'untranslated' });
+        }
       },
       CallExpression(node) {
         const { callee } = node;

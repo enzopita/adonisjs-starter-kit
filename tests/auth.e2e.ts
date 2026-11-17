@@ -72,7 +72,7 @@ test('a member signs in, returns to the page they asked for, and logs out', asyn
 
   // The token is gone: the profile redirects to login again.
   await app.open('/profile');
-  await expect(browser).toHaveURL(/\/login/);
+  await expect(browser).toHaveURL(/\/login/u);
 });
 
 test('a member resets a forgotten password from the mailed link and signs in with it', async ({
@@ -134,8 +134,12 @@ test('a signed-up member sees the unverified banner until they open the mailed l
   // Regression: a failure other than a bad token left the page on "Verifying" with no way out.
   let failed = false;
 
-  await browser.route(/\/api\/v1\/auth\/email\/verify$/, async (route) => {
-    if (failed) return route.continue();
+  await browser.route(/\/api\/v1\/auth\/email\/verify$/u, async (route) => {
+    if (failed) {
+      await route.continue();
+
+      return;
+    }
 
     failed = true;
     await route.abort();

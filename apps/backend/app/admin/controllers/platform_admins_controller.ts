@@ -19,7 +19,7 @@ export default class PlatformAdminsController {
    * @response {404} User not found
    */
   async store(ctx: HttpContext) {
-    return this.set(ctx, true);
+    return await this.set(ctx, true);
   }
 
   /**
@@ -32,7 +32,7 @@ export default class PlatformAdminsController {
    * @response {404} User not found
    */
   async destroy(ctx: HttpContext) {
-    return this.set(ctx, false);
+    return await this.set(ctx, false);
   }
 
   private async set(
@@ -48,6 +48,6 @@ export default class PlatformAdminsController {
       actorId: auth.getUserOrFail().id,
     });
 
-    return serialize({ id: user.id, platformAdmin });
+    return await serialize({ id: user.id, platformAdmin });
   }
 }

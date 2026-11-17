@@ -77,14 +77,20 @@ export function AuditPage({
   const fromId = useId();
   const toId = useId();
 
-  const filter = (next: AuditSearch) =>
+  const filter = (next: AuditSearch) => {
     onSearchChange({ ...search, page: undefined, ...next });
-  const filtered = Boolean(
-    search.event || search.actor || search.from || search.to
-  );
+  };
+
+  const filtered =
+    search.event !== undefined ||
+    search.actor !== undefined ||
+    search.from !== undefined ||
+    search.to !== undefined;
+
   const actor =
-    search.actor &&
-    events.data.find((row) => row.actor?.id === search.actor)?.actor;
+    search.actor === undefined
+      ? undefined
+      : events.data.find((row) => row.actor?.id === search.actor)?.actor;
 
   return (
     <>
@@ -101,11 +107,11 @@ export function AuditPage({
           <Select
             items={EVENT_ITEMS}
             value={search.event ?? ALL_EVENTS}
-            onValueChange={(value) =>
+            onValueChange={(value) => {
               filter({
                 event: auditSearchSchema.shape.event.parse(value ?? undefined),
-              })
-            }
+              });
+            }}
           >
             <SelectTrigger id={eventId} className="min-w-56">
               <SelectValue />
@@ -142,7 +148,9 @@ export function AuditPage({
             id={fromId}
             value={search.from}
             max={search.to}
-            onApply={(from) => filter({ from })}
+            onApply={(from) => {
+              filter({ from });
+            }}
           />
         </Field>
 
@@ -153,7 +161,9 @@ export function AuditPage({
             id={toId}
             value={search.to}
             min={search.from}
-            onApply={(to) => filter({ to })}
+            onApply={(to) => {
+              filter({ to });
+            }}
           />
         </Field>
 
@@ -161,7 +171,9 @@ export function AuditPage({
           <Button
             variant="secondary"
             title={t('audit.auditPage.removeActor')}
-            onClick={() => filter({ actor: undefined })}
+            onClick={() => {
+              filter({ actor: undefined });
+            }}
           >
             {actor
               ? t('audit.auditPage.actor', { name: displayName(actor) })
@@ -171,7 +183,12 @@ export function AuditPage({
         )}
 
         {filtered && (
-          <Button variant="ghost" onClick={() => onSearchChange({})}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              onSearchChange({});
+            }}
+          >
             {t('audit.auditPage.clear')}
           </Button>
         )}
@@ -199,7 +216,12 @@ export function AuditPage({
             </EmptyHeader>
             {filtered && (
               <EmptyContent>
-                <Button variant="outline" onClick={() => onSearchChange({})}>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    onSearchChange({});
+                  }}
+                >
                   {t('audit.auditPage.clear')}
                 </Button>
               </EmptyContent>
@@ -211,14 +233,18 @@ export function AuditPage({
           <AuditTimeline
             events={events.data}
             permissionLabel={permissionLabel}
-            onActorSelect={(selected) => filter({ actor: selected.id })}
+            onActorSelect={(selected) => {
+              filter({ actor: selected.id });
+            }}
           />
         </div>
       )}
 
       <Pagination
         metadata={events.metadata}
-        onPageChange={(page) => onSearchChange({ ...search, page })}
+        onPageChange={(page) => {
+          onSearchChange({ ...search, page });
+        }}
       />
     </>
   );
@@ -247,11 +273,15 @@ function DateFilter({
   const [draft, setDraft] = useState(value);
 
   useEffect(() => {
-    if (draft === value) return;
+    const timer = setTimeout(() => {
+      if (draft !== value) {
+        onApply(draft);
+      }
+    }, DATE_FILTER_DELAY_MS);
 
-    const timer = setTimeout(() => onApply(draft), DATE_FILTER_DELAY_MS);
-
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [draft, value, onApply]);
 
   return (
@@ -261,7 +291,9 @@ function DateFilter({
       value={draft ?? ''}
       min={min}
       max={max}
-      onChange={(event) => setDraft(event.target.value || undefined)}
+      onChange={(event) => {
+        setDraft(event.target.value || undefined);
+      }}
     />
   );
 }

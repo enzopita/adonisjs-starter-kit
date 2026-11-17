@@ -6,15 +6,15 @@ import {
   Loader2Icon,
 } from 'lucide-react';
 import { useTheme } from 'next-themes';
-import { Toaster as Sonner, type ToasterProps } from 'sonner';
+import { Toaster as Sonner } from 'sonner';
+import type { ToasterProps } from 'sonner';
 
 const Toaster = ({ ...props }: ToasterProps) => {
   const { theme = 'system' } = useTheme();
 
   return (
     <Sonner
-      // SAFETY: next-themes only ever holds 'light', 'dark' or 'system', the values sonner accepts.
-      theme={theme as ToasterProps['theme']}
+      theme={theme === 'light' || theme === 'dark' ? theme : 'system'}
       className="group"
       icons={{
         success: <CircleCheckIcon className="size-4" />,

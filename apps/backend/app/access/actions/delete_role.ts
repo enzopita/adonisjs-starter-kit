@@ -29,8 +29,9 @@ export default class DeleteRole {
         });
       });
     } catch (error) {
-      if (error instanceof Error && 'code' in error && error.code === '23503')
+      if (error instanceof Error && 'code' in error && error.code === '23503') {
         throw new RoleInUseException();
+      }
 
       throw error;
     }

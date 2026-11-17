@@ -38,9 +38,10 @@ export const can = Bouncer.ability(
   async (user: User, permission: Permission) => {
     const tenantId = currentTenantId();
 
+    const permissions = await permissionsOf(user, tenantId);
+
     return (
-      (await permissionsOf(user, tenantId)).has(permission) ||
-      new PermissionDenial(permission, tenantId)
+      permissions.has(permission) || new PermissionDenial(permission, tenantId)
     );
   }
 );

@@ -28,4 +28,6 @@ router
   });
 
 // Generated live from the TypeScript sources, which a production build does not ship.
-if (!app.inProduction) openapiRoutes();
+if (!app.inProduction) {
+  openapiRoutes();
+}

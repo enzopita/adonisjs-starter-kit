@@ -26,7 +26,9 @@ export function formatDate(
   options: Intl.DateTimeFormatOptions,
   timeZone: string | undefined
 ): string | null {
-  if (value === null) return null;
+  if (value === null) {
+    return null;
+  }
 
   const date = value instanceof Date ? value : new Date(value);
 
@@ -52,8 +54,9 @@ export function relativeTime(date: Date) {
   const seconds = (date.getTime() - Date.now()) / 1000;
 
   for (const [unit, size] of RELATIVE_UNITS) {
-    if (Math.abs(seconds) >= size)
+    if (Math.abs(seconds) >= size) {
       return relativeFormat.format(Math.round(seconds / size), unit);
+    }
   }
 
   return relativeFormat.format(0, 'second');
@@ -71,13 +74,17 @@ function offsetLabel(timeZone: string, date: Date): string {
 }
 
 function offsetMinutes(label: string): number {
-  const match = /^UTC([+-])(\d{2}):(\d{2})$/.exec(label);
+  const groups = /^UTC(?<sign>[+-])(?<hours>\d{2}):(?<minutes>\d{2})$/u.exec(
+    label
+  )?.groups;
 
-  if (!match) return 0;
+  if (!groups) {
+    return 0;
+  }
 
-  const sign = match[1] === '-' ? -1 : 1;
+  const sign = groups.sign === '-' ? -1 : 1;
 
-  return sign * (Number(match[2]) * 60 + Number(match[3]));
+  return sign * (Number(groups.hours) * 60 + Number(groups.minutes));
 }
 
 /**
@@ -109,9 +116,11 @@ export function zonedDayBoundary(
  * then: the preferences card must always be able to show and keep the account's current zone.
  */
 const browserTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-const zoneNames = new Set(Intl.supportedValuesOf('timeZone'));
 
-zoneNames.add(browserTimeZone);
+const zoneNames = new Set([
+  ...Intl.supportedValuesOf('timeZone'),
+  browserTimeZone,
+]);
 
 export const TIME_ZONES: { value: string; label: string }[] = [...zoneNames]
   .map((zone) => {
@@ -123,5 +132,5 @@ export const TIME_ZONES: { value: string; label: string }[] = [...zoneNames]
       minutes: offsetMinutes(offset),
     };
   })
-  .sort((a, b) => a.minutes - b.minutes || a.value.localeCompare(b.value))
+  .toSorted((a, b) => a.minutes - b.minutes || a.value.localeCompare(b.value))
   .map(({ value, label }) => ({ value, label }));

@@ -1,9 +1,9 @@
 import type { QueryKey } from '@tanstack/react-query';
 import { createRouter } from '@tanstack/react-router';
-import { TuyauError } from '@tuyau/core/client';
+import type { TuyauError } from '@tuyau/core/client';
 
 import { adminMeQuery } from '@/features/admin/queries';
-import { apiErrorCode } from '@/features/core/errors';
+import { apiErrorCode, isTuyauError } from '@/features/core/errors';
 import type { ApiErrorCode } from '@/features/core/errors';
 import { queryClient } from '@/features/core/query-client';
 import { sessionStore } from '@/features/core/session';
@@ -22,7 +22,9 @@ export const router = createRouter({
 // Route guards decide where a session may be, so a sign-in or sign-out from this tab or another
 // reruns them. Another account's cached data never outlives its token.
 sessionStore.subscribe((state, previous) => {
-  if (state.token === previous.token) return;
+  if (state.token === previous.token) {
+    return;
+  }
 
   queryClient.clear();
   void router.invalidate();
@@ -39,27 +41,40 @@ const RERUN_GUARD_ON: Partial<Record<ApiErrorCode, () => QueryKey>> = {
   E_TWO_FACTOR_REQUIRED: () => adminMeQuery().queryKey,
 };
 
-function rerunStaleGuard(error: Error | null) {
-  if (!(error instanceof TuyauError) || error.status !== 403) return;
+async function rerunStaleGuard(error: TuyauError) {
+  if (error.status !== 403) {
+    return;
+  }
 
   const code = apiErrorCode(error);
   const queryKey = code && RERUN_GUARD_ON[code]?.();
 
-  if (!queryKey) return;
+  if (!queryKey) {
+    return;
+  }
 
-  void queryClient
-    .invalidateQueries({ queryKey, refetchType: 'none' })
-    .then(() => router.invalidate());
+  await queryClient.invalidateQueries({ queryKey, refetchType: 'none' });
+  await router.invalidate();
 }
 
 queryClient.getQueryCache().subscribe((event) => {
-  if (event.type === 'updated' && event.action.type === 'error')
-    rerunStaleGuard(event.action.error);
+  if (
+    event.type === 'updated' &&
+    event.action.type === 'error' &&
+    isTuyauError(event.action.error)
+  ) {
+    void rerunStaleGuard(event.action.error);
+  }
 });
 
 queryClient.getMutationCache().subscribe((event) => {
-  if (event.type === 'updated' && event.action.type === 'error')
-    rerunStaleGuard(event.action.error);
+  if (
+    event.type === 'updated' &&
+    event.action.type === 'error' &&
+    isTuyauError(event.action.error)
+  ) {
+    void rerunStaleGuard(event.action.error);
+  }
 });
 
 declare module '@tanstack/react-router' {

@@ -16,9 +16,11 @@ export interface SetPlatformAdminInput {
 export default class SetPlatformAdmin {
   /** The caller is an admin and can't revoke themself, so at least one admin always remains. */
   async handle({ id, platformAdmin, actorId }: SetPlatformAdminInput) {
-    if (!platformAdmin && id === actorId) throw new CannotRevokeSelfException();
+    if (!platformAdmin && id === actorId) {
+      throw new CannotRevokeSelfException();
+    }
 
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const user = await User.findOrFail(id, { client: trx });
 
       if (platformAdmin) {

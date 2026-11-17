@@ -6,7 +6,12 @@ import { useState } from 'react';
 
 import { queries } from '@/features/core/api';
 import { AuthCard } from '@/features/core/components/auth-card';
-import { apiErrorCode, errorMessage, formErrors } from '@/features/core/errors';
+import {
+  apiErrorCode,
+  errorMessage,
+  formErrors,
+  isTuyauError,
+} from '@/features/core/errors';
 import { useAppForm, withFormErrors } from '@/features/core/form';
 import { t } from '@/features/core/i18n';
 import { session } from '@/features/core/session';
@@ -16,9 +21,11 @@ const route = getRouteApi('/login');
 /** Signing in reruns the route guards, which send the user on to `?redirect=`. */
 export function LoginPage() {
   const { redirect: redirectTo } = route.useSearch();
+
   const createToken = useMutation(
     queries.auth.accessTokens.store.mutationOptions()
   );
+
   const [challenge, setChallenge] = useState<string | null>(null);
 
   // The alert shows the server's message; this adds the way to a fresh link once the mailed one expired.
@@ -34,11 +41,13 @@ export function LoginPage() {
         createToken.mutateAsync({ body: value })
       );
 
-      if (created && !created.data.twoFactorRequired)
+      if (created && !created.data.twoFactorRequired) {
         session.signIn(created.data.token);
+      }
 
-      if (created && created.data.twoFactorRequired)
+      if (created && created.data.twoFactorRequired) {
         setChallenge(created.data.challenge);
+      }
     },
   });
 
@@ -133,6 +142,7 @@ function TwoFactorStep({
   const verify = useMutation(
     queries.auth.twoFactorLogins.store.mutationOptions()
   );
+
   const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
   const form = useAppForm({
@@ -147,7 +157,9 @@ function TwoFactorStep({
 
         session.signIn(data.token);
       } catch (error) {
-        if (!(error instanceof TuyauError)) throw error;
+        if (!isTuyauError(error)) {
+          throw error;
+        }
 
         if (apiErrorCode(error) === 'E_INVALID_TWO_FACTOR_CHALLENGE') {
           onChallengeExpired(errorMessage(error));
@@ -193,7 +205,9 @@ function TwoFactorStep({
             )}
             <button
               type="button"
-              onClick={() => setUseRecoveryCode((value) => !value)}
+              onClick={() => {
+                setUseRecoveryCode((value) => !value);
+              }}
               className="text-muted-foreground self-end text-xs underline underline-offset-4"
             >
               {useRecoveryCode

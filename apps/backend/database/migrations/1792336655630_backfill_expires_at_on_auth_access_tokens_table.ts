@@ -17,6 +17,7 @@ export default class extends BaseSchema {
     );
   }
 
-  /** Not worth reversing: it only widens a null expiry that the app no longer honors as "never". */
-  override async down() {}
+  override async down() {
+    // Not worth reversing: it only widens a null expiry that the app no longer honors as "never".
+  }
 }

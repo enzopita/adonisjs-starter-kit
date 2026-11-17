@@ -4,6 +4,7 @@ import { can } from '#access/abilities';
 import { PERMISSIONS } from '#access/permissions';
 import ImpersonateUser from '#admin/actions/impersonate_user';
 import { userParamsValidator } from '#admin/validators/user';
+import { releaseToken } from '#auth/services/sessions';
 import UserTransformer from '#users/transformers/user_transformer';
 
 /**
@@ -29,9 +30,9 @@ export default class ImpersonationsController {
       impersonatorId: auth.getUserOrFail().id,
     });
 
-    return serialize({
+    return await serialize({
       user: UserTransformer.transform(user),
-      token: token.value!.release(),
+      token: releaseToken(token),
     });
   }
 }

@@ -32,6 +32,6 @@ export default class AttachmentsController {
       uploaderId: auth.getUserOrFail().id,
     });
 
-    return serialize(AttachmentTransformer.transform(attachment));
+    return await serialize(AttachmentTransformer.transform(attachment));
   }
 }

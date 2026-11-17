@@ -21,6 +21,7 @@ export const updateRoleValidator = vine.create({
   name: name.clone().unique(async (_db, value, field) => {
     const taken = await Role.query()
       .where('name', value)
+      // oxlint-disable-next-line typescript/no-unsafe-argument, typescript/no-unsafe-member-access -- vine types FieldContext.data as any; the uuid route matcher guarantees params.id.
       .whereNot('id', field.data.params.id)
       .first();
 

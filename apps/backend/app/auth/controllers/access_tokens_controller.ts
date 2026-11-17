@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http';
 
 import LogIn from '#auth/actions/log_in';
+import { releaseToken } from '#auth/services/sessions';
 import type {} from '#auth/types/audit';
 import { loginValidator } from '#auth/validators/auth';
 import { audit } from '#core/audit/main';
@@ -32,12 +33,14 @@ export default class AccessTokensController {
       ipAddress: request.ip(),
     });
 
-    if (result.twoFactorRequired) return serialize(result);
+    if (result.twoFactorRequired) {
+      return await serialize(result);
+    }
 
-    return serialize({
+    return await serialize({
       twoFactorRequired: false as const,
       user: UserTransformer.transform(result.user),
-      token: result.token.value!.release(),
+      token: releaseToken(result.token),
     });
   }
 
@@ -51,9 +54,7 @@ export default class AccessTokensController {
   async destroy({ auth, i18n, serialize }: HttpContext) {
     const user = auth.getUserOrFail();
 
-    if (user.currentAccessToken) {
-      await User.accessTokens.delete(user, user.currentAccessToken.identifier);
-    }
+    await User.accessTokens.delete(user, user.currentAccessToken.identifier);
 
     await audit.note('auth.logged_out', {
       tenantId: null,
@@ -61,7 +62,7 @@ export default class AccessTokensController {
       data: { email: user.email },
     });
 
-    return serialize({
+    return await serialize({
       message: i18n.t('auth.logged_out'),
     });
   }

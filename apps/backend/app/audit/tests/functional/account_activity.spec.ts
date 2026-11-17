@@ -72,7 +72,8 @@ test.group('Audit | account activity', (group) => {
       .visit('auth.access_tokens.store')
       .json({ ...attempt, email: 'nobody@example.com' });
 
-    const [attemptOnAda, ...others] = (await list(client, ada)).body().data;
+    const activity = await list(client, ada);
+    const [attemptOnAda, ...others] = activity.body().data;
 
     assert.lengthOf(others, 0);
     assert.deepEqual(attemptOnAda?.event, {

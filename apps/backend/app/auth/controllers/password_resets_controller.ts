@@ -26,7 +26,9 @@ export default class PasswordResetsController {
 
     await new RequestPasswordReset().handle({ email, locale: i18n.locale });
 
-    return serialize({ message: i18n.t('auth.password_reset_requested') });
+    return await serialize({
+      message: i18n.t('auth.password_reset_requested'),
+    });
   }
 
   /**
@@ -47,6 +49,6 @@ export default class PasswordResetsController {
     // Whoever knew the old password is signed out everywhere, including the one resetting it.
     await new RevokeSessions().handle({ user });
 
-    return serialize({ message: i18n.t('auth.password_reset') });
+    return await serialize({ message: i18n.t('auth.password_reset') });
   }
 }

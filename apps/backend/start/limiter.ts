@@ -29,35 +29,32 @@ function throttle(
 // needs the part that varies.
 
 /** Caps login attempts per IP regardless of outcome, to stop one IP spraying many emails. */
-export const loginIpThrottle = throttle('login_ip', (ctx) => {
-  return limiter.allowRequests(30).every('15 mins').usingKey(ctx.request.ip());
-});
+export const loginIpThrottle = throttle('login_ip', (ctx) =>
+  limiter.allowRequests(30).every('15 mins').usingKey(ctx.request.ip())
+);
 
 /** Every second-step attempt per IP, valid or not; failures also count per user, below. */
-export const twoFactorLoginIpThrottle = throttle(
-  'two_factor_login_ip',
-  (ctx) => {
-    return limiter
-      .allowRequests(30)
-      .every('15 mins')
-      .usingKey(ctx.request.ip());
-  }
+export const twoFactorLoginIpThrottle = throttle('two_factor_login_ip', (ctx) =>
+  limiter.allowRequests(30).every('15 mins').usingKey(ctx.request.ip())
 );
 
 /** The signed-in endpoints that check a code (and a password): confirm, disable, regenerate. */
-export const twoFactorManageThrottle = throttle('two_factor_manage', (ctx) => {
-  return limiter.allowRequests(10).every('15 mins').usingKey(ctx.auth.user!.id);
-});
+export const twoFactorManageThrottle = throttle('two_factor_manage', (ctx) =>
+  limiter
+    .allowRequests(10)
+    .every('15 mins')
+    .usingKey(ctx.auth.getUserOrFail().id)
+);
 
-export const signupThrottle = throttle('signup', (ctx) => {
-  return limiter.allowRequests(5).every('1 hour').usingKey(ctx.request.ip());
-});
+export const signupThrottle = throttle('signup', (ctx) =>
+  limiter.allowRequests(5).every('1 hour').usingKey(ctx.request.ip())
+);
 
 export const invitationsCreateThrottle = throttle(
   'invitations_create',
   (ctx) => {
-    const userId = ctx.auth.user!.id;
-    const tenantId = ctx.tenant!.id;
+    const userId = ctx.auth.getUserOrFail().id;
+    const tenantId = ctx.tenant.id;
 
     return limiter
       .allowRequests(20)
@@ -66,15 +63,15 @@ export const invitationsCreateThrottle = throttle(
   }
 );
 
-export const invitationAcceptThrottle = throttle('invitation_accept', (ctx) => {
-  return limiter.allowRequests(10).every('15 mins').usingKey(ctx.auth.user!.id);
-});
+export const invitationAcceptThrottle = throttle('invitation_accept', (ctx) =>
+  limiter
+    .allowRequests(10)
+    .every('15 mins')
+    .usingKey(ctx.auth.getUserOrFail().id)
+);
 
-export const passwordForgotIpThrottle = throttle(
-  'password_forgot_ip',
-  (ctx) => {
-    return limiter.allowRequests(20).every('1 hour').usingKey(ctx.request.ip());
-  }
+export const passwordForgotIpThrottle = throttle('password_forgot_ip', (ctx) =>
+  limiter.allowRequests(20).every('1 hour').usingKey(ctx.request.ip())
 );
 
 /**
@@ -93,19 +90,21 @@ export const passwordForgotEmailThrottle = throttle(
   }
 );
 
-export const passwordResetThrottle = throttle('password_reset', (ctx) => {
-  return limiter.allowRequests(10).every('15 mins').usingKey(ctx.request.ip());
-});
+export const passwordResetThrottle = throttle('password_reset', (ctx) =>
+  limiter.allowRequests(10).every('15 mins').usingKey(ctx.request.ip())
+);
 
-export const emailVerifyThrottle = throttle('email_verify', (ctx) => {
-  return limiter.allowRequests(10).every('15 mins').usingKey(ctx.request.ip());
-});
+export const emailVerifyThrottle = throttle('email_verify', (ctx) =>
+  limiter.allowRequests(10).every('15 mins').usingKey(ctx.request.ip())
+);
 
 export const emailVerificationResendThrottle = throttle(
   'email_verification_resend',
-  (ctx) => {
-    return limiter.allowRequests(5).every('1 hour').usingKey(ctx.auth.user!.id);
-  }
+  (ctx) =>
+    limiter
+      .allowRequests(5)
+      .every('1 hour')
+      .usingKey(ctx.auth.getUserOrFail().id)
 );
 
 /**
@@ -115,7 +114,9 @@ export const emailVerificationResendThrottle = throttle(
  * never uses up the budget and clears the failures before it.
  */
 async function guardFailures<T>(key: string, check: () => Promise<T>) {
-  if (app.inDev) return check();
+  if (app.inDev) {
+    return await check();
+  }
 
   const failures = limiter.use({
     requests: 5,

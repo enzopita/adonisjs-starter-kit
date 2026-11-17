@@ -17,7 +17,9 @@ async function auditDenial(
 ) {
   const denial = error.response;
 
-  if (!(denial instanceof PermissionDenial) || !denial.tenantId) return;
+  if (!(denial instanceof PermissionDenial) || denial.tenantId === null) {
+    return;
+  }
 
   await audit.note('access.denied', {
     tenantId: denial.tenantId,
@@ -31,7 +33,7 @@ async function auditDenial(
 }
 
 export default class InitializeBouncerMiddleware {
-  async handle(ctx: HttpContext, next: NextFn) {
+  handle(ctx: HttpContext, next: NextFn) {
     const bouncer = new Bouncer(
       () => ctx.auth.user ?? null,
       abilities
@@ -42,16 +44,17 @@ export default class InitializeBouncerMiddleware {
     const authorize = bouncer.authorize.bind(bouncer);
 
     // SAFETY: the wrapper takes and returns what authorize does; it only adds the audit.
-    bouncer.authorize = (async (...args: Parameters<typeof authorize>) => {
+    bouncer.authorize = async (...args: Parameters<typeof authorize>) => {
       try {
         await authorize(...args);
       } catch (error) {
-        if (error instanceof errors.E_AUTHORIZATION_FAILURE)
+        if (error instanceof errors.E_AUTHORIZATION_FAILURE) {
           await auditDenial(ctx, error);
+        }
 
         throw error;
       }
-    }) as typeof bouncer.authorize;
+    };
 
     ctx.bouncer = bouncer;
 

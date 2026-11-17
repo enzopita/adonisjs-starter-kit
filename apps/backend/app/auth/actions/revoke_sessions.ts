@@ -20,19 +20,26 @@ export interface RevokeSessionsInput {
 export default class RevokeSessions {
   async handle({ user, sessionId, keepTokenId }: RevokeSessionsInput) {
     const query = db
+      .query<{ id: string }>()
       .from('auth_access_tokens')
       .where('tokenable_id', user.id)
       .whereNull('impersonator_id');
 
-    if (sessionId) query.where('id', sessionId);
+    if (sessionId) {
+      query.where('id', sessionId);
+    }
 
-    if (keepTokenId) query.whereNot('id', keepTokenId);
+    if (keepTokenId) {
+      query.whereNot('id', keepTokenId);
+    }
 
-    const rows: { id: string }[] = await query.select('id');
+    const rows = await query.select('id');
 
     for (const row of rows) {
+      // oxlint-disable-next-line no-await-in-loop -- one session at a time, each revocation followed by its own audit event.
       await User.accessTokens.delete(user, row.id);
 
+      // oxlint-disable-next-line no-await-in-loop -- records the revocation just made, in order.
       await audit.note('auth.session_revoked', {
         tenantId: null,
         subject: { type: 'user', id: user.id },

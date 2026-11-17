@@ -21,14 +21,14 @@ export default class SessionsController {
    */
   async index({ auth, serialize }: HttpContext) {
     const user = auth.getUserOrFail();
-    const currentTokenId = String(user.currentAccessToken!.identifier);
+    const currentTokenId = String(user.currentAccessToken.identifier);
 
     const rows = await new ListSessions().handle({
       userId: user.id,
       currentTokenId,
     });
 
-    return serialize(SessionTransformer.transform(rows));
+    return await serialize(SessionTransformer.transform(rows));
   }
 
   /**
@@ -39,8 +39,9 @@ export default class SessionsController {
   async destroy({ auth, i18n, request, serialize }: HttpContext) {
     const user = auth.getUserOrFail();
 
-    if (user.currentAccessToken?.impersonatorId)
+    if (user.currentAccessToken.impersonatorId) {
       throw new ImpersonatingException();
+    }
 
     const { params } = await request.validateUsing(sessionParamsValidator);
 
@@ -49,9 +50,11 @@ export default class SessionsController {
       sessionId: params.id,
     });
 
-    if (!revoked) throw new SessionNotFoundException();
+    if (!revoked) {
+      throw new SessionNotFoundException();
+    }
 
-    return serialize({ message: i18n.t('auth.session_revoked') });
+    return await serialize({ message: i18n.t('auth.session_revoked') });
   }
 
   /**
@@ -63,14 +66,17 @@ export default class SessionsController {
   async destroyAll({ auth, serialize }: HttpContext) {
     const user = auth.getUserOrFail();
 
-    if (user.currentAccessToken?.impersonatorId)
+    if (user.currentAccessToken.impersonatorId) {
       throw new ImpersonatingException();
+    }
 
-    const keepTokenId = String(user.currentAccessToken!.identifier);
+    const keepTokenId = String(user.currentAccessToken.identifier);
     const revoked = await new RevokeSessions().handle({ user, keepTokenId });
 
-    if (!revoked) audit.unchanged();
+    if (!revoked) {
+      audit.unchanged();
+    }
 
-    return serialize({ revoked });
+    return await serialize({ revoked });
   }
 }

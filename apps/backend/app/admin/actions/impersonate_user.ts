@@ -16,7 +16,9 @@ export default class ImpersonateUser {
     const user = await User.findOrFail(id);
     await ensureNotPlatformAdmin(user.id);
 
-    if (user.disabledAt) throw new UserDisabledException();
+    if (user.disabledAt) {
+      throw new UserDisabledException();
+    }
 
     // The provider inserts outside any transaction. A crash before the update below leaves an
     // unmarked token whose secret was never returned to anyone, so nobody can use it.

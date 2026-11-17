@@ -6,9 +6,9 @@ import { session, useIsAuthenticated } from '@/features/core/session';
 import { profileQuery } from '@/features/users/profile';
 
 export const Route = createFileRoute('/verify-email/$token')({
-  loader: ({ context: { queryClient } }) =>
+  loader: async ({ context: { queryClient } }) =>
     session.isAuthenticated()
-      ? queryClient.query(profileQuery()).catch(noop)
+      ? await queryClient.query(profileQuery()).catch(noop)
       : undefined,
   component: VerifyEmailRoute,
 });

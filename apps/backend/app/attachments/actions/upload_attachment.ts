@@ -2,10 +2,8 @@ import type { MultipartFile } from '@adonisjs/core/bodyparser';
 import db from '@adonisjs/lucid/services/db';
 
 import Attachment from '#attachments/models/attachment';
-import {
-  ATTACHMENT_MIME_TYPES,
-  type AttachmentExtname,
-} from '#attachments/rules';
+import { ATTACHMENT_MIME_TYPES, isAttachmentExtname } from '#attachments/rules';
+import type { AttachmentExtname } from '#attachments/rules';
 import type {} from '#attachments/types/audit';
 import { audit } from '#core/audit/main';
 
@@ -20,8 +18,13 @@ export default class UploadAttachment {
    * row. A failed put leaves an unreferenced row, which attachments:prune removes.
    */
   async handle({ file, uploaderId }: UploadAttachmentInput) {
-    // SAFETY: uploadAttachmentValidator only accepts the registry's extnames.
-    const extname = file.extname as AttachmentExtname;
+    const { extname } = file;
+
+    // uploadAttachmentValidator only accepts the registry's extnames.
+    if (extname === undefined || !isAttachmentExtname(extname)) {
+      throw new Error('Unvalidated attachment extname');
+    }
+
     const mimeType = ATTACHMENT_MIME_TYPES[extname];
 
     const attachment = await db.transaction(async (trx) => {
@@ -53,12 +56,11 @@ export default class UploadAttachment {
 
 /** Strips path segments and control characters from a client file name. */
 function displayName(clientName: string, extname: AttachmentExtname) {
-  // oxlint-disable-next-line no-control-regex -- stripping control characters is the point.
-  const name = (clientName.split(/[/\\]/).pop() ?? '')
-    .replace(/[\u0000-\u001f\u007f]/g, '')
+  const name = (clientName.split(/[/\\]/u).pop() ?? '')
+    // oxlint-disable-next-line no-control-regex -- stripping control characters is the point.
+    .replaceAll(/[\u0000-\u001F\u007F]/gu, '')
     .trim();
 
-  return Array.from(name || `file.${extname}`)
-    .slice(0, 255)
-    .join('');
+  // oxlint-disable-next-line typescript/no-misused-spread -- splits by code point on purpose, so the cut never halves a surrogate pair.
+  return [...(name || `file.${extname}`)].slice(0, 255).join('');
 }

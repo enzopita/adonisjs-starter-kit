@@ -43,7 +43,7 @@ test('a renamed role reads in its history and on the audit trail', async ({
   await screen.getByRole('combobox', 'Event').tap();
   await screen.getByRole('option', 'Role created').tap();
 
-  await expect(browser).toHaveURL(/event=role\.created/);
+  await expect(browser).toHaveURL(/event=role\.created/u);
   await expect(trail.filter({ hasText: createdSentence })).toBeVisible();
   await expect(trail.filter({ hasText: renamedSentence })).toBeHidden();
 });

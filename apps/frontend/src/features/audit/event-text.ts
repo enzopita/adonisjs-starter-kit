@@ -118,13 +118,17 @@ const TENANT_EVENTS: TenantEventTexts = {
         to: to?.name ?? '',
       };
 
-      if (to && subject.id === actorId)
+      if (to && subject.id === actorId) {
         return { sentence: t('audit.events.memberRoleTaken', values) };
+      }
 
-      if (!from)
+      if (!from) {
         return { sentence: t('audit.events.memberRoleAssigned', values) };
+      }
 
-      if (!to) return { sentence: t('audit.events.memberRoleRemoved', values) };
+      if (!to) {
+        return { sentence: t('audit.events.memberRoleRemoved', values) };
+      }
 
       return { sentence: t('audit.events.memberRoleChanged', values) };
     },
@@ -269,11 +273,16 @@ const ACCOUNT_EVENTS: EventTexts<Exclude<AuditEventType, TenantEventType>> = {
   },
   'user.avatar_changed': {
     describe: ({ data: { changes } }) => {
-      if (!changes.avatarAttachmentId?.to)
+      if (
+        changes.avatarAttachmentId === undefined ||
+        changes.avatarAttachmentId.to === null
+      ) {
         return { sentence: t('audit.events.avatarRemoved') };
+      }
 
-      if (!changes.avatarAttachmentId.from)
+      if (changes.avatarAttachmentId.from === null) {
         return { sentence: t('audit.events.avatarAdded') };
+      }
 
       return { sentence: t('audit.events.avatarChanged') };
     },
@@ -323,10 +332,9 @@ const EVENTS: EventTexts<AuditEventType> = {
   ...ACCOUNT_EVENTS,
 };
 
-// SAFETY: the keys of TENANT_EVENTS are exactly TenantEventType, which its mapped type enforces.
-export const AUDIT_EVENT_TYPES = Object.keys(
-  TENANT_EVENTS
-) as TenantEventType[];
+export const AUDIT_EVENT_TYPES = Object.keys(TENANT_EVENTS).filter(
+  (type): type is TenantEventType => Object.hasOwn(TENANT_EVENTS, type)
+);
 
 export const AUDIT_AREAS = [...new Set(AUDIT_EVENT_TYPES.map(areaOf))];
 
@@ -369,8 +377,9 @@ export function describeEvent(
   { event, actor }: AuditEventRow,
   permissionLabel: PermissionLabel
 ): EventDescription {
-  if (!isKnown(event.type))
+  if (!isKnown(event.type)) {
     return { sentence: t('audit.events.unknown', { type: event.type }) };
+  }
 
   return describeKnown(event.type, event, {
     actorId: actor?.id ?? null,

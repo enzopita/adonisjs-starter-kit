@@ -3,7 +3,8 @@ import type { HttpContext } from '@adonisjs/core/http';
 import app from '@adonisjs/core/services/app';
 import type { NextFn } from '@adonisjs/core/types/http';
 
-import { runInAuditScope, type AuditScope } from '#core/audit/scope';
+import { runInAuditScope } from '#core/audit/scope';
+import type { AuditScope } from '#core/audit/scope';
 import AuditExemptionMisusedException from '#core/exceptions/audit_exemption_misused_exception';
 import UnauditedWriteException from '#core/exceptions/unaudited_write_exception';
 
@@ -23,17 +24,24 @@ export default class AuditScopeMiddleware {
     const status = ctx.response.getStatus();
     const succeeded = status >= 200 && status < 300;
 
-    if (!WRITE_METHODS.has(ctx.request.method()) || !succeeded) return;
+    if (!WRITE_METHODS.has(ctx.request.method()) || !succeeded) {
+      return;
+    }
 
     const exempt = scope.unaudited !== undefined || scope.unchanged === true;
 
     // An exemption says no event is due; recording one anyway means the exemption is wrong.
-    if (exempt && scope.recorded > 0)
-      return this.#fail(ctx, new AuditExemptionMisusedException());
+    if (exempt && scope.recorded > 0) {
+      this.#fail(ctx, new AuditExemptionMisusedException());
 
-    if (exempt || scope.recorded > 0) return;
+      return;
+    }
 
-    return this.#fail(ctx, new UnauditedWriteException());
+    if (exempt || scope.recorded > 0) {
+      return;
+    }
+
+    this.#fail(ctx, new UnauditedWriteException());
   }
 
   #fail(ctx: HttpContext, error: Exception) {

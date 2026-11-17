@@ -25,7 +25,7 @@ test.group('Core | i18n', (group) => {
       message: 'E-mail ou senha inválidos.',
     });
 
-    const signUp = await client
+    const invalidSignUp = await client
       .visit('auth.new_account.store')
       .header('accept-language', 'pt-BR')
       .json({
@@ -35,8 +35,8 @@ test.group('Core | i18n', (group) => {
         passwordConfirmation: 'short',
       });
 
-    signUp.assertStatus(422);
-    signUp.assertBodyContains({
+    invalidSignUp.assertStatus(422);
+    invalidSignUp.assertBodyContains({
       errors: [
         {
           field: 'password',

@@ -4,7 +4,7 @@ import db from '@adonisjs/lucid/services/db';
 import AccountDisabledException from '#auth/exceptions/account_disabled_exception';
 import InvalidTwoFactorChallengeException from '#auth/exceptions/invalid_two_factor_challenge_exception';
 import InvalidTwoFactorCodeException from '#auth/exceptions/invalid_two_factor_code_exception';
-import { openSession } from '#auth/services/sessions';
+import { openSession, releaseToken } from '#auth/services/sessions';
 import {
   countRecoveryCodes,
   readTwoFactorChallenge,
@@ -37,13 +37,16 @@ export default class TwoFactorLoginsController {
     const input = await request.validateUsing(twoFactorLoginValidator);
 
     const userId = readTwoFactorChallenge(input.challenge);
-    const user = userId ? await User.find(userId) : null;
+    const user = userId === null ? null : await User.find(userId);
 
     // Also when two-factor was disabled since the challenge: the password alone signs in again.
-    if (!user?.twoFactorConfirmedAt)
+    if (!user?.twoFactorConfirmedAt) {
       throw new InvalidTwoFactorChallengeException();
+    }
 
-    if (user.disabledAt) throw new AccountDisabledException();
+    if (user.disabledAt) {
+      throw new AccountDisabledException();
+    }
 
     const factor = secondFactorOf(input);
 
@@ -92,9 +95,9 @@ export default class TwoFactorLoginsController {
       data: { email: user.email, factor: factor.type },
     });
 
-    return serialize({
+    return await serialize({
       user: UserTransformer.transform(user),
-      token: token.value!.release(),
+      token: releaseToken(token),
     });
   }
 }

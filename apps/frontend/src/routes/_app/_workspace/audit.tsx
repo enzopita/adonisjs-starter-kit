@@ -10,11 +10,13 @@ export const Route = createFileRoute('/_app/_workspace/audit')({
   validateSearch: auditSearchSchema,
   loaderDeps: ({ search }) => search,
   loader: async ({ context: { queryClient, tenant }, deps }) => {
-    const { permissions } = (
-      await queryClient.query(myPermissionsQuery(tenant.id))
-    ).data;
+    const {
+      data: { permissions },
+    } = await queryClient.query(myPermissionsQuery(tenant.id));
 
-    if (!can(permissions, 'audit.view')) return;
+    if (!can(permissions, 'audit.view')) {
+      return;
+    }
 
     await queryClient.query(auditEventsQuery(tenant.id, deps));
   },
@@ -29,7 +31,9 @@ function AuditRoute() {
     <RequirePermission permission="audit.view">
       <AuditPage
         search={search}
-        onSearchChange={(next) => void navigate({ search: next })}
+        onSearchChange={(next) => {
+          void navigate({ search: next });
+        }}
         permissionLabel={(key) => permissionLabel(key).label}
       />
     </RequirePermission>

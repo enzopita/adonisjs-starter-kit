@@ -33,7 +33,9 @@ export default class PruneAttachments {
         .orderBy('id')
         .limit(BATCH_SIZE);
 
-      if (after) query.where('id', '>', after);
+      if (after) {
+        query.where('id', '>', after);
+      }
 
       for (const { table, column } of references) {
         query.whereNotExists((subquery) =>
@@ -43,13 +45,19 @@ export default class PruneAttachments {
         );
       }
 
+      // oxlint-disable-next-line no-await-in-loop -- the next page starts after this one's last id.
       const candidates = await query;
 
       for (const candidate of candidates) {
-        if (await pruneOne(candidate.id)) deleted++;
+        // oxlint-disable-next-line no-await-in-loop -- one row per transaction, one at a time, so a run holds a single connection.
+        if (await pruneOne(candidate.id)) {
+          deleted += 1;
+        }
       }
 
-      if (candidates.length < BATCH_SIZE) break;
+      if (candidates.length < BATCH_SIZE) {
+        break;
+      }
 
       after = candidates.at(-1)?.id;
     }

@@ -13,7 +13,7 @@ export interface CreateRoleInput {
 
 export default class CreateRole {
   async handle({ tenantId, name, permissions }: CreateRoleInput) {
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const role = await Role.create({ name, permissions }, { client: trx });
 
       await audit.record(trx, 'role.created', {

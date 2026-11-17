@@ -27,7 +27,7 @@ test.group('Users | profile', (group) => {
       .loginAs(user);
 
     response.assertStatus(200);
-    assert.containsSubset(response.body().data, {
+    assert.containSubset(response.body().data, {
       locale: 'pt-BR',
       timezone: 'America/Sao_Paulo',
     });
@@ -45,7 +45,7 @@ test.group('Users | profile', (group) => {
       .loginAs(user);
 
     response.assertStatus(200);
-    assert.containsSubset(response.body().data, {
+    assert.containSubset(response.body().data, {
       locale: 'pt-BR',
       timezone: 'UTC',
     });
@@ -65,7 +65,7 @@ test.group('Users | profile', (group) => {
     // one the validator, not the type checker, must reject.
     const badLocale = await client
       .patch('/api/v1/account/profile')
-      .json(badLocaleBody as never)
+      .json(badLocaleBody)
       .loginAs(user);
 
     badLocale.assertStatus(422);
@@ -75,7 +75,7 @@ test.group('Users | profile', (group) => {
     // SAFETY: same as above, for the timezone field.
     const badTimezone = await client
       .patch('/api/v1/account/profile')
-      .json(badTimezoneBody as never)
+      .json(badTimezoneBody)
       .loginAs(user);
 
     badTimezone.assertStatus(422);

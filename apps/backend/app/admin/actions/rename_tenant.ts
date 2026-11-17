@@ -11,7 +11,7 @@ export interface RenameTenantInput {
 
 export default class RenameTenant {
   async handle({ id, name }: RenameTenantInput) {
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const tenant = await Tenant.findOrFail(id, { client: trx });
       const from = tenant.name;
 

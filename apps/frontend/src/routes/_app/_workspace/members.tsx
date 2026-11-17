@@ -11,11 +11,13 @@ import {
 
 export const Route = createFileRoute('/_app/_workspace/members')({
   loader: async ({ context: { queryClient, tenant } }) => {
-    const { permissions } = (
-      await queryClient.query(myPermissionsQuery(tenant.id))
-    ).data;
+    const {
+      data: { permissions },
+    } = await queryClient.query(myPermissionsQuery(tenant.id));
 
-    if (!can(permissions, 'members.manage')) return;
+    if (!can(permissions, 'members.manage')) {
+      return;
+    }
 
     await Promise.all([
       queryClient.query(membersQuery(tenant.id)),

@@ -17,6 +17,7 @@ test('a member changes their time zone and their language from the profile page'
 
   const timeZoneSelect = () => screen.getByRole('combobox', 'Time zone');
   const saved = () => screen.getByText('Preferences saved');
+
   // The signup row's own "When" detail is a fixed timestamp this test can read in each zone.
   const signupRow = screen
     .getByRole('listitem')
@@ -41,7 +42,9 @@ test('a member changes their time zone and their language from the profile page'
   await timeZoneSelect().tap();
   await screen.getByRole('option', '(UTC-09:00) America/Adak').tap();
   await expect(saved()).toBeVisible();
-  await expect.poll(() => signupRow.textContent()).not.toBe(kiritimati);
+  await expect
+    .poll(async () => await signupRow.textContent())
+    .not.toBe(kiritimati);
 
   await screen.getByRole('combobox', 'Language').tap();
   await screen.getByRole('option', 'Português (Brasil)').tap();
@@ -66,7 +69,7 @@ test('signing out and signing up again does not inherit the previous account’s
 
   await screen.getByRole('button', 'Menu da conta').tap();
   await screen.getByRole('menuitem', 'Sair').tap();
-  await expect(browser).toHaveURL(/\/login/);
+  await expect(browser).toHaveURL(/\/login/u);
 
   await screen.getByRole('link', 'Crie uma').tap();
   await screen.getByRole('textbox', 'Nome completo').fill('Noor New');
@@ -129,7 +132,9 @@ test('an account missing its preferences renders in its own language, not the pr
   browser,
 }) => {
   await browser.addInitScript(() => {
-    if (sessionStorage.getItem('e2e:seeded-preferences')) return;
+    if (sessionStorage.getItem('e2e:seeded-preferences')) {
+      return;
+    }
 
     localStorage.setItem(
       'starter:preferences',

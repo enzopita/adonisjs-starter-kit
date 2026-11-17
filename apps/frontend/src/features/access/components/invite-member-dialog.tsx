@@ -42,6 +42,7 @@ export function InviteMemberDialog({
   onOpenChange: (open: boolean) => void;
 }) {
   const roleFieldId = useId();
+
   const sendInvitation = useMutation(
     queries.access.invitations.store.mutationOptions()
   );
@@ -50,6 +51,7 @@ export function InviteMemberDialog({
     defaultValues: { email: '', roleId: NO_ROLE },
     onSubmit: async ({ value, formApi }) => {
       const email = value.email.trim().toLowerCase();
+
       const alreadyInvited = invitations.some(
         (invitation) => invitation.email === email
       );
@@ -62,7 +64,9 @@ export function InviteMemberDialog({
         })
       );
 
-      if (!sent) return;
+      if (!sent) {
+        return;
+      }
 
       onOpenChange(false);
       toast.success(
@@ -106,9 +110,11 @@ export function InviteMemberDialog({
                   <Select
                     items={items}
                     value={field.state.value}
-                    onValueChange={(value) =>
-                      value && field.handleChange(value)
-                    }
+                    onValueChange={(value) => {
+                      if (value) {
+                        field.handleChange(value);
+                      }
+                    }}
                   >
                     <SelectTrigger id={roleFieldId}>
                       <SelectValue />

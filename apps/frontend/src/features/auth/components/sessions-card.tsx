@@ -15,7 +15,8 @@ import { toast } from 'sonner';
 
 import { parseDeviceLabel } from '@/features/auth/device-label';
 import { sessionsQuery } from '@/features/auth/sessions';
-import { api, queries } from '@/features/core/api';
+import type { api } from '@/features/core/api';
+import { queries } from '@/features/core/api';
 import { ConfirmDialog } from '@/features/core/components/confirm-dialog';
 import { PendingButton } from '@/features/core/components/pending-button';
 import {
@@ -34,11 +35,17 @@ type SessionRow = Awaited<
 function deviceText(userAgent: string | null) {
   const { browser, os, raw } = parseDeviceLabel(userAgent);
 
-  if (browser && os) return t('auth.sessionsCard.deviceBoth', { browser, os });
+  if (browser && os) {
+    return t('auth.sessionsCard.deviceBoth', { browser, os });
+  }
 
-  if (browser) return browser;
+  if (browser) {
+    return browser;
+  }
 
-  if (os) return os;
+  if (os) {
+    return os;
+  }
 
   return raw ?? t('auth.sessionsCard.unknownDevice');
 }
@@ -50,7 +57,9 @@ export function SessionsCard() {
   const [confirming, setConfirming] = useState<SessionRow | 'all' | null>(null);
 
   const closeDialog = (open: boolean) => {
-    if (!open) setConfirming(null);
+    if (!open) {
+      setConfirming(null);
+    }
   };
 
   const revoke = useMutation(
@@ -119,13 +128,14 @@ export function SessionsCard() {
                     </div>
                     <span className="text-muted-foreground">
                       {t('auth.sessionsCard.lastActive', {
-                        time: row.lastUsedAt
-                          ? relativeTime(new Date(row.lastUsedAt))
-                          : (formatDate(
-                              row.createdAt,
-                              DATE_TIME_SHORT,
-                              timeZone
-                            ) ?? ''),
+                        time:
+                          row.lastUsedAt === null
+                            ? (formatDate(
+                                row.createdAt,
+                                DATE_TIME_SHORT,
+                                timeZone
+                              ) ?? '')
+                            : relativeTime(new Date(row.lastUsedAt)),
                       })}
                       {row.ipAddress && ` · ${row.ipAddress}`}
                     </span>
@@ -139,7 +149,9 @@ export function SessionsCard() {
                         revoke.variables?.params.id === row.id
                       }
                       disabled={revoke.isPending}
-                      onClick={() => setConfirming(row)}
+                      onClick={() => {
+                        setConfirming(row);
+                      }}
                     >
                       {t('auth.sessionsCard.signOut')}
                     </PendingButton>
@@ -154,7 +166,9 @@ export function SessionsCard() {
                   variant="outline"
                   size="sm"
                   pending={revokeAll.isPending}
-                  onClick={() => setConfirming('all')}
+                  onClick={() => {
+                    setConfirming('all');
+                  }}
                 >
                   {t('auth.sessionsCard.signOutAll')}
                 </PendingButton>
@@ -172,8 +186,9 @@ export function SessionsCard() {
         confirmLabel={t('auth.sessionsCard.signOut')}
         pending={revoke.isPending}
         onConfirm={() => {
-          if (confirming && confirming !== 'all')
+          if (confirming !== null && confirming !== 'all') {
             revoke.mutate({ params: { id: confirming.id } });
+          }
         }}
       />
       <ConfirmDialog
@@ -183,7 +198,9 @@ export function SessionsCard() {
         description={t('auth.sessionsCard.signOutAllDescription')}
         confirmLabel={t('auth.sessionsCard.signOutAll')}
         pending={revokeAll.isPending}
-        onConfirm={() => revokeAll.mutate({})}
+        onConfirm={() => {
+          revokeAll.mutate({});
+        }}
       />
     </Card>
   );

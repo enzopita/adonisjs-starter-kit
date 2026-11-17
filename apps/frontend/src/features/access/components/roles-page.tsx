@@ -61,6 +61,7 @@ function Roles() {
     ...membersQuery(tenantId),
     enabled: canSeeMembers,
   });
+
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<Role | null>(null);
   const [deleting, setDeleting] = useState<Role | null>(null);
@@ -72,7 +73,11 @@ function Roles() {
         title={t('access.rolesPage.title')}
         description={t('access.rolesPage.description')}
         actions={
-          <Button onClick={() => setCreating(true)}>
+          <Button
+            onClick={() => {
+              setCreating(true);
+            }}
+          >
             <PlusIcon data-icon="inline-start" />
             {t('access.rolesPage.newRole')}
           </Button>
@@ -103,7 +108,11 @@ function Roles() {
           groups={catalog.data.groups}
           tenantId={tenantId}
           open
-          onOpenChange={(open) => !open && setEditing(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setEditing(null);
+            }
+          }}
         />
       )}
 
@@ -113,7 +122,11 @@ function Roles() {
           role={deleting}
           tenantId={tenantId}
           open
-          onOpenChange={(open) => !open && setDeleting(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setDeleting(null);
+            }
+          }}
         />
       )}
 
@@ -125,7 +138,11 @@ function Roles() {
           tenantId={tenantId}
           permissionLabel={(key) => permissionLabel(key).label}
           open
-          onOpenChange={(open) => !open && setViewingHistory(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setViewingHistory(null);
+            }
+          }}
         />
       )}
     </>
@@ -148,8 +165,9 @@ function RolesTable({
   const memberCount = new Map<string, number>();
 
   for (const member of members ?? []) {
-    if (member.roleId)
+    if (member.roleId) {
       memberCount.set(member.roleId, (memberCount.get(member.roleId) ?? 0) + 1);
+    }
   }
 
   return (
@@ -200,7 +218,9 @@ function RolesTable({
                   aria-label={t('access.rolesPage.roleHistory', {
                     name: role.name,
                   })}
-                  onClick={() => onHistory(role)}
+                  onClick={() => {
+                    onHistory(role);
+                  }}
                 >
                   <HistoryIcon />
                 </Button>
@@ -210,7 +230,9 @@ function RolesTable({
                   aria-label={t('access.rolesPage.editRole', {
                     name: role.name,
                   })}
-                  onClick={() => onEdit(role)}
+                  onClick={() => {
+                    onEdit(role);
+                  }}
                 >
                   <PencilIcon />
                 </Button>
@@ -220,7 +242,9 @@ function RolesTable({
                   aria-label={t('access.rolesPage.deleteRole', {
                     name: role.name,
                   })}
-                  onClick={() => onDelete(role)}
+                  onClick={() => {
+                    onDelete(role);
+                  }}
                 >
                   <Trash2Icon />
                 </Button>
@@ -262,12 +286,12 @@ function DeleteRoleDialog({
       description={t('access.rolesPage.deleteDescription')}
       confirmLabel={t('access.rolesPage.deleteConfirm')}
       pending={deleteRole.isPending}
-      onConfirm={() =>
+      onConfirm={() => {
         deleteRole.mutate({
           params: { id: role.id },
           ...tenantHeaders(tenantId),
-        })
-      }
+        });
+      }}
     />
   );
 }

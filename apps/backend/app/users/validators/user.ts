@@ -12,7 +12,9 @@ import { supportedLocales } from '#config/i18n';
 // oxlint-disable-next-line anti-slop/no-unknown-parameters -- the I/O boundary VineJS calls with the raw field value; chained after vine.string(), so a non-string never reaches it.
 function timezone(value: unknown, _options: unknown, field: FieldContext) {
   // oxlint-disable-next-line anti-slop/no-runtime-typeof -- vine.string() already parsed this field; the signature VineJS requires still types it as `unknown`.
-  if (typeof value !== 'string') return;
+  if (typeof value !== 'string') {
+    return;
+  }
 
   try {
     const canonical = new Intl.DateTimeFormat('en', {

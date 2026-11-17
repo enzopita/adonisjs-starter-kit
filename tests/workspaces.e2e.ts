@@ -24,8 +24,11 @@ test('onboarding creates the first workspace and opens it', async ({
   // the home page until its redirect ran: the logo flashed the form for a workspace that exists.
   await browser.evaluate(() => {
     new MutationObserver(() => {
-      if (document.querySelector('h1')?.textContent === 'Create your workspace')
+      if (
+        document.querySelector('h1')?.textContent === 'Create your workspace'
+      ) {
         document.documentElement.dataset.onboardingShown = 'true';
+      }
     }).observe(document.body, { childList: true, subtree: true });
 
     return null;

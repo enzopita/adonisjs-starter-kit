@@ -157,6 +157,7 @@ test.group('Access | roles', (group) => {
     const invitation = await acme.inside(() =>
       Invitation.findOrFail(invited.body().data.id)
     );
+
     assert.isNull(invitation.roleId);
   });
 
@@ -198,7 +199,7 @@ test.group('Access | roles', (group) => {
       .headers(acme.headers)
       .loginAs(owner);
 
-    const id = created.body().data.id;
+    const { id } = created.body().data;
 
     await client
       .visit('access.roles.update', { id })

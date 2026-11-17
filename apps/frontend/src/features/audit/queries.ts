@@ -70,8 +70,11 @@ export const auditEventsQuery = (tenantId: string, filters: AuditFilters) =>
       actorId: filters.actor,
       subjectType: filters.subject?.type,
       subjectId: filters.subject?.id,
-      from: filters.from && dayBound(filters.from, 'start'),
-      to: filters.to && dayBound(filters.to, 'end'),
+      from:
+        filters.from === undefined
+          ? undefined
+          : dayBound(filters.from, 'start'),
+      to: filters.to === undefined ? undefined : dayBound(filters.to, 'end'),
     },
     ...tenantHeaders(tenantId),
   });

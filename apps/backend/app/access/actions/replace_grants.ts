@@ -19,6 +19,7 @@ export default class ReplaceGrants {
     await db.transaction((trx) =>
       new KeepAManager().handle(trx, tenantId, async () => {
         const member = await new GetMember().handle(trx, { tenantId, userId });
+
         const previous = await PermissionGrant.query({ client: trx }).where(
           'user_id',
           userId

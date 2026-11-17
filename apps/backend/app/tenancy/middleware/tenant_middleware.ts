@@ -20,7 +20,7 @@ export default class TenantMiddleware {
   async handle(ctx: HttpContext, next: NextFn) {
     const tenantId = ctx.request.header('x-tenant-id');
 
-    if (!tenantId || !vine.helpers.isUUID(tenantId)) {
+    if (tenantId === undefined || !vine.helpers.isUUID(tenantId)) {
       throw new InvalidTenantHeaderException();
     }
 
@@ -28,9 +28,9 @@ export default class TenantMiddleware {
 
     const tenant = await Tenant.query()
       .where('id', tenantId)
-      .whereHas('memberships', (memberships) =>
-        memberships.where('user_id', userId)
-      )
+      .whereHas('memberships', (memberships) => {
+        memberships.where('user_id', userId);
+      })
       .first();
 
     if (!tenant) {
@@ -56,7 +56,7 @@ export default class TenantMiddleware {
 
     ctx.tenant = tenant;
 
-    return runInTenant(tenant.id, () => next());
+    await runInTenant(tenant.id, next);
   }
 }
 

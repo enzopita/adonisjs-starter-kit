@@ -32,7 +32,9 @@ export function AcceptInvitationPage() {
         await navigate({ to: '/' });
       },
       onError: (error) => {
-        if (apiErrorCode(error) === null) toast.error(errorMessage(error));
+        if (apiErrorCode(error) === null) {
+          toast.error(errorMessage(error));
+        }
       },
     })
   );
@@ -73,7 +75,9 @@ export function AcceptInvitationPage() {
           size="lg"
           className="w-full"
           pending={profile.isFetching}
-          onClick={() => profile.refetch()}
+          onClick={() => {
+            void profile.refetch();
+          }}
         >
           {t('access.acceptInvitationPage.tryAgain')}
         </PendingButton>
@@ -83,7 +87,9 @@ export function AcceptInvitationPage() {
 
   const user = profile.data?.data;
 
-  if (!user) return null;
+  if (!user) {
+    return null;
+  }
 
   const failure = accept.error ? apiErrorCode(accept.error) : null;
 
@@ -120,7 +126,9 @@ export function AcceptInvitationPage() {
           size="lg"
           className="w-full"
           pending={false}
-          onClick={signInWithAnotherAccount}
+          onClick={() => {
+            void signInWithAnotherAccount();
+          }}
         >
           {t('access.acceptInvitationPage.signInWithAnotherAccount')}
         </PendingButton>
@@ -139,7 +147,9 @@ export function AcceptInvitationPage() {
         size="lg"
         className="w-full"
         pending={accept.isPending}
-        onClick={() => accept.mutate({ body: { token } })}
+        onClick={() => {
+          accept.mutate({ body: { token } });
+        }}
       >
         {t('access.acceptInvitationPage.acceptInvitation')}
       </PendingButton>

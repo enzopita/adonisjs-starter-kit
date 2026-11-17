@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http';
 
 import SignUp from '#auth/actions/sign_up';
+import { releaseToken } from '#auth/services/sessions';
 import { signupValidator } from '#auth/validators/auth';
 import UserTransformer from '#users/transformers/user_transformer';
 
@@ -29,9 +30,9 @@ export default class NewAccountController {
       ipAddress: request.ip(),
     });
 
-    return serialize({
+    return await serialize({
       user: UserTransformer.transform(user),
-      token: token.value!.release(),
+      token: releaseToken(token),
     });
   }
 }

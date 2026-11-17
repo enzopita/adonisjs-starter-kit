@@ -16,19 +16,18 @@ export function UnverifiedEmailBanner({ email }: { email: string }) {
   );
 
   return (
-    <div
-      role="status"
-      className="bg-primary text-primary-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-xs"
-    >
+    <output className="bg-primary text-primary-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-xs">
       <span>{t('users.unverifiedEmailBanner.message', { email })}</span>
       <PendingButton
         variant="secondary"
         size="sm"
         pending={resend.isPending}
-        onClick={() => resend.mutate({})}
+        onClick={() => {
+          resend.mutate({});
+        }}
       >
         {t('users.unverifiedEmailBanner.resend')}
       </PendingButton>
-    </div>
+    </output>
   );
 }

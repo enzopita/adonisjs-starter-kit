@@ -22,8 +22,9 @@ function restrict<T extends LucidModel, Result>(
 ) {
   const context = currentTenantContext();
 
-  if (context.kind === 'tenant')
+  if (context.kind === 'tenant') {
     query.where(`${query.model.table}.tenant_id`, context.tenantId);
+  }
 }
 
 /**
@@ -31,7 +32,9 @@ function restrict<T extends LucidModel, Result>(
  * those are restricted when they run; the rest already were in query().
  */
 function restrictRelated(query: Query) {
-  if ('isRelatedQuery' in query) restrict(query);
+  if ('isRelatedQuery' in query) {
+    restrict(query);
+  }
 }
 
 /**
@@ -58,7 +61,9 @@ export function withTenant<
 
     @beforeCreate()
     static fillTenantId(row: WithTenant) {
-      if (row.tenantId) return;
+      if (row.tenantId) {
+        return;
+      }
 
       const context = currentTenantContext();
 
@@ -78,7 +83,7 @@ export function withTenant<
 
       if (
         context.kind === 'tenant' &&
-        row.$dirty.tenantId &&
+        'tenantId' in row.$dirty &&
         row.tenantId !== context.tenantId
       ) {
         throw new Error(

@@ -7,7 +7,9 @@ export const Route = createFileRoute('/_app/admin/users')({
   validateSearch: adminSearchSchema,
   loaderDeps: ({ search }) => search,
   loader: async ({ context: { queryClient, canUseArea }, deps }) => {
-    if (canUseArea) await queryClient.query(adminUsersQuery(deps));
+    if (canUseArea) {
+      await queryClient.query(adminUsersQuery(deps));
+    }
   },
   component: UsersRoute,
 });
@@ -19,7 +21,9 @@ function UsersRoute() {
   return (
     <UsersPage
       search={search}
-      onSearchChange={(next) => void navigate({ search: next })}
+      onSearchChange={(next) => {
+        void navigate({ search: next });
+      }}
     />
   );
 }

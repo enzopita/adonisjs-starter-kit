@@ -22,7 +22,9 @@ export class ClaimAttachments {
     trx: TransactionClientContract,
     { ids, uploaderId, rule }: ClaimAttachmentsInput
   ) {
-    if (ids.length === 0) return [];
+    if (ids.length === 0) {
+      return [];
+    }
 
     const rows = await Attachment.query({ client: trx })
       .whereIn('id', [...ids])

@@ -1,4 +1,5 @@
-import { PERMISSIONS, type Permission } from '#access/permissions';
+import { PERMISSIONS } from '#access/permissions';
+import type { Permission } from '#access/permissions';
 import type { TenantSubjectType } from '#core/audit/types';
 
 /**

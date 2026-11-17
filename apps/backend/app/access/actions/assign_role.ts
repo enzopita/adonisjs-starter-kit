@@ -28,16 +28,19 @@ export default class AssignRole {
         const from = previous
           ? await Role.findOrFail(previous.roleId, { client: trx })
           : null;
-        const to = roleId
-          ? await Role.findOrFail(roleId, { client: trx })
-          : null;
+
+        const to =
+          roleId === null
+            ? null
+            : await Role.findOrFail(roleId, { client: trx });
 
         await RoleAssignment.query({ client: trx })
           .where('user_id', userId)
           .delete();
 
-        if (roleId)
+        if (roleId) {
           await RoleAssignment.create({ userId, roleId }, { client: trx });
+        }
 
         await audit.record(trx, 'member.role_changed', {
           tenantId,

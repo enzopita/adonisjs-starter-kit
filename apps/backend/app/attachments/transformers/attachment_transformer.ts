@@ -29,8 +29,8 @@ export default class AttachmentTransformer extends BaseTransformer<Attachment> {
 
 /** encodeURIComponent leaves ' ( ) * ! unescaped, which RFC 5987 forbids in a filename*. */
 function encodeRfc5987(value: string) {
-  return encodeURIComponent(value).replace(
-    /['()*!]/g,
-    (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`
+  return encodeURIComponent(value).replaceAll(
+    /['()*!]/gu,
+    (char) => `%${(char.codePointAt(0) ?? 0).toString(16).toUpperCase()}`
   );
 }

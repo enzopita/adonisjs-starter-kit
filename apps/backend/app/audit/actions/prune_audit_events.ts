@@ -22,6 +22,7 @@ export default class PruneAuditEvents {
 
     while (true) {
       // Ids are uuidv7, so walking the primary key from the oldest reaches old rows first.
+      // oxlint-disable-next-line no-await-in-loop -- each batch starts after the previous one ends: a short batch stops the loop.
       const { rowCount } = await db.rawQuery<{ rowCount: number }>(
         `
         DELETE FROM audit_events WHERE id IN (
@@ -34,14 +35,16 @@ export default class PruneAuditEvents {
 
       deleted += rowCount;
 
-      if (rowCount < BATCH_SIZE) break;
+      if (rowCount < BATCH_SIZE) {
+        break;
+      }
     }
 
     if (deleted > 0) {
       await audit.note('audit.pruned', {
         tenantId: null,
         subject: null,
-        data: { count: deleted, before: before.toISO()! },
+        data: { count: deleted, before: before.toISO() },
       });
     }
 

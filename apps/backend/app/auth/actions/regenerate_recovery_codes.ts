@@ -20,17 +20,19 @@ export interface RegenerateRecoveryCodesInput {
 /** Replaces every recovery code, used or not, and returns the new ones in clear, once. */
 export default class RegenerateRecoveryCodes {
   async handle({ user, password, code }: RegenerateRecoveryCodesInput) {
-    if (!(await user.verifyPassword(password)))
+    if (!(await user.verifyPassword(password))) {
       throw new InvalidPasswordException();
+    }
 
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const locked = await User.query({ client: trx })
         .where('id', user.id)
         .forUpdate()
         .firstOrFail();
 
-      if (!locked.twoFactorConfirmedAt)
+      if (!locked.twoFactorConfirmedAt) {
         throw new TwoFactorNotEnabledException();
+      }
 
       if (!(await verifySecondFactor(trx, locked, { type: 'totp', code }))) {
         throw new InvalidTwoFactorCodeException();

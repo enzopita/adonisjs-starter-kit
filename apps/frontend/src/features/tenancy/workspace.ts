@@ -44,7 +44,9 @@ export function activeTenant(
 export function resolveTabWorkspace(tenants: readonly Data.Tenancy.Tenant[]) {
   const tenant = activeTenant(tenants, workspaceStore.getState().tenantId);
 
-  if (tenant) workspaceStore.setState({ tenantId: tenant.id });
+  if (tenant) {
+    workspaceStore.setState({ tenantId: tenant.id });
+  }
 
   return tenant;
 }

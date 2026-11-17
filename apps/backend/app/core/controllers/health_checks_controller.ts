@@ -12,7 +12,7 @@ export default class HealthChecksController {
    * Answers `200` as long as the process can serve requests. Checks no dependencies.
    */
   async live({ serialize }: HttpContext) {
-    return serialize({ status: 'ok' as const });
+    return await serialize({ status: 'ok' as const });
   }
 
   /**
@@ -31,6 +31,6 @@ export default class HealthChecksController {
       return response.serviceUnavailable(await serialize(report));
     }
 
-    return serialize(report);
+    return await serialize(report);
   }
 }

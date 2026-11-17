@@ -64,17 +64,19 @@ function AuditTimelineItem({
   showSession: boolean;
 }) {
   const { actor, session } = row;
+
   const { sentence, standalone, permissions } = describeEvent(
     row,
     permissionLabel
   );
+
   const timeZone = useTimeZone();
-  const createdAt = row.createdAt ? new Date(row.createdAt) : null;
+  const createdAt = row.createdAt === null ? null : new Date(row.createdAt);
   const absolute = formatDate(row.createdAt, DATE_TIME_MEDIUM, timeZone);
 
   return (
     <li className="flex gap-3 py-3">
-      {actor && !standalone ? (
+      {actor && standalone !== true ? (
         <UserAvatar user={actor} className="size-7" />
       ) : (
         <Avatar className="size-7">
@@ -91,7 +93,7 @@ function AuditTimelineItem({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5">
           <p className="min-w-0 text-xs/relaxed">
-            {!standalone && (
+            {standalone !== true && (
               <>
                 <Byline actor={actor} onActorSelect={onActorSelect} />{' '}
               </>
@@ -178,18 +180,22 @@ function Byline({
   actor: Actor | null;
   onActorSelect?: (actor: Actor) => void;
 }) {
-  if (!actor)
+  if (!actor) {
     return <span className="font-medium">{t('audit.timeline.system')}</span>;
+  }
 
-  if (!onActorSelect)
+  if (!onActorSelect) {
     return <span className="font-medium">{displayName(actor)}</span>;
+  }
 
   return (
     <button
       type="button"
       className="font-medium underline-offset-2 hover:underline focus-visible:underline focus-visible:outline-none"
       title={t('audit.timeline.showOnly', { name: displayName(actor) })}
-      onClick={() => onActorSelect(actor)}
+      onClick={() => {
+        onActorSelect(actor);
+      }}
     >
       {displayName(actor)}
     </button>

@@ -41,8 +41,9 @@ export class KeepAManager {
     const before = await hasManager(trx, tenantId);
     const result = await write();
 
-    if (before && !(await hasManager(trx, tenantId)))
+    if (before && !(await hasManager(trx, tenantId))) {
       throw new LastManagerException();
+    }
 
     return result;
   }

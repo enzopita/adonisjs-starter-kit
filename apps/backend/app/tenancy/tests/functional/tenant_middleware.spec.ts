@@ -56,6 +56,7 @@ test.group('Tenancy | tenant middleware', (group) => {
   }) => {
     const acme = await Tenant.create({ name: 'Acme' });
     await memberOf(acme, 'member@example.com');
+
     const outsider = await User.create({
       email: 'outsider@example.com',
       password: 'password123',
@@ -83,6 +84,7 @@ test.group('Tenancy | tenant middleware', (group) => {
     assert,
   }) => {
     const acme = await Tenant.create({ name: 'Acme' });
+
     const outsider = await User.create({
       email: 'outsider@example.com',
       password: 'password123',
@@ -99,6 +101,7 @@ test.group('Tenancy | tenant middleware', (group) => {
       'type',
       'access.tenant_denied'
     );
+
     assert.deepEqual(
       events.map((event) => [event.tenantId, event.actorId, event.data]),
       [

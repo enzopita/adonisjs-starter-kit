@@ -1,6 +1,7 @@
 import { Label } from '@monorepo/ui/components/label';
 import { Separator } from '@monorepo/ui/components/separator';
-import { cva, type VariantProps } from 'class-variance-authority';
+import { cva } from 'class-variance-authority';
+import type { VariantProps } from 'class-variance-authority';
 import { cn } from 'cn';
 import { useMemo } from 'react';
 
@@ -73,6 +74,7 @@ function Field({
 }: React.ComponentProps<'div'> & VariantProps<typeof fieldVariants>) {
   return (
     <div
+      // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- a Field nests inside FieldSet; a <fieldset> would bring its native border, padding and disabled semantics.
       role="group"
       data-slot="field"
       data-orientation={orientation}
@@ -100,6 +102,7 @@ function FieldLabel({
   ...props
 }: React.ComponentProps<typeof Label>) {
   return (
+    // oxlint-disable-next-line jsx-a11y/label-has-associated-control -- a generic primitive: the caller associates it through htmlFor or a nested control.
     <Label
       data-slot="field-label"
       className={cn(
@@ -150,7 +153,7 @@ function FieldSeparator({
   return (
     <div
       data-slot="field-separator"
-      data-content={!!children}
+      data-content={Boolean(children)}
       className={cn(
         'relative -my-2 h-5 text-xs/relaxed group-data-[variant=outline]/field-group:-mb-2',
         className
@@ -158,7 +161,7 @@ function FieldSeparator({
       {...props}
     >
       <Separator className="absolute inset-0 top-1/2" />
-      {children && (
+      {Boolean(children) && (
         <span
           className="bg-background text-muted-foreground relative mx-auto block w-fit px-2"
           data-slot="field-separator-content"
@@ -176,14 +179,17 @@ function FieldError({
   errors,
   ...props
 }: React.ComponentProps<'div'> & {
-  errors?: Array<{ message?: string } | undefined>;
+  errors?: ({ message?: string } | undefined)[];
 }) {
+  // oxlint-disable-next-line typescript/promise-function-async -- React 19's ReactNode includes Promise; this returns render content, never a promise.
   const content = useMemo(() => {
-    if (children) {
+    const hasChildren = Boolean(children);
+
+    if (hasChildren) {
       return children;
     }
 
-    if (!errors?.length) {
+    if (errors === undefined || errors.length === 0) {
       return null;
     }
 
@@ -191,7 +197,7 @@ function FieldError({
       ...new Map(errors.map((error) => [error?.message, error])).values(),
     ];
 
-    if (uniqueErrors?.length == 1) {
+    if (uniqueErrors?.length === 1) {
       return uniqueErrors[0]?.message;
     }
 
@@ -205,7 +211,7 @@ function FieldError({
     );
   }, [children, errors]);
 
-  if (!content) {
+  if (content === null || content === undefined || content === '') {
     return null;
   }
 

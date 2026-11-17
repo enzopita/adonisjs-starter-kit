@@ -115,7 +115,7 @@ test('a disabled user is signed out and refused at login until enabled again', a
   // The user's session from before: disabling revoked its token.
   await switchAccount(browser, user);
   await app.open('/profile');
-  await expect(browser).toHaveURL(/\/login/);
+  await expect(browser).toHaveURL(/\/login/u);
   await logIn();
   await expect(screen.getByRole('alert')).toHaveText(
     'This account is disabled. Contact support to get access back.'
@@ -180,6 +180,7 @@ test('an admin impersonates a member and comes back as themself', async ({
   const admin = await signUpAdmin();
   const member = await signUp('Ivy Impersonated');
   const tenant = await createTenant(member);
+
   const banner = () =>
     screen.getByRole('status').filter({ hasText: 'You’re signed in as' });
 
@@ -220,12 +221,12 @@ test('an admin impersonates a member and comes back as themself', async ({
   await expect(banner()).toBeVisible();
   await screen.getByRole('button', 'Account menu').tap();
   await screen.getByRole('menuitem', 'Log out').tap();
-  await expect(browser).toHaveURL(/\/login/);
+  await expect(browser).toHaveURL(/\/login/u);
 
   // Logging out while impersonating revoked the admin's token too.
   await switchAccount(browser, admin);
   await app.open('/admin/users');
-  await expect(browser).toHaveURL(/\/login/);
+  await expect(browser).toHaveURL(/\/login/u);
 });
 
 test('an admin resets a member’s two-factor and the member signs in again with a mailed new password', async ({

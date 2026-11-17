@@ -33,7 +33,7 @@ test.group('Auth | sessions', (group) => {
       .bearerToken(token);
 
     response.assertStatus(200);
-    assert.containsSubset(response.body().data, [
+    assert.containSubset(response.body().data, [
       { id: sessionIdOf(token), userAgent: 'ada-browser/1.0', current: true },
     ]);
   });
@@ -51,9 +51,11 @@ test.group('Auth | sessions', (group) => {
     // An impersonation token looks like one of ada's own rows (same tokenable_id): fake one the
     // way the admin module's action writes it, to prove the list excludes it by impersonator_id.
     const grace = await db
+      .query<{ id: string }>()
       .from('users')
       .where('email', 'grace@example.com')
-      .first();
+      .firstOrFail();
+
     await db
       .from('auth_access_tokens')
       .where('id', sessionIdOf(secondToken))
@@ -85,11 +87,13 @@ test.group('Auth | sessions', (group) => {
     const revoked = await client
       .visit('profile.profile.show')
       .bearerToken(other);
+
     revoked.assertStatus(401);
 
     const stillWorks = await client
       .visit('profile.profile.show')
       .bearerToken(token);
+
     stillWorks.assertStatus(200);
   });
 
@@ -122,11 +126,13 @@ test.group('Auth | sessions', (group) => {
     const revoked = await client
       .visit('profile.profile.show')
       .bearerToken(other);
+
     revoked.assertStatus(401);
 
     const stillWorks = await client
       .visit('profile.profile.show')
       .bearerToken(token);
+
     stillWorks.assertStatus(200);
   });
 
@@ -149,9 +155,11 @@ test.group('Auth | sessions', (group) => {
     const token = await signUp(client, 'ada@example.com');
 
     const ada = await db
+      .query<{ id: string }>()
       .from('users')
       .where('email', 'ada@example.com')
-      .first();
+      .firstOrFail();
+
     await db
       .from('auth_access_tokens')
       .where('id', sessionIdOf(token))
@@ -167,6 +175,7 @@ test.group('Auth | sessions', (group) => {
     const destroyAll = await client
       .visit('profile.sessions.destroy_all')
       .bearerToken(token);
+
     destroyAll.assertStatus(403);
   });
 
@@ -185,6 +194,7 @@ test.group('Auth | sessions', (group) => {
     const response = await client
       .visit('profile.profile.show')
       .bearerToken(token);
+
     response.assertStatus(401);
   });
 
@@ -205,9 +215,11 @@ test.group('Auth | sessions', (group) => {
     used.assertStatus(200);
 
     const row = await db
+      .query<{ expires_at: Date }>()
       .from('auth_access_tokens')
       .where('id', sessionIdOf(token))
-      .first();
+      .firstOrFail();
+
     assert.isAbove(
       DateTime.fromJSDate(row.expires_at).diffNow('days').days,
       29
@@ -221,10 +233,13 @@ test.group('Auth | sessions', (group) => {
     assert,
   }) => {
     const token = await signUp(client, 'ada@example.com');
+
     const ada = await db
+      .query<{ id: string }>()
       .from('users')
       .where('email', 'ada@example.com')
-      .first();
+      .firstOrFail();
+
     const originalExpiry = DateTime.now().plus({ minutes: 1 }).toJSDate();
 
     await db
@@ -235,12 +250,15 @@ test.group('Auth | sessions', (group) => {
     const response = await client
       .visit('profile.profile.show')
       .bearerToken(token);
+
     response.assertStatus(200);
 
     const row = await db
+      .query<{ expires_at: Date }>()
       .from('auth_access_tokens')
       .where('id', sessionIdOf(token))
-      .first();
+      .firstOrFail();
+
     assert.equal(row.expires_at.getTime(), originalExpiry.getTime());
   });
 });

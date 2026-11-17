@@ -13,7 +13,7 @@ export interface SetTenantSuspensionInput {
 export default class SetTenantSuspension {
   /** Suspending a suspended tenant keeps the date it was first suspended. */
   async handle({ id, suspended }: SetTenantSuspensionInput) {
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const tenant = await Tenant.findOrFail(id, { client: trx });
 
       tenant.suspendedAt = suspended

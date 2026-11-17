@@ -11,7 +11,13 @@ import { router } from '@/router';
 
 document.documentElement.lang = locale;
 
-createRoot(document.getElementById('root')!).render(
+const root = document.querySelector('#root');
+
+if (root === null) {
+  throw new Error('index.html has no #root element');
+}
+
+createRoot(root).render(
   <StrictMode>
     <ThemeProvider
       attribute="class"

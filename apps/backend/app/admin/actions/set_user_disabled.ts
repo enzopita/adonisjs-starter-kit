@@ -19,39 +19,42 @@ export default class SetUserDisabled {
    */
   async handle({ id, disabled }: SetUserDisabledInput) {
     const user = await db.transaction(async (trx) => {
-      const user = await User.findOrFail(id, { client: trx });
+      const target = await User.findOrFail(id, { client: trx });
 
       if (disabled) {
-        await ensureNotPlatformAdmin(user.id, trx);
+        await ensureNotPlatformAdmin(target.id, trx);
         await trx
           .from('auth_access_tokens')
-          .where('tokenable_id', user.id)
+          .where('tokenable_id', target.id)
           .delete();
       }
 
-      user.disabledAt = disabled ? (user.disabledAt ?? DateTime.now()) : null;
-      await user.save();
+      target.disabledAt = disabled
+        ? (target.disabledAt ?? DateTime.now())
+        : null;
+      await target.save();
 
       await audit.record(
         trx,
         disabled ? 'admin.user_disabled' : 'admin.user_enabled',
         {
           tenantId: null,
-          subject: { type: 'user', id: user.id },
-          data: { email: user.email },
+          subject: { type: 'user', id: target.id },
+          data: { email: target.email },
         }
       );
 
-      return user;
+      return target;
     });
 
     // A login that re-checked `disabledAt` before the commit inserted its token after the delete
     // above took its snapshot; it has committed by now, so this delete sees it.
-    if (disabled)
+    if (disabled) {
       await db
         .from('auth_access_tokens')
         .where('tokenable_id', user.id)
         .delete();
+    }
 
     return user;
   }

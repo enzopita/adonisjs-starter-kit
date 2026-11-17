@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname } from 'node:path';
+import path from 'node:path';
 
 import { BaseCommand, args, flags } from '@adonisjs/core/ace';
 import type { CommandOptions } from '@adonisjs/core/types/ace';
@@ -32,10 +32,11 @@ export default class MakeModule extends BaseCommand {
   })
   declare events: boolean;
 
-  private touched: string[] = [];
+  private readonly touched: string[] = [];
 
+  // oxlint-disable-next-line require-await -- BaseCommand types run() as returning a promise.
   override async run() {
-    if (!/^[a-z][a-z0-9_]*$/.test(this.name)) {
+    if (!/^[a-z][a-z0-9_]*$/u.test(this.name)) {
       this.logger.error(`Invalid module name "${this.name}": use snake_case`);
       this.exitCode = 1;
 
@@ -104,17 +105,17 @@ export default class MakeModule extends BaseCommand {
 
   /** Writes a file under app/<name>/. */
   private create(relativePath: string, contents: string) {
-    const path = this.app.makePath('app', this.name, relativePath);
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, contents);
-    this.touched.push(path);
+    const filePath = this.app.makePath('app', this.name, relativePath);
+    mkdirSync(path.dirname(filePath), { recursive: true });
+    writeFileSync(filePath, contents);
+    this.touched.push(filePath);
     this.logger.success(`create app/${this.name}/${relativePath}`);
   }
 
   /** Applies `transform` to a project file, failing the command when it changes nothing. */
   private patch(relativePath: string, transform: (source: string) => string) {
-    const path = this.app.makePath(relativePath);
-    const source = readFileSync(path, 'utf-8');
+    const filePath = this.app.makePath(relativePath);
+    const source = readFileSync(filePath, 'utf-8');
     const updated = transform(source);
 
     if (updated === source) {
@@ -126,19 +127,20 @@ export default class MakeModule extends BaseCommand {
       return;
     }
 
-    writeFileSync(path, updated);
-    this.touched.push(path);
+    writeFileSync(filePath, updated);
+    this.touched.push(filePath);
     this.logger.success(`update ${relativePath}`);
   }
 
   /** Adds `#<name>/*` next to the other module aliases in package.json. */
   private registerAlias() {
     this.patch('package.json', (source) => {
-      const pkg = JSON.parse(source);
-      const entries = Object.entries<string>(pkg.imports);
+      // oxlint-disable-next-line typescript/no-unsafe-assignment -- JSON.parse returns any; package.json is the project's own, with an imports map.
+      const pkg: { imports: Record<string, string> } = JSON.parse(source);
+      const entries = Object.entries(pkg.imports);
 
       const lastModule = entries.findLastIndex(([, target]) =>
-        /^\.\/app\/[^*]+\/\*\.js$/.test(target)
+        /^\.\/app\/[^*]+\/\*\.js$/u.test(target)
       );
 
       entries.splice(lastModule + 1, 0, [
@@ -158,12 +160,13 @@ export default class MakeModule extends BaseCommand {
       `    () => import('#${this.name}/routes'),`,
     ];
 
-    if (this.events)
+    if (this.events) {
       lines.push(`    () => import('#${this.name}/start/events'),`);
+    }
 
     this.patch('adonisrc.ts', (source) =>
       source.replace(
-        /(preloads:\s*\[[\s\S]*?)(\n {2}\],)/,
+        /(?<body>preloads:\s*\[[\s\S]*?)(?<close>\n {2}\],)/u,
         (_match, body: string, close: string) =>
           `${body}\n\n${lines.join('\n')}${close}`
       )
@@ -173,7 +176,8 @@ export default class MakeModule extends BaseCommand {
   /** Registers the module in modules.json, the dependency map the lint enforces. */
   private registerBoundary() {
     this.patch('modules.json', (source) => {
-      const modules = JSON.parse(source);
+      // oxlint-disable-next-line typescript/no-unsafe-assignment -- JSON.parse returns any; modules.json maps each module to its dependencies.
+      const modules: Record<string, string[]> = JSON.parse(source);
       modules[this.name] = ['core'];
 
       return `${JSON.stringify(modules, null, 2)}\n`;

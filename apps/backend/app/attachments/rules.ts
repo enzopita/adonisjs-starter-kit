@@ -19,10 +19,13 @@ export const ATTACHMENT_MIME_TYPES = {
 
 export type AttachmentExtname = keyof typeof ATTACHMENT_MIME_TYPES;
 
-// SAFETY: Object.keys of a const literal returns exactly its keys.
-export const ATTACHMENT_EXTNAMES = Object.keys(
-  ATTACHMENT_MIME_TYPES
-) as AttachmentExtname[];
+export function isAttachmentExtname(value: string): value is AttachmentExtname {
+  return Object.hasOwn(ATTACHMENT_MIME_TYPES, value);
+}
+
+export const ATTACHMENT_EXTNAMES = Object.keys(ATTACHMENT_MIME_TYPES).filter(
+  isAttachmentExtname
+);
 
 /** What one consumer use case accepts, checked when it claims an upload. */
 export interface AttachmentRule {

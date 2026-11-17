@@ -9,9 +9,11 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { PermissionPicker } from '@/features/access/components/permission-picker';
+import {
+  assignable,
+  PermissionPicker,
+} from '@/features/access/components/permission-picker';
 import type {
-  AssignablePermission,
   Permission,
   PermissionGroup,
 } from '@/features/access/permissions';
@@ -40,8 +42,7 @@ export function RoleDialog({
   const form = useAppForm({
     defaultValues: {
       name: role?.name ?? '',
-      // SAFETY: a role's stored permissions are always assignable; platform.admin never comes from one.
-      permissions: (role?.permissions ?? []) as AssignablePermission[],
+      permissions: assignable(role?.permissions ?? []),
     },
     onSubmit: async ({ value, formApi }) => {
       const saved = await withFormErrors(
@@ -55,7 +56,9 @@ export function RoleDialog({
           : createRole.mutateAsync({ body: value, ...tenantHeaders(tenantId) })
       );
 
-      if (!saved) return;
+      if (!saved) {
+        return;
+      }
 
       onOpenChange(false);
       toast.success(
@@ -99,7 +102,9 @@ export function RoleDialog({
                 <PermissionPicker
                   groups={groups}
                   value={new Set(field.state.value)}
-                  onChange={(next) => field.handleChange([...next])}
+                  onChange={(next) => {
+                    field.handleChange([...next]);
+                  }}
                 />
               )}
             </form.AppField>

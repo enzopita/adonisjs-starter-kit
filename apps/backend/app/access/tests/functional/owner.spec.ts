@@ -18,6 +18,7 @@ test.group('Access | tenant owner', (group) => {
   }) => {
     const acme = await workspace();
     const founder = await acme.member();
+
     const event = {
       tenantId: acme.tenant.id,
       creatorId: founder.id,
@@ -89,6 +90,7 @@ test.group('Access | tenant owner', (group) => {
   }) => {
     const acme = await workspace();
     const founder = await acme.member();
+
     const event = {
       tenantId: acme.tenant.id,
       creatorId: founder.id,
@@ -119,13 +121,14 @@ test.group('Access | tenant owner', (group) => {
     const acme = await workspace();
     const owner = await acme.role('Owner', ['roles.manage', 'members.manage']);
     const manager = await acme.role('Manager', ['members.manage']);
+
     const auditor = await acme.role('Auditor', [
       'roles.manage',
       'members.manage',
       'audit.view',
     ]);
 
-    for (let run = 0; run < 2; run++) {
+    for (let run = 0; run < 2; run += 1) {
       await new GrantAuditViewToOwnerRoles(
         db.connection(),
         'grant',

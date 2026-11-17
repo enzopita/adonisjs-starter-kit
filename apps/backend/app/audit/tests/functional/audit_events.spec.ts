@@ -3,7 +3,8 @@ import type { ApiClient } from '@japa/api-client';
 import { test } from '@japa/runner';
 import { DateTime } from 'luxon';
 
-import { workspace, type Workspace } from '#access/tests/seed';
+import { workspace } from '#access/tests/seed';
+import type { Workspace } from '#access/tests/seed';
 import AuditEvent from '#core/models/audit_event';
 import type User from '#users/models/user';
 
@@ -104,6 +105,7 @@ test.group('Audit | events', (group) => {
     const roles = await list(client, acme, roleManager, {
       subjectType: 'role',
     });
+
     const members = await list(client, acme, roleManager, {
       subjectType: 'member',
     });
@@ -160,9 +162,9 @@ test.group('Audit | events', (group) => {
 
     const filtered = [];
 
-    // One at a time: the test's global transaction is a single connection.
-    for (const query of queries)
+    for (const query of queries) {
       filtered.push(typesOf(await list(client, acme, auditor, query)));
+    }
 
     assert.deepEqual(filtered, [
       ['role.updated', 'role.created'],

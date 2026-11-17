@@ -11,16 +11,14 @@ const body = (password: string) => ({
 
 // Regression: a password manager's long passphrase is refused, or the cap disappears.
 test.group('Auth | password rule', () => {
-  test('accepts 8 to 128 characters', async ({ assert }) => {
-    for (const length of [8, 128]) {
+  test('accepts {length} characters')
+    .with([{ length: 8 }, { length: 128 }])
+    .run(async ({ assert }, { length }) => {
       const password = 'x'.repeat(length);
+      const validated = await resetPasswordValidator.validate(body(password));
 
-      assert.equal(
-        (await resetPasswordValidator.validate(body(password))).password,
-        password
-      );
-    }
-  });
+      assert.equal(validated.password, password);
+    });
 
   test('rejects {length} characters')
     .with([{ length: 7 }, { length: 129 }])

@@ -32,7 +32,7 @@ export default class TenantsController {
 
     const { rows, meta } = await new ListTenants().handle(filters);
 
-    return serialize(AdminTenantTransformer.paginate(rows, meta));
+    return await serialize(AdminTenantTransformer.paginate(rows, meta));
   }
 
   /**
@@ -50,7 +50,7 @@ export default class TenantsController {
 
     const { tenant, members } = await new GetTenant().handle({ id: params.id });
 
-    return serialize({
+    return await serialize({
       tenant: TenantTransformer.transform(tenant),
       // Depth 3: members -> user -> avatar.
       members: AdminMemberTransformer.transform(members).depth(3),
@@ -71,6 +71,6 @@ export default class TenantsController {
 
     const tenant = await new RenameTenant().handle({ id: params.id, name });
 
-    return serialize(TenantTransformer.transform(tenant));
+    return await serialize(TenantTransformer.transform(tenant));
   }
 }

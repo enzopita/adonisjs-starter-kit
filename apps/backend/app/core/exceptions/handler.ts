@@ -1,7 +1,8 @@
 import { errors as authErrors } from '@adonisjs/auth';
 import { errors as bouncerErrors } from '@adonisjs/bouncer';
 import { Exception } from '@adonisjs/core/exceptions';
-import { ExceptionHandler, type HttpContext } from '@adonisjs/core/http';
+import { ExceptionHandler } from '@adonisjs/core/http';
+import type { HttpContext } from '@adonisjs/core/http';
 import app from '@adonisjs/core/services/app';
 import type { HttpError } from '@adonisjs/core/types/http';
 import { errors as limiterErrors } from '@adonisjs/limiter';
@@ -20,38 +21,48 @@ export default class HttpExceptionHandler extends ExceptionHandler {
     }
 
     if (error instanceof authErrors.E_UNAUTHORIZED_ACCESS) {
-      return ctx.response.unauthorized({
+      ctx.response.unauthorized({
         code: 'E_UNAUTHORIZED_ACCESS' as const,
         message: error.message,
       });
+
+      return;
     }
 
     if (error instanceof authErrors.E_INVALID_CREDENTIALS) {
-      return ctx.response.badRequest({
+      ctx.response.badRequest({
         code: 'E_INVALID_CREDENTIALS' as const,
         message: error.message,
       });
+
+      return;
     }
 
     if (error instanceof bouncerErrors.E_AUTHORIZATION_FAILURE) {
-      return ctx.response.forbidden({
+      ctx.response.forbidden({
         code: 'E_AUTHORIZATION_FAILURE' as const,
         message: error.message,
       });
+
+      return;
     }
 
     if (error instanceof limiterErrors.E_TOO_MANY_REQUESTS) {
-      for (const [name, value] of Object.entries(error.getDefaultHeaders())) {
+      for (const [name, value] of Object.entries<string | number>(
+        error.getDefaultHeaders()
+      )) {
         ctx.response.header(name, value);
       }
 
-      return ctx.response.tooManyRequests({
+      ctx.response.tooManyRequests({
         code: 'E_TOO_MANY_REQUESTS' as const,
         message: error.message,
       });
+
+      return;
     }
 
-    return super.handle(error, ctx);
+    await super.handle(error, ctx);
   }
 
   /**
@@ -60,21 +71,26 @@ export default class HttpExceptionHandler extends ExceptionHandler {
    */
   override async renderErrorAsJSON(error: HttpError, ctx: HttpContext) {
     if (error.status >= 500) {
-      if (this.isDebuggingEnabled(ctx))
-        return super.renderErrorAsJSON(error, ctx);
+      if (this.isDebuggingEnabled(ctx)) {
+        await super.renderErrorAsJSON(error, ctx);
+
+        return;
+      }
 
       const code = 'E_INTERNAL_SERVER_ERROR';
 
-      return ctx.response.status(error.status).send({
+      ctx.response.status(error.status).send({
         code,
         message:
           'i18n' in ctx
             ? ctx.i18n.t(`errors.${code}`)
             : 'Internal server error',
       });
+
+      return;
     }
 
-    return ctx.response
+    ctx.response
       .status(error.status)
       .send({ code: error.code ?? 'E_UNKNOWN', message: error.message });
   }

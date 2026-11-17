@@ -1,6 +1,7 @@
 import type { DateTime } from 'luxon';
 
 import AuditEvent from '#core/models/audit_event';
+import { paginationMeta } from '#core/pagination';
 import User from '#users/models/user';
 
 /** A tenant's events, or a user's own account events (sign-in, avatar), which have no tenant. */
@@ -27,8 +28,9 @@ export interface AuditEventRow {
 }
 
 function queryTrail(trail: AuditTrail) {
-  if ('tenantId' in trail)
+  if ('tenantId' in trail) {
     return AuditEvent.query().where('tenant_id', trail.tenantId);
+  }
 
   return AuditEvent.query()
     .whereNull('tenant_id')
@@ -49,17 +51,29 @@ export default class ListAuditEvents {
     const { trail, types, actorId, subjectType, subjectId, from, to } = input;
     const query = queryTrail(trail);
 
-    if (types) query.whereIn('type', types);
+    if (types) {
+      query.whereIn('type', types);
+    }
 
-    if (actorId) query.where('actor_id', actorId);
+    if (actorId) {
+      query.where('actor_id', actorId);
+    }
 
-    if (subjectType) query.where('subject_type', subjectType);
+    if (subjectType) {
+      query.where('subject_type', subjectType);
+    }
 
-    if (subjectId) query.where('subject_id', subjectId);
+    if (subjectId) {
+      query.where('subject_id', subjectId);
+    }
 
-    if (from) query.where('created_at', '>=', from.toJSDate());
+    if (from) {
+      query.where('created_at', '>=', from.toJSDate());
+    }
 
-    if (to) query.where('created_at', '<=', to.toJSDate());
+    if (to) {
+      query.where('created_at', '<=', to.toJSDate());
+    }
 
     const events = await query.orderBy('id', 'desc').paginate(page, perPage);
 
@@ -76,11 +90,14 @@ export default class ListAuditEvents {
 
     const rows: AuditEventRow[] = events.all().map((event) => ({
       event,
-      actor: (event.actorId && userById.get(event.actorId)) || null,
+      actor:
+        event.actorId === null ? null : (userById.get(event.actorId) ?? null),
       impersonator:
-        (event.impersonatorId && userById.get(event.impersonatorId)) || null,
+        event.impersonatorId === null
+          ? null
+          : (userById.get(event.impersonatorId) ?? null),
     }));
 
-    return { rows, meta: events.getMeta() };
+    return { rows, meta: paginationMeta(events) };
   }
 }

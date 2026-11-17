@@ -41,7 +41,9 @@ export function MemberRoleSelect({
   );
 
   const onValueChange = (value: string | null) => {
-    if (value === null) return;
+    if (value === null) {
+      return;
+    }
 
     updateRole.mutate({
       params: { userId },

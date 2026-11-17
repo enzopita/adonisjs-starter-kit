@@ -2,11 +2,8 @@ import testUtils from '@adonisjs/core/services/test_utils';
 import type { ApiClient } from '@japa/api-client';
 import { test } from '@japa/runner';
 
-import {
-  ownedWorkspace,
-  permissionsOf,
-  type Workspace,
-} from '#access/tests/seed';
+import { ownedWorkspace, permissionsOf } from '#access/tests/seed';
+import type { Workspace } from '#access/tests/seed';
 import AuditEvent from '#core/models/audit_event';
 import type User from '#users/models/user';
 
@@ -54,6 +51,7 @@ test.group('Access | members', (group) => {
       target.id,
       null
     );
+
     const grantsResponse = await setGrants(
       client,
       acme,
@@ -104,6 +102,7 @@ test.group('Access | members', (group) => {
       stranger,
       viewer.id
     );
+
     const grantsResponse = await setGrants(client, acme, owner, stranger, [
       'roles.manage',
     ]);
@@ -151,6 +150,7 @@ test.group('Access | members', (group) => {
       .loginAs(owner);
 
     response.assertStatus(200);
+
     const row = response
       .body()
       .data.members.find((entry) => entry.user.id === member.id);
@@ -176,6 +176,7 @@ test.group('Access | members', (group) => {
     const events = await AuditEvent.query()
       .where('tenant_id', acme.tenant.id)
       .orderBy('id');
+
     const member = { email: target.email, fullName: null };
 
     assert.deepEqual(

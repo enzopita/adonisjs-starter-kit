@@ -31,9 +31,8 @@ export default class extends BaseSchema {
     );
   }
 
-  /**
-   * Keeps the grant: once applied, a role's audit.view can't be told apart from one an admin
-   * gave or kept on purpose, and revoking it would hide the trail from the people it is for.
-   */
-  override async down() {}
+  override async down() {
+    // Keeps the grant: once applied, a role's audit.view can't be told apart from one an admin
+    // gave or kept on purpose, and revoking it would hide the trail from the people it is for.
+  }
 }

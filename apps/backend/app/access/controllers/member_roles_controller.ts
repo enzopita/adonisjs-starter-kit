@@ -27,6 +27,6 @@ export default class MemberRolesController {
       roleId,
     });
 
-    return serialize({ roleId });
+    return await serialize({ roleId });
   }
 }

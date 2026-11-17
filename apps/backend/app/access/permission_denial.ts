@@ -7,10 +7,12 @@ import type { Permission } from '#access/permissions';
  * middleware can audit the `authorize()` that throws it. `allows()` just reads it as false.
  */
 export class PermissionDenial extends AuthorizationResponse {
-  constructor(
-    readonly permission: Permission,
-    readonly tenantId: string | null
-  ) {
+  readonly permission: Permission;
+  readonly tenantId: string | null;
+
+  constructor(permission: Permission, tenantId: string | null) {
     super(false);
+    this.permission = permission;
+    this.tenantId = tenantId;
   }
 }

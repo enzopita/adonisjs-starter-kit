@@ -19,7 +19,7 @@ export default class UserSuspensionsController {
    * @response {404} User not found
    */
   async store(ctx: HttpContext) {
-    return this.set(ctx, true);
+    return await this.set(ctx, true);
   }
 
   /**
@@ -31,7 +31,7 @@ export default class UserSuspensionsController {
    * @response {404} User not found
    */
   async destroy(ctx: HttpContext) {
-    return this.set(ctx, false);
+    return await this.set(ctx, false);
   }
 
   private async set(
@@ -46,6 +46,6 @@ export default class UserSuspensionsController {
       disabled,
     });
 
-    return serialize({ id: user.id, disabledAt: user.disabledAt });
+    return await serialize({ id: user.id, disabledAt: user.disabledAt });
   }
 }

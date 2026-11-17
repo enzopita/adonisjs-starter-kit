@@ -31,8 +31,8 @@ export const configureSuite: Config['configureSuite'] = (suite) => {
   if (['browser', 'functional', 'e2e'].includes(suite.name)) {
     suite.setup(() => testUtils.httpServer().start());
     // Throttle keys live outside the per-test db transaction, so every test starts unblocked.
-    suite.onGroup((group) =>
-      group.each.setup(() => () => limiter.clear(['memory']))
-    );
+    suite.onGroup((group) => {
+      group.each.setup(() => () => limiter.clear(['memory']));
+    });
   }
 };

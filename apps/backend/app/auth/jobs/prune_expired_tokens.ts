@@ -4,7 +4,7 @@ import type { JobOptions } from '@adonisjs/queue/types';
 
 import PruneExpiredTokens from '#auth/actions/prune_expired_tokens';
 
-export default class PruneExpiredTokensJob extends Job<{}> {
+export default class PruneExpiredTokensJob extends Job<Record<string, never>> {
   static override options: JobOptions = {
     maxRetries: 3,
   };

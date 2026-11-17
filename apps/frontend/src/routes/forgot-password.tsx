@@ -5,7 +5,9 @@ import { session } from '@/features/core/session';
 
 export const Route = createFileRoute('/forgot-password')({
   beforeLoad: () => {
-    if (session.isAuthenticated()) throw redirect({ to: '/' });
+    if (session.isAuthenticated()) {
+      throw redirect({ to: '/' });
+    }
   },
   component: ForgotPasswordPage,
 });

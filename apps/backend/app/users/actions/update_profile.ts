@@ -13,12 +13,16 @@ export interface UpdateProfileInput {
 
 export default class UpdateProfile {
   async handle({ user, locale, timezone }: UpdateProfileInput) {
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       user.useTransaction(trx);
 
-      if (locale !== undefined) user.locale = locale;
+      if (locale !== undefined) {
+        user.locale = locale;
+      }
 
-      if (timezone !== undefined) user.timezone = timezone;
+      if (timezone !== undefined) {
+        user.timezone = timezone;
+      }
 
       const changes = dirtyChanges(user, ['locale', 'timezone']);
       await user.save();

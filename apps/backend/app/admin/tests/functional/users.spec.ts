@@ -31,11 +31,8 @@ test.group('Admin | users', (group) => {
     const ada = await acme.member();
     ada.merge({ fullName: 'Ada Lovelace', email: 'ada@example.com' });
     await ada.save();
-    await (
-      await workspace('Other')
-    ).tenant
-      .related('memberships')
-      .create({ userId: ada.id });
+    const other = await workspace('Other');
+    await other.tenant.related('memberships').create({ userId: ada.id });
     await User.create({
       email: 'lovelace@example.com',
       password: 'password123',
@@ -52,7 +49,7 @@ test.group('Admin | users', (group) => {
       .loginAs(viewer);
 
     response.assertStatus(200);
-    assert.containsSubset(response.body(), {
+    assert.containSubset(response.body(), {
       data: [
         {
           user: { email: 'ada@example.com', fullName: 'Ada Lovelace' },
@@ -63,7 +60,7 @@ test.group('Admin | users', (group) => {
       ],
       metadata: { total: 2 },
     });
-    assert.containsSubset(admins.body().data, [
+    assert.containSubset(admins.body().data, [
       { platformAdmin: true, tenantCount: 0 },
     ]);
   });
@@ -81,6 +78,7 @@ test.group('Admin | users', (group) => {
     const login = await client
       .visit('auth.access_tokens.store')
       .json(credentials);
+
     const { token } = sessionOf(login.body().data);
 
     const disabled = await client
@@ -98,11 +96,13 @@ test.group('Admin | users', (group) => {
     const session = await client
       .visit('profile.profile.show')
       .bearerToken(token);
+
     session.assertStatus(401);
 
     const refused = await client
       .visit('auth.access_tokens.store')
       .json(credentials);
+
     refused.assertStatus(403);
     refused.assertBodyContains({ code: 'E_ACCOUNT_DISABLED' });
 
@@ -121,6 +121,7 @@ test.group('Admin | users', (group) => {
     const back = await client
       .visit('auth.access_tokens.store')
       .json(credentials);
+
     back.assertStatus(200);
 
     const events = await AuditEvent.query()
@@ -187,6 +188,11 @@ test.group('Admin | users', (group) => {
     await enableTwoFactor(ada);
     await replaceRecoveryCodes(db.connection(), ada.id);
     const session = await User.accessTokens.create(ada);
+
+    if (session.value === undefined) {
+      throw new Error('expected the new access token to carry its secret');
+    }
+
     const oldCredentials = { email: ada.email, password: 'password123' };
 
     const listRow = async () => {
@@ -198,7 +204,7 @@ test.group('Admin | users', (group) => {
       return list.body().data[0];
     };
 
-    assert.containsSubset(await listRow(), {
+    assert.containSubset(await listRow(), {
       user: { twoFactorEnabled: true },
     });
 
@@ -210,18 +216,20 @@ test.group('Admin | users', (group) => {
       .loginAs(viewer);
 
     reset.assertBody({ data: { id: ada.id, twoFactorEnabled: false } });
-    assert.containsSubset(await listRow(), {
+    assert.containSubset(await listRow(), {
       user: { twoFactorEnabled: false },
     });
 
     const stale = await client
       .visit('profile.profile.show')
-      .bearerToken(session.value!.release());
+      .bearerToken(session.value.release());
+
     stale.assertStatus(401);
 
     const held = await client
       .visit('auth.access_tokens.store')
       .json(oldCredentials);
+
     held.assertStatus(403);
     held.assertBodyContains({ code: 'E_PASSWORD_RESET_REQUIRED' });
     assert.notProperty(held.body(), 'data');
@@ -244,16 +252,15 @@ test.group('Admin | users', (group) => {
 
     const newPassword = 'new-password456';
 
-    const chosen = await client
-      .visit('auth.password_resets.update')
-      .json({
-        token: resetToken,
-        password: newPassword,
-        passwordConfirmation: newPassword,
-      });
+    const chosen = await client.visit('auth.password_resets.update').json({
+      token: resetToken,
+      password: newPassword,
+      passwordConfirmation: newPassword,
+    });
 
     chosen.assertStatus(200);
-    assert.isNull((await User.findOrFail(ada.id)).passwordResetRequiredAt);
+    const updated = await User.findOrFail(ada.id);
+    assert.isNull(updated.passwordResetRequiredAt);
 
     const login = await client
       .visit('auth.access_tokens.store')
@@ -265,6 +272,7 @@ test.group('Admin | users', (group) => {
     const oldPassword = await client
       .visit('auth.access_tokens.store')
       .json(oldCredentials);
+
     oldPassword.assertStatus(400);
 
     const again = await client
@@ -316,6 +324,7 @@ test.group('Admin | users', (group) => {
       .loginAs(viewer);
 
     using fake = mail.fake();
+
     const requested = await client
       .visit('auth.password_resets.store')
       .json({ email: ada.email });
@@ -385,6 +394,7 @@ test.group('Admin | users', (group) => {
   }) => {
     const viewer = await admin();
     const ada = await createUser();
+
     const isAdmin = async () =>
       (await PlatformAdmin.findBy('userId', ada.id)) !== null;
 

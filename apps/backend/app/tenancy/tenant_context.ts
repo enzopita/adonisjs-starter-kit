@@ -27,7 +27,9 @@ export function runAsSystem<T>(fn: () => T): T {
 export function currentTenantContext(): TenantContext {
   const context = storage.getStore();
 
-  if (!context) throw new MissingTenantContextException();
+  if (!context) {
+    throw new MissingTenantContextException();
+  }
 
   return context;
 }

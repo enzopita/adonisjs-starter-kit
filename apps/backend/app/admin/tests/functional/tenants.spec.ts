@@ -56,14 +56,18 @@ test.group('Admin | tenants', (group) => {
     const statuses = [];
 
     for (const request of requests) {
-      statuses.push(
-        (await request.headers(acme.headers).loginAs(owner)).status()
-      );
+      const response = await request.headers(acme.headers).loginAs(owner);
+
+      statuses.push(response.status());
     }
 
-    assert.deepEqual(statuses, Array(requests.length).fill(403));
+    assert.deepEqual(
+      statuses,
+      requests.map(() => 403)
+    );
 
     const member = await client.visit('admin.me.show').loginAs(owner);
+
     const platformAdmin = await client
       .visit('admin.me.show')
       .loginAs(await admin());
@@ -131,11 +135,11 @@ test.group('Admin | tenants', (group) => {
       .loginAs(viewer);
 
     first.assertStatus(200);
-    assert.containsSubset(first.body(), {
+    assert.containSubset(first.body(), {
       data: [{ name: 'Acme Corp', memberCount: 0, suspendedAt: null }],
       metadata: { total: 2 },
     });
-    assert.containsSubset(second.body().data, [
+    assert.containSubset(second.body().data, [
       { name: 'Beta Corp', memberCount: 2 },
     ]);
   });
@@ -182,7 +186,7 @@ test.group('Admin | tenants', (group) => {
         [staff.email, null],
       ]
     );
-    assert.containsSubset(response.body().data.members, [
+    assert.containSubset(response.body().data.members, [
       { user: { id: staff.id }, platformAdmin: true, disabledAt: null },
       { user: { id: owner.id }, platformAdmin: false },
     ]);
@@ -257,7 +261,7 @@ test.group('Admin | tenants', (group) => {
     foreign.assertBodyContains({ code: 'E_TENANT_ACCESS_DENIED' });
 
     const listed = await client.visit('tenants.tenants.index').loginAs(member);
-    assert.containsSubset(listed.body().data, [
+    assert.containSubset(listed.body().data, [
       { id: acme.tenant.id, suspendedAt: suspended.body().data.suspendedAt },
     ]);
 

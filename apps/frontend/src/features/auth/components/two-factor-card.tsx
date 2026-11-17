@@ -40,14 +40,18 @@ type RevealedRecoveryCodes = { codes: string[]; warnOtherSessions: boolean };
 export function TwoFactorCard() {
   const status = useQuery(twoFactorQuery());
   const [enrollment, setEnrollment] = useState<Enrollment | null>(null);
+
   const [recoveryCodes, setRecoveryCodes] =
     useState<RevealedRecoveryCodes | null>(null);
+
   const [disableOpen, setDisableOpen] = useState(false);
   const [regenerateOpen, setRegenerateOpen] = useState(false);
 
   const start = useMutation(
     queries.profile.twoFactor.store.mutationOptions({
-      onSuccess: ({ data }) => setEnrollment(data),
+      onSuccess: ({ data }) => {
+        setEnrollment(data);
+      },
       onError: (error) => toast.error(errorMessage(error)),
     })
   );
@@ -57,7 +61,9 @@ export function TwoFactorCard() {
       <TwoFactorRecoveryCodesCard
         codes={recoveryCodes.codes}
         warnOtherSessions={recoveryCodes.warnOtherSessions}
-        onDone={() => setRecoveryCodes(null)}
+        onDone={() => {
+          setRecoveryCodes(null);
+        }}
       />
     );
   }
@@ -71,7 +77,9 @@ export function TwoFactorCard() {
           setEnrollment(null);
           setRecoveryCodes({ codes, warnOtherSessions: true });
         }}
-        onCancel={() => setEnrollment(null)}
+        onCancel={() => {
+          setEnrollment(null);
+        }}
       />
     );
   }
@@ -113,7 +121,9 @@ export function TwoFactorCard() {
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={() => setRegenerateOpen(true)}
+                  onClick={() => {
+                    setRegenerateOpen(true);
+                  }}
                 >
                   {t('auth.twoFactorCard.regenerate')}
                 </Button>
@@ -121,7 +131,9 @@ export function TwoFactorCard() {
                   type="button"
                   variant="destructive"
                   size="sm"
-                  onClick={() => setDisableOpen(true)}
+                  onClick={() => {
+                    setDisableOpen(true);
+                  }}
                 >
                   {t('auth.twoFactorCard.disable')}
                 </Button>
@@ -135,7 +147,9 @@ export function TwoFactorCard() {
               <div>
                 <PendingButton
                   pending={start.isPending}
-                  onClick={() => start.mutate({})}
+                  onClick={() => {
+                    start.mutate({});
+                  }}
                 >
                   {t('auth.twoFactorCard.enable')}
                 </PendingButton>
@@ -171,6 +185,7 @@ function DisableTwoFactorDialog({
   const disable = useMutation(
     queries.profile.twoFactor.destroy.mutationOptions()
   );
+
   const [useRecoveryCode, setUseRecoveryCode] = useState(false);
 
   const form = useAppForm({
@@ -185,7 +200,9 @@ function DisableTwoFactorDialog({
         disable.mutateAsync({ body })
       );
 
-      if (!disabled) return;
+      if (!disabled) {
+        return;
+      }
 
       onOpenChange(false);
       toast.success(t('auth.twoFactorCard.disabled'));
@@ -238,7 +255,9 @@ function DisableTwoFactorDialog({
             )}
             <button
               type="button"
-              onClick={() => setUseRecoveryCode((value) => !value)}
+              onClick={() => {
+                setUseRecoveryCode((value) => !value);
+              }}
               className="text-muted-foreground self-start text-xs underline underline-offset-4"
             >
               {useRecoveryCode
@@ -278,7 +297,9 @@ function RegenerateRecoveryCodesDialog({
         regenerate.mutateAsync({ body: value })
       );
 
-      if (regenerated) onRegenerated(regenerated.data.recoveryCodes);
+      if (regenerated) {
+        onRegenerated(regenerated.data.recoveryCodes);
+      }
     },
   });
 

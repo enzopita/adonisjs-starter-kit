@@ -9,7 +9,8 @@ import { execFile, execFileSync, spawn } from 'node:child_process';
 import type { ChildProcess } from 'node:child_process';
 import { mkdtempSync, openSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import path from 'node:path';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { promisify } from 'node:util';
 
 import {
@@ -25,10 +26,10 @@ import {
 import type { Account } from '../tests/support/api.ts';
 
 const ROOT = new URL('..', import.meta.url).pathname;
-const BACKEND_DIR = join(ROOT, 'apps/backend');
-const FRONTEND_DIR = join(ROOT, 'apps/frontend');
-const IMAGES_DIR = join(ROOT, 'docs/images');
-const LOG_DIR = mkdtempSync(join(tmpdir(), 'starter-screenshots-'));
+const BACKEND_DIR = path.join(ROOT, 'apps/backend');
+const FRONTEND_DIR = path.join(ROOT, 'apps/frontend');
+const IMAGES_DIR = path.join(ROOT, 'docs/images');
+const LOG_DIR = mkdtempSync(path.join(tmpdir(), 'starter-screenshots-'));
 
 const APP_URL = 'http://localhost:5173';
 const BACKEND_URL = 'http://localhost:3333';
@@ -132,7 +133,8 @@ function run(command: string, args: string[], cwd = ROOT) {
 
 /** Starts `command` in its own process group, so `stopAll` also ends the children it spawns. */
 function start(name: string, command: string, args: string[], cwd: string) {
-  const log = openSync(join(LOG_DIR, `${name}.log`), 'a');
+  const log = openSync(path.join(LOG_DIR, `${name}.log`), 'a');
+
   const child = spawn(command, args, {
     cwd,
     detached: true,
@@ -141,14 +143,14 @@ function start(name: string, command: string, args: string[], cwd: string) {
 
   started.push(child);
   console.log(
-    `started ${name} (pid ${child.pid}), log in ${join(LOG_DIR, `${name}.log`)}`
+    `started ${name} (pid ${child.pid}), log in ${path.join(LOG_DIR, `${name}.log`)}`
   );
 }
 
 function stopAll() {
   for (const child of started) {
     // Even when the leader exited: `node ace serve` can leave its server child in the group.
-    if (child.pid) {
+    if (child.pid !== undefined) {
       try {
         process.kill(-child.pid, 'SIGTERM');
       } catch {
@@ -182,16 +184,17 @@ async function waitFor(url: string, name: string) {
   const deadline = Date.now() + 120_000;
 
   while (!(await isListening(url))) {
-    if (Date.now() > deadline)
+    if (Date.now() > deadline) {
       throw new Error(`${name} did not answer at ${url}; see ${LOG_DIR}`);
+    }
 
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await sleep(500);
   }
 }
 
 /** Drops and recreates the demo database, so every run seeds the same rows into an empty schema. */
 function resetDatabase() {
-  const psql = (sql: string) =>
+  const psql = (sql: string) => {
     run('docker', [
       'compose',
       'exec',
@@ -201,6 +204,7 @@ function resetDatabase() {
       '-c',
       `psql -q -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d postgres -c '${sql}'`,
     ]);
+  };
 
   psql(`DROP DATABASE IF EXISTS ${DEMO_ENV.DB_DATABASE} WITH (FORCE)`);
   psql(`CREATE DATABASE ${DEMO_ENV.DB_DATABASE}`);
@@ -214,10 +218,12 @@ function resetDatabase() {
 
 /** Mailpit outlives the database: an old run's verification link would point at a deleted token. */
 async function clearDemoMail() {
-  for (const { email } of Object.values(PEOPLE)) {
-    const query = encodeURIComponent(`to:"${email}"`);
-    await fetch(`${MAILPIT_URL}/search?query=${query}`, { method: 'DELETE' });
-  }
+  await Promise.all(
+    Object.values(PEOPLE).map(async ({ email }) => {
+      const query = encodeURIComponent(`to:"${email}"`);
+      await fetch(`${MAILPIT_URL}/search?query=${query}`, { method: 'DELETE' });
+    })
+  );
 }
 
 async function signUpVerified(person: Person): Promise<Account> {
@@ -257,6 +263,7 @@ async function seed() {
     'members.manage',
     'audit.view',
   ]);
+
   const viewer = await createRole(ada, tenant, 'Viewer', ['audit.view']);
 
   await invite(ada, tenant, grace.email, editor.id);
@@ -275,6 +282,7 @@ async function seed() {
  * closing an idle keep-alive socket, and the next API call fails on that dead socket.
  */
 async function browser(...args: string[]) {
+  // oxlint-disable-next-line typescript/strict-void-return -- promisify uses execFile's util.promisify.custom variant, so the ChildProcess return is not discarded.
   await promisify(execFile)('agent-browser', [
     '--session',
     BROWSER_SESSION,
@@ -330,16 +338,16 @@ async function capture(shots: Shot[], ada: Account, tenantId: string) {
     await browser('wait', '--load', 'networkidle');
     await browser('wait', '500');
 
-    const target = join(IMAGES_DIR, shot.file);
+    const target = path.join(IMAGES_DIR, shot.file);
 
-    if (shot.element) {
+    if (shot.element === undefined) {
+      await browser('screenshot', target);
+    } else {
       // agent-browser clips an element below the fold or on a scrolled page wrong, so make the
       // viewport tall enough to hold the whole page unscrolled.
       await browser('set', 'viewport', '1440', '2400');
       await browser('screenshot', shot.element, target);
       await browser('set', 'viewport', '1440', '900');
-    } else {
-      await browser('screenshot', target);
     }
 
     console.log(`captured ${shot.file}`);
@@ -347,12 +355,18 @@ async function capture(shots: Shot[], ada: Account, tenantId: string) {
 }
 
 async function main() {
-  for (const url of [BACKEND_URL, APP_URL]) {
-    if (await isListening(url)) {
-      throw new Error(
-        `${url} is already in use; stop that server first, this script starts its own`
-      );
-    }
+  const urls = [BACKEND_URL, APP_URL];
+
+  const listening = await Promise.all(
+    urls.map(async (url) => await isListening(url))
+  );
+
+  const inUse = urls.find((_url, index) => listening[index]);
+
+  if (inUse !== undefined) {
+    throw new Error(
+      `${inUse} is already in use; stop that server first, this script starts its own`
+    );
   }
 
   // Compose interpolates DB_DATABASE into the pgsql container, so the demo values must not be set

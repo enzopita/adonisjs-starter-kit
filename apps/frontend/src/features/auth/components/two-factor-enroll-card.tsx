@@ -33,6 +33,7 @@ export function TwoFactorEnrollCard({
   const confirm = useMutation(
     queries.profile.twoFactor.confirm.mutationOptions()
   );
+
   const secretId = useId();
 
   const form = useAppForm({
@@ -43,7 +44,9 @@ export function TwoFactorEnrollCard({
         confirm.mutateAsync({ body: value })
       );
 
-      if (confirmed) onConfirmed(confirmed.data.recoveryCodes);
+      if (confirmed) {
+        onConfirmed(confirmed.data.recoveryCodes);
+      }
     },
   });
 
@@ -80,13 +83,17 @@ export function TwoFactorEnrollCard({
                 id={secretId}
                 readOnly
                 value={secret}
-                onFocus={(event) => event.target.select()}
+                onFocus={(event) => {
+                  event.target.select();
+                }}
               />
               <Button
                 type="button"
                 variant="outline"
                 size="icon"
-                onClick={copySecret}
+                onClick={() => {
+                  void copySecret();
+                }}
                 aria-label={t('auth.twoFactorCard.copy')}
               >
                 <CopyIcon />

@@ -22,10 +22,7 @@ export function ImpersonationBanner({
   };
 
   return (
-    <div
-      role="status"
-      className="bg-primary text-primary-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-xs"
-    >
+    <output className="bg-primary text-primary-foreground flex flex-wrap items-center justify-center gap-x-3 gap-y-1 px-3 py-1.5 text-xs">
       <VenetianMaskIcon className="size-4" aria-hidden />
       <span>
         {t('admin.impersonationBanner.signedInAs', {
@@ -33,9 +30,15 @@ export function ImpersonationBanner({
           email: user.email,
         })}
       </span>
-      <Button variant="secondary" size="sm" onClick={stop}>
+      <Button
+        variant="secondary"
+        size="sm"
+        onClick={() => {
+          void stop();
+        }}
+      >
         {t('admin.impersonationBanner.stop')}
       </Button>
-    </div>
+    </output>
   );
 }

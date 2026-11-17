@@ -18,13 +18,16 @@ test.group('Tenancy | tenants', (group) => {
       email: 'user@example.com',
       password: 'password123',
     });
+
     const globex = await Tenant.create({ name: 'Globex' });
     const acme = await Tenant.create({ name: 'Acme' });
     const initech = await Tenant.create({ name: 'Initech' });
+
     const other = await User.create({
       email: 'other@example.com',
       password: 'password123',
     });
+
     await TenantMembership.createMany([
       { tenantId: globex.id, userId: user.id },
       { tenantId: acme.id, userId: user.id },
@@ -45,6 +48,7 @@ test.group('Tenancy | tenants', (group) => {
     assert,
   }) => {
     using events = emitter.fake(['tenancy:tenant_created']);
+
     const user = await User.create({
       email: 'founder@example.com',
       password: 'password123',
@@ -76,6 +80,7 @@ test.group('Tenancy | tenants', (group) => {
     assert,
   }) => {
     using _events = emitter.fake(['tenancy:tenant_created']);
+
     const user = await User.create({
       email: 'founder@example.com',
       password: 'password123',

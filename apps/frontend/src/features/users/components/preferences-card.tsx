@@ -21,7 +21,6 @@ import { TIME_ZONES, useTimeZone } from '@/features/core/datetime';
 import { errorMessage } from '@/features/core/errors';
 import { locale, t } from '@/features/core/i18n';
 import { LOCALES, LOCALE_LABELS } from '@/features/core/locales';
-import type { Locale } from '@/features/core/locales';
 import { preferences } from '@/features/core/preferences';
 import { profileQuery } from '@/features/users/profile';
 
@@ -37,10 +36,11 @@ export function PreferencesCard() {
   );
 
   const changeLocale = (next: string | null) => {
-    if (next === null || next === (user.locale ?? locale)) return;
+    const nextLocale = LOCALES.find((value) => value === next);
 
-    // SAFETY: `next` came from a SelectItem value this card built from LOCALES.
-    const nextLocale = next as Locale;
+    if (nextLocale === undefined || nextLocale === (user.locale ?? locale)) {
+      return;
+    }
 
     update.mutate(
       { body: { locale: nextLocale } },
@@ -54,7 +54,9 @@ export function PreferencesCard() {
   };
 
   const changeTimeZone = (next: string | null) => {
-    if (next === null || next === (user.timezone ?? timeZone)) return;
+    if (next === null || next === (user.timezone ?? timeZone)) {
+      return;
+    }
 
     update.mutate(
       { body: { timezone: next } },
@@ -113,7 +115,7 @@ export function PreferencesCard() {
               value={
                 user.timezone ??
                 timeZone ??
-                Intl.DateTimeFormat().resolvedOptions().timeZone
+                new Intl.DateTimeFormat().resolvedOptions().timeZone
               }
               onValueChange={changeTimeZone}
               disabled={update.isPending}

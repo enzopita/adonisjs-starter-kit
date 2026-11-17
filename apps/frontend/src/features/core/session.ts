@@ -32,8 +32,9 @@ export const session = {
   impersonate: (token: string) => {
     const adminToken = sessionStore.getState().token;
 
-    if (adminToken)
+    if (adminToken) {
       sessionStore.setState({ token, impersonation: { adminToken } });
+    }
   },
   /** Back to the admin's own token; outside an impersonation, signs out. */
   stopImpersonating: () => {

@@ -31,6 +31,6 @@ export default class InvitationAcceptController {
 
     const tenant = await Tenant.findOrFail(tenantId);
 
-    return serialize(TenantTransformer.transform(tenant));
+    return await serialize(TenantTransformer.transform(tenant));
   }
 }

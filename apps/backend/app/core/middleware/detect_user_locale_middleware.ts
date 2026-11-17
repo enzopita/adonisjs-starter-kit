@@ -1,4 +1,5 @@
-import { type HttpContext, RequestValidator } from '@adonisjs/core/http';
+import { RequestValidator } from '@adonisjs/core/http';
+import type { HttpContext } from '@adonisjs/core/http';
 import type { NextFn } from '@adonisjs/core/types/http';
 import { I18n } from '@adonisjs/i18n';
 import i18nManager from '@adonisjs/i18n/services/main';
@@ -14,7 +15,7 @@ export default class DetectUserLocaleMiddleware {
       ctx.i18n.createMessagesProvider();
   }
 
-  async handle(ctx: HttpContext, next: NextFn) {
+  handle(ctx: HttpContext, next: NextFn) {
     const locale = i18nManager.getSupportedLocaleFor(
       ctx.request
         .languages()

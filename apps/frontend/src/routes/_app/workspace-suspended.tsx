@@ -12,7 +12,9 @@ export const Route = createFileRoute('/_app/workspace-suspended')({
     const tenants = await queryClient.query(tenantsQuery());
     const tenant = resolveTabWorkspace(tenants.data);
 
-    if (!tenant?.suspendedAt) throw redirect({ to: '/' });
+    if (tenant === null || tenant.suspendedAt === null) {
+      throw redirect({ to: '/' });
+    }
 
     return { tenant };
   },

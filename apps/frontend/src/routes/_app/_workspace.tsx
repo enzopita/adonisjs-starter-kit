@@ -16,9 +16,13 @@ export const Route = createFileRoute('/_app/_workspace')({
     const tenants = await queryClient.query(tenantsQuery());
     const tenant = resolveTabWorkspace(tenants.data);
 
-    if (!tenant) throw redirect({ to: '/onboarding' });
+    if (!tenant) {
+      throw redirect({ to: '/onboarding' });
+    }
 
-    if (tenant.suspendedAt) throw redirect({ to: '/workspace-suspended' });
+    if (tenant.suspendedAt) {
+      throw redirect({ to: '/workspace-suspended' });
+    }
 
     await queryClient.query(myPermissionsQuery(tenant.id));
 

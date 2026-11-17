@@ -58,25 +58,27 @@ export type Workspace = Awaited<ReturnType<typeof workspace>>;
 export async function ownedWorkspace() {
   const acme = await workspace();
   const owner = await acme.member();
+
   const ownerRole = await acme.role('Owner', [
     'roles.manage',
     'members.manage',
   ]);
+
   await acme.assign(owner, ownerRole);
 
   return { acme, owner, ownerRole };
 }
 
-/** What `GET /api/v1/access/me` answers `user` in the tenant `headers` select. */
+/** What `GET /api/v1/access/me` answers `holder` in the tenant `headers` select. */
 export async function permissionsOf(
   client: ApiClient,
-  user: User,
+  holder: User,
   headers: Record<string, string>
 ) {
   const response = await client
     .visit('access.my_permissions.show')
     .headers(headers)
-    .loginAs(user);
+    .loginAs(holder);
 
   response.assertStatus(200);
 

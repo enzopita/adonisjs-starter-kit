@@ -23,6 +23,7 @@ test.group('Auth | email verification', (group) => {
     const before = await client
       .visit('profile.profile.show')
       .bearerToken(session);
+
     assert.isNull(before.body().data.emailVerifiedAt);
 
     const verified = await client
@@ -34,6 +35,7 @@ test.group('Auth | email verification', (group) => {
     const after = await client
       .visit('profile.profile.show')
       .bearerToken(session);
+
     assert.isNotNull(after.body().data.emailVerifiedAt);
   });
 
@@ -56,6 +58,7 @@ test.group('Auth | email verification', (group) => {
     const resent = await client
       .visit('profile.email_verifications.store')
       .bearerToken(session);
+
     resent.assertStatus(200);
     fake.mails.assertQueuedCount(EmailVerificationMail, 2);
     const second = linkToken(fake, 'verify-email');
@@ -63,11 +66,13 @@ test.group('Auth | email verification', (group) => {
     const stale = await client
       .visit('auth.email_verifications.update')
       .json({ token: first });
+
     stale.assertStatus(400);
 
     const fresh = await client
       .visit('auth.email_verifications.update')
       .json({ token: second });
+
     fresh.assertStatus(200);
   });
 

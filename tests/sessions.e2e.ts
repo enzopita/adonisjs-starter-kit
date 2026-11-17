@@ -17,6 +17,7 @@ test('a member sees every signed-in device and signs them out from the profile p
 
   const rows = () =>
     screen.getByRole('listitem').filter({ hasText: 'Last active' });
+
   await expect(rows()).toHaveCount(3);
   await expect(rows().filter({ hasText: 'This device' })).toHaveCount(1);
 

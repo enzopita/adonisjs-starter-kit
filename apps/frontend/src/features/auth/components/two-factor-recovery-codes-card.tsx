@@ -39,6 +39,7 @@ export function TwoFactorRecoveryCodesCard({
     const url = URL.createObjectURL(
       new Blob([`${codes.join('\n')}\n`], { type: 'text/plain' })
     );
+
     const link = document.createElement('a');
 
     link.href = url;
@@ -73,7 +74,14 @@ export function TwoFactorRecoveryCodesCard({
             </Alert>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={copy}>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                void copy();
+              }}
+            >
               <CopyIcon data-icon="inline-start" />
               {t('auth.twoFactorCard.copy')}
             </Button>

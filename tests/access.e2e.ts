@@ -44,9 +44,11 @@ test('a member with only members.manage sees Members and Invitations but not Rol
 }) => {
   const owner = await signUp();
   const tenant = await createTenant(owner);
+
   const role = await createRole(owner, tenant, unique('Support'), [
     'members.manage',
   ]);
+
   const member = await addMember(owner, tenant, 'Support Agent');
   await assignRole(owner, tenant, member.id, role.id);
 

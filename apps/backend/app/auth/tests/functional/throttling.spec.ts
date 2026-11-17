@@ -20,7 +20,7 @@ test.group('Auth | throttling', (group) => {
       .visit('auth.new_account.store')
       .json({ ...account, email: 'eve@example.com' });
 
-    for (let attempt = 0; attempt < 5; attempt++) {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
       const response = await client
         .visit('auth.access_tokens.store')
         .json({ email: 'ada@example.com', password: 'wrong-password' });
@@ -53,7 +53,7 @@ test.group('Auth | throttling', (group) => {
       .visit('auth.new_account.store')
       .json({ ...account, email: 'ada@example.com' });
 
-    for (let attempt = 0; attempt < 4; attempt++) {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
       await client
         .visit('auth.access_tokens.store')
         .json({ email: 'ada@example.com', password: 'wrong-password' });
@@ -66,7 +66,7 @@ test.group('Auth | throttling', (group) => {
     success.assertStatus(200);
 
     // Were the failure count not reset on success, this 5th failure in a row would be the 9th.
-    for (let attempt = 0; attempt < 4; attempt++) {
+    for (let attempt = 0; attempt < 4; attempt += 1) {
       const response = await client
         .visit('auth.access_tokens.store')
         .json({ email: 'ada@example.com', password: 'wrong-password' });
@@ -76,7 +76,7 @@ test.group('Auth | throttling', (group) => {
   });
 
   test('blocks signup past its per-IP limit', async ({ client }) => {
-    for (let attempt = 0; attempt < 5; attempt++) {
+    for (let attempt = 0; attempt < 5; attempt += 1) {
       const response = await client
         .visit('auth.new_account.store')
         .json({ ...account, email: `signup-${attempt}@example.com` });
@@ -95,7 +95,7 @@ test.group('Auth | throttling', (group) => {
   test('blocks reset requests per email and IP, in any case, but another email from the same IP still works', async ({
     client,
   }) => {
-    for (let attempt = 0; attempt < 3; attempt++) {
+    for (let attempt = 0; attempt < 3; attempt += 1) {
       const response = await client
         .visit('auth.password_resets.store')
         .json({ email: attempt % 2 ? 'Ada@Example.com' : 'ada@example.com' });
@@ -125,7 +125,7 @@ test.group('Auth | failure budget', () => {
 
     const attempts = Array.from({ length: 20 }, () =>
       penalizeTwoFactorFailure('budget-user', async () => {
-        checked++;
+        checked += 1;
         // A real check awaits the database, the window a racing request would slip through.
         await setTimeout(20);
         throw new Error('wrong code');

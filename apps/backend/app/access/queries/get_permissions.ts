@@ -1,11 +1,8 @@
 import db from '@adonisjs/lucid/services/db';
 
 import PlatformAdmin from '#access/models/platform_admin';
-import {
-  ALL_PERMISSIONS,
-  isAssignable,
-  type Permission,
-} from '#access/permissions';
+import { ALL_PERMISSIONS, isAssignable } from '#access/permissions';
+import type { Permission } from '#access/permissions';
 import type User from '#users/models/user';
 
 export interface GetPermissionsInput {
@@ -30,9 +27,12 @@ export default class GetPermissions {
       return new Set(ALL_PERMISSIONS);
     }
 
-    if (!tenantId) return new Set();
+    if (tenantId === null) {
+      return new Set();
+    }
 
     const fromRole = db
+      .query<{ permission: string }>()
       .from('role_assignments')
       .join('roles', 'roles.id', 'role_assignments.role_id')
       .where('role_assignments.tenant_id', tenantId)
@@ -45,7 +45,7 @@ export default class GetPermissions {
       .where('user_id', user.id)
       .select('permission');
 
-    const rows: { permission: string }[] = await fromRole.unionAll(granted);
+    const rows = await fromRole.unionAll(granted);
 
     return new Set(
       rows.flatMap(({ permission }) =>

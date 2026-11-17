@@ -22,6 +22,6 @@ export default class AvatarController {
       attachmentId,
     });
 
-    return serialize(UserTransformer.transform(user));
+    return await serialize(UserTransformer.transform(user));
   }
 }

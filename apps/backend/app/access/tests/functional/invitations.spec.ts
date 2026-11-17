@@ -45,7 +45,9 @@ test.group('Access | invitations', (group) => {
         .loginAs(plain),
     ];
 
-    for (const response of responses) response.assertStatus(403);
+    for (const response of responses) {
+      response.assertStatus(403);
+    }
   });
 
   test('requires auth on every route, including accept', async ({ client }) => {
@@ -61,7 +63,9 @@ test.group('Access | invitations', (group) => {
       await client.visit('invitation_accept.store').json({ token: 'anything' }),
     ];
 
-    for (const response of responses) response.assertStatus(401);
+    for (const response of responses) {
+      response.assertStatus(401);
+    }
   });
 
   test('mails the invitation in the inviter’s locale', async ({
@@ -80,7 +84,7 @@ test.group('Access | invitations', (group) => {
 
     const queued = fake.mails.queued();
     assert.equal(
-      queued[queued.length - 1]?.message.toJSON().message.subject,
+      queued.at(-1)?.message.toJSON().message.subject,
       'Você recebeu um convite'
     );
   });
@@ -259,6 +263,7 @@ test.group('Access | invitations', (group) => {
       .visit('invitation_accept.store')
       .json({ token })
       .loginAs(guest);
+
     accepted.assertStatus(200);
     accepted.assertBodyContains({ data: { id: acme.tenant.id } });
 
@@ -383,6 +388,7 @@ test.group('Access | invitations', (group) => {
     const events = await AuditEvent.query()
       .where('tenant_id', acme.tenant.id)
       .orderBy('id');
+
     const invitation = {
       email: 'guest@example.com',
       role: { id: editor.id, name: 'Editor' },

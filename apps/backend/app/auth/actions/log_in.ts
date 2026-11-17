@@ -37,13 +37,15 @@ async function verifyCredentials(
   ipAddress: string
 ) {
   try {
-    return await penalizeLoginFailure(email, ipAddress, () => {
-      return User.verifyCredentials(email, password);
-    });
+    return await penalizeLoginFailure(email, ipAddress, () =>
+      User.verifyCredentials(email, password)
+    );
   } catch (error) {
     // A throttle rejection isn't a credential attempt: nothing to audit, just rethrow for the
     // exception handler to turn into a 429.
-    if (error instanceof limiterErrors.E_TOO_MANY_REQUESTS) throw error;
+    if (error instanceof limiterErrors.E_TOO_MANY_REQUESTS) {
+      throw error;
+    }
 
     const owner = await User.findBy('email', email);
 
@@ -63,7 +65,9 @@ export default class LogIn {
     const user = await verifyCredentials(email, password, ipAddress);
 
     // After the password check, so the answer doesn't tell whether an email is disabled.
-    if (user.disabledAt) throw new AccountDisabledException();
+    if (user.disabledAt) {
+      throw new AccountDisabledException();
+    }
 
     if (user.passwordResetRequiredAt) {
       await audit.note('auth.password_reset_required', {
@@ -75,16 +79,18 @@ export default class LogIn {
       throw new PasswordResetRequiredException();
     }
 
-    if (user.twoFactorConfirmedAt) return challenge(user);
+    if (user.twoFactorConfirmedAt !== null) {
+      return await challenge(user);
+    }
 
     const token = await openSession({ user, userAgent, ipAddress });
 
     // Enabling 2FA revokes every other session once it commits: a token created before that is
     // revoked, and one created after sees the confirmation here.
-    if (user.twoFactorConfirmedAt) {
+    if (user.twoFactorConfirmedAt !== null) {
       await User.accessTokens.delete(user, token.identifier);
 
-      return challenge(user);
+      return await challenge(user);
     }
 
     await audit.note('auth.logged_in', {

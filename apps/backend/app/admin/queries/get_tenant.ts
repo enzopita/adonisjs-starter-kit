@@ -30,7 +30,8 @@ export default class GetTenant {
 
     const userIds = users.map((user) => user.id);
 
-    const roles: { userId: string; name: string }[] = await db
+    const roles = await db
+      .query<{ userId: string; name: string }>()
       .from('role_assignments')
       .join('roles', 'roles.id', 'role_assignments.role_id')
       .where('role_assignments.tenant_id', id)

@@ -29,6 +29,6 @@ export default class TwoFactorResetsController {
       protectPlatformAdmins: true,
     });
 
-    return serialize({ id: user.id, twoFactorEnabled: false });
+    return await serialize({ id: user.id, twoFactorEnabled: false });
   }
 }

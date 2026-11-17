@@ -57,7 +57,7 @@ test.group('Auth | accounts', (group) => {
       timezone: 'America/Sao_Paulo',
     });
 
-    assert.containsSubset(chosen.body().data.user, {
+    assert.containSubset(chosen.body().data.user, {
       locale: 'pt-BR',
       timezone: 'America/Sao_Paulo',
     });
@@ -67,7 +67,7 @@ test.group('Auth | accounts', (group) => {
       .header('accept-language', 'pt-BR')
       .json({ ...account, email: 'fallback@example.com' });
 
-    assert.containsSubset(fallback.body().data.user, {
+    assert.containSubset(fallback.body().data.user, {
       locale: 'pt-BR',
       timezone: null,
     });
@@ -84,11 +84,11 @@ test.group('Auth | accounts', (group) => {
       locale: 'fr-FR',
     };
 
-    // SAFETY: the route only type-checks a supported locale/timezone; this body is intentionally
-    // one the validator, not the type checker, must reject.
+    // The route only type-checks a supported locale/timezone; this body is intentionally one the
+    // validator, not the type checker, must reject.
     const badLocale = await client
       .post('/api/v1/auth/signup')
-      .json(badLocaleBody as never);
+      .unsafeJson(badLocaleBody);
 
     badLocale.assertStatus(422);
 
@@ -98,23 +98,20 @@ test.group('Auth | accounts', (group) => {
       timezone: 'Mars/Olympus_Mons',
     };
 
-    // SAFETY: same as above, for the timezone field.
     const badTimezone = await client
       .post('/api/v1/auth/signup')
-      .json(badTimezoneBody as never);
+      .unsafeJson(badTimezoneBody);
 
     badTimezone.assertStatus(422);
   });
 
   // Regression: a name longer than the column passes validation and the insert answers 500.
   test('rejects a full name longer than 255 characters', async ({ client }) => {
-    const response = await client
-      .visit('auth.new_account.store')
-      .json({
-        ...account,
-        email: 'long-name@example.com',
-        fullName: 'x'.repeat(256),
-      });
+    const response = await client.visit('auth.new_account.store').json({
+      ...account,
+      email: 'long-name@example.com',
+      fullName: 'x'.repeat(256),
+    });
 
     response.assertStatus(422);
   });

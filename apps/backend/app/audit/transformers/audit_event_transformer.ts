@@ -30,6 +30,7 @@ export default class AuditEventTransformer extends BaseTransformer<AuditEventRow
     return this.withEvent<EventVariant<AccountEventType>>();
   }
 
+  // oxlint-disable-next-line typescript/no-unnecessary-type-parameters -- the caller names the variant it returns; nothing passed in could carry it.
   private withEvent<Event>() {
     const { event, actor, impersonator } = this.resource;
 
@@ -53,9 +54,10 @@ export default class AuditEventTransformer extends BaseTransformer<AuditEventRow
       // entry, and each variant's caller lists events of its scope only.
       event: {
         type: event.type,
-        subject: event.subjectId
-          ? { type: event.subjectType, id: event.subjectId }
-          : null,
+        subject:
+          event.subjectId === null
+            ? null
+            : { type: event.subjectType, id: event.subjectId },
         data: event.data,
       } as Event,
     };

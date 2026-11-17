@@ -51,10 +51,9 @@ test.group('Access | tenant isolation', (group) => {
 
     updated.assertStatus(404);
     deleted.assertStatus(404);
-    assert.deepEqual(
-      (await globex.inside(() => Role.findOrFail(auditor.id))).permissions,
-      []
-    );
+
+    const untouched = await globex.inside(() => Role.findOrFail(auditor.id));
+    assert.deepEqual(untouched.permissions, []);
   });
 
   test('refuses a role of another tenant and a member of another tenant', async ({

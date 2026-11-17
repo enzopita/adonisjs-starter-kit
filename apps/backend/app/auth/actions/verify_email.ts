@@ -12,10 +12,12 @@ export interface VerifyEmailInput {
 
 export default class VerifyEmail {
   async handle({ token }: VerifyEmailInput) {
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       const user = await consumeUserToken(trx, 'email_verification', token);
 
-      if (!user) throw new InvalidVerificationTokenException();
+      if (!user) {
+        throw new InvalidVerificationTokenException();
+      }
 
       // Verified meanwhile through a password reset or an invitation: keep that first date.
       user.emailVerifiedAt ??= DateTime.now();

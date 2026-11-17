@@ -33,11 +33,12 @@ test.group('Admin | impersonation', (group) => {
     const started = await impersonate(client, viewer, ada);
     started.assertStatus(200);
     assert.equal(started.body().data.user.id, ada.id);
-    const token = started.body().data.token;
+    const { token } = started.body().data;
 
     const profile = await client
       .visit('profile.profile.show')
       .bearerToken(token);
+
     assert.equal(profile.body().data.email, ada.email);
 
     const created = await client
@@ -53,7 +54,7 @@ test.group('Admin | impersonation', (group) => {
       .headers(acme.headers)
       .bearerToken(token);
 
-    assert.containsSubset(trail.body().data, [
+    assert.containSubset(trail.body().data, [
       {
         actor: { id: ada.id },
         impersonator: { id: viewer.id, email: viewer.email },
@@ -64,6 +65,7 @@ test.group('Admin | impersonation', (group) => {
     const loggedOut = await client
       .visit('profile.access_tokens.destroy')
       .bearerToken(token);
+
     loggedOut.assertStatus(200);
     const ended = await client.visit('profile.profile.show').bearerToken(token);
     ended.assertStatus(401);
@@ -88,7 +90,8 @@ test.group('Admin | impersonation', (group) => {
   test('revoking the admin ends their impersonations', async ({ client }) => {
     const viewer = await admin();
     const ada = await createUser();
-    const token = (await impersonate(client, viewer, ada)).body().data.token;
+    const impersonation = await impersonate(client, viewer, ada);
+    const { token } = impersonation.body().data;
 
     const revoked = await client
       .visit('admin.platform_admins.destroy', { id: viewer.id })
@@ -99,6 +102,7 @@ test.group('Admin | impersonation', (group) => {
     const profile = await client
       .visit('profile.profile.show')
       .bearerToken(token);
+
     profile.assertStatus(401);
   });
 

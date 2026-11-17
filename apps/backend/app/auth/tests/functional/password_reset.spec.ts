@@ -88,13 +88,11 @@ test.group('Auth | password reset', (group) => {
   }) => {
     const signupSession = await signUp(client, 'ada@example.com');
 
-    const { token: loginSession } = sessionOf(
-      (
-        await client
-          .visit('auth.access_tokens.store')
-          .json({ email: 'ada@example.com', password: account.password })
-      ).body().data
-    );
+    const signIn = await client
+      .visit('auth.access_tokens.store')
+      .json({ email: 'ada@example.com', password: account.password });
+
+    const { token: loginSession } = sessionOf(signIn.body().data);
 
     using fake = mail.fake();
     await client
@@ -105,6 +103,7 @@ test.group('Auth | password reset', (group) => {
     const reset = await client
       .visit('auth.password_resets.update')
       .json({ token, ...newPassword });
+
     reset.assertStatus(200);
     assert.notProperty(reset.body().data, 'token');
 
@@ -112,6 +111,7 @@ test.group('Auth | password reset', (group) => {
       const response = await client
         .visit('profile.profile.show')
         .bearerToken(session);
+
       response.assertStatus(401);
     }
 
@@ -128,13 +128,11 @@ test.group('Auth | password reset', (group) => {
     login.assertStatus(200);
     assert.isNotNull(sessionOf(login.body().data).user.emailVerifiedAt);
 
-    const reused = await client
-      .visit('auth.password_resets.update')
-      .json({
-        token,
-        password: 'third-password',
-        passwordConfirmation: 'third-password',
-      });
+    const reused = await client.visit('auth.password_resets.update').json({
+      token,
+      password: 'third-password',
+      passwordConfirmation: 'third-password',
+    });
 
     reused.assertStatus(400);
     reused.assertBodyContains({ code: 'E_INVALID_RESET_TOKEN' });

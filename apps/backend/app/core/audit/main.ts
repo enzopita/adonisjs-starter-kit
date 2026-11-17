@@ -19,7 +19,7 @@ function originOf(ctx: HttpContext | undefined) {
     };
   }
 
-  const user = ctx.auth.user;
+  const { user } = ctx.auth;
   const token = user?.currentAccessToken;
 
   return {
@@ -53,7 +53,9 @@ async function insert<T extends AuditEventType>(
 
   await AuditEvent.create(attributes, { client: trx });
 
-  if (scope) scope.recorded += 1;
+  if (scope) {
+    scope.recorded += 1;
+  }
 }
 
 export const audit = {
@@ -75,7 +77,9 @@ export const audit = {
   unchanged() {
     const scope = currentAuditScope();
 
-    if (scope) scope.unchanged = true;
+    if (scope) {
+      scope.unchanged = true;
+    }
   },
 };
 
@@ -87,8 +91,10 @@ export function dirtyChanges<
   const changes: Changes<Row, K> = {};
 
   for (const key of keys) {
-    if (key in row.$dirty)
+    if (key in row.$dirty) {
+      // oxlint-disable-next-line typescript/no-unsafe-assignment -- Lucid types $original as ModelObject; it holds the same columns as the row.
       changes[key] = { from: row.$original[key], to: row[key] };
+    }
   }
 
   return changes;

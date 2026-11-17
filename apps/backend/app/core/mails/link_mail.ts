@@ -21,8 +21,11 @@ export abstract class LinkMail extends BaseMail {
   /** More keys under `prefix` the view renders, passed under the same name. */
   protected extraKeys: string[] = [];
 
-  constructor(private data: LinkMailInput) {
+  private readonly data: LinkMailInput;
+
+  constructor(data: LinkMailInput) {
     super();
+    this.data = data;
   }
 
   prepare() {

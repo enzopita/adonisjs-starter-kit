@@ -13,7 +13,8 @@ export default class GetMember {
     trx: TransactionClientContract,
     { tenantId, userId }: GetMemberInput
   ): Promise<MemberSnapshot> {
-    const member: MemberSnapshot | null = await trx
+    const member = await trx
+      .query<MemberSnapshot>()
       .from('tenant_memberships')
       .join('users', 'users.id', 'tenant_memberships.user_id')
       .where('tenant_memberships.tenant_id', tenantId)
@@ -21,7 +22,9 @@ export default class GetMember {
       .select('users.email', 'users.full_name as fullName')
       .first();
 
-    if (!member) throw new MemberNotFoundException();
+    if (!member) {
+      throw new MemberNotFoundException();
+    }
 
     return member;
   }

@@ -49,7 +49,7 @@ const serializer = new ApiSerializer();
 
 // SAFETY: both functions forward their arguments unchanged to the serializer methods they are typed as.
 const serialize = Object.assign(
-  function (
+  function serialize(
     this: HttpContext,
     ...[data, resolver]: Parameters<ApiSerializer['serialize']>
   ) {

@@ -4,7 +4,7 @@ import type { JobOptions } from '@adonisjs/queue/types';
 
 import PruneAttachments from '#attachments/actions/prune_attachments';
 
-export default class PruneAttachmentsJob extends Job<{}> {
+export default class PruneAttachmentsJob extends Job<Record<string, never>> {
   static override options: JobOptions = {
     maxRetries: 3,
   };

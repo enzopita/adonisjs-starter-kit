@@ -5,7 +5,7 @@ import type { JobOptions } from '@adonisjs/queue/types';
 import PruneAuditEvents from '#audit/actions/prune_audit_events';
 import { auditRetentionDays } from '#config/app';
 
-export default class PruneAuditEventsJob extends Job<{}> {
+export default class PruneAuditEventsJob extends Job<Record<string, never>> {
   static override options: JobOptions = {
     maxRetries: 3,
   };

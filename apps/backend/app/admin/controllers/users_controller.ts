@@ -25,6 +25,6 @@ export default class UsersController {
 
     const { rows, meta } = await new ListUsers().handle(filters);
 
-    return serialize(AdminUserTransformer.paginate(rows, meta));
+    return await serialize(AdminUserTransformer.paginate(rows, meta));
   }
 }

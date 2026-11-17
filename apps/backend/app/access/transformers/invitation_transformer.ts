@@ -1,6 +1,6 @@
 import { BaseTransformer } from '@adonisjs/core/transformers';
 
-import Invitation from '#access/models/invitation';
+import type Invitation from '#access/models/invitation';
 
 export default class InvitationTransformer extends BaseTransformer<Invitation> {
   toObject() {

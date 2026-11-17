@@ -30,11 +30,13 @@ export default class RolesController {
       (await bouncer.allows(can, PERMISSIONS.rolesManage)) ||
       (await bouncer.allows(can, PERMISSIONS.membersManage));
 
-    if (!allowed) await bouncer.authorize(can, PERMISSIONS.rolesManage);
+    if (!allowed) {
+      await bouncer.authorize(can, PERMISSIONS.rolesManage);
+    }
 
     const roles = await Role.query().orderBy('name');
 
-    return serialize(RoleTransformer.transform(roles));
+    return await serialize(RoleTransformer.transform(roles));
   }
 
   /**
@@ -46,6 +48,7 @@ export default class RolesController {
    */
   async store({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.rolesManage);
+
     const { name, permissions } =
       await request.validateUsing(createRoleValidator);
 
@@ -55,7 +58,7 @@ export default class RolesController {
       permissions,
     });
 
-    return serialize(RoleTransformer.transform(role));
+    return await serialize(RoleTransformer.transform(role));
   }
 
   /**
@@ -68,6 +71,7 @@ export default class RolesController {
    */
   async update({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.rolesManage);
+
     const { params, name, permissions } =
       await request.validateUsing(updateRoleValidator);
 
@@ -78,7 +82,7 @@ export default class RolesController {
       permissions,
     });
 
-    return serialize(RoleTransformer.transform(role));
+    return await serialize(RoleTransformer.transform(role));
   }
 
   /**
@@ -96,6 +100,6 @@ export default class RolesController {
 
     await new DeleteRole().handle({ tenantId: tenant.id, id: params.id });
 
-    return serialize({ id: params.id });
+    return await serialize({ id: params.id });
   }
 }

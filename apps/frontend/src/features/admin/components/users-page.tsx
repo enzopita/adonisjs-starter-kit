@@ -42,7 +42,9 @@ export function UsersPage({
         key={search.search}
         label={t('admin.usersPage.search')}
         value={search.search}
-        onApply={(next) => onSearchChange({ search: next })}
+        onApply={(next) => {
+          onSearchChange({ search: next });
+        }}
       />
 
       {users.data.length === 0 ? (
@@ -96,7 +98,9 @@ export function UsersPage({
 
       <Pagination
         metadata={users.metadata}
-        onPageChange={(page) => onSearchChange({ ...search, page })}
+        onPageChange={(page) => {
+          onSearchChange({ ...search, page });
+        }}
       />
     </>
   );

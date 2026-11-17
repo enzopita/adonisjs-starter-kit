@@ -19,7 +19,7 @@ export interface UpdateAvatarInput {
 export default class UpdateAvatar {
   /** The replaced avatar is left in place: attachments:prune removes it once nothing references it. */
   async handle({ user, attachmentId }: UpdateAvatarInput) {
-    return db.transaction(async (trx) => {
+    return await db.transaction(async (trx) => {
       user.useTransaction(trx);
 
       if (attachmentId !== null && attachmentId !== user.avatarAttachmentId) {

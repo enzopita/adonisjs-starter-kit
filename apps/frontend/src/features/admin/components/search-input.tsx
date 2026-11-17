@@ -21,11 +21,15 @@ export function SearchInput({
   useEffect(() => {
     const next = draft.trim() || undefined;
 
-    if (next === value) return;
+    const timer = setTimeout(() => {
+      if (next !== value) {
+        onApply(next);
+      }
+    }, SEARCH_DELAY_MS);
 
-    const timer = setTimeout(() => onApply(next), SEARCH_DELAY_MS);
-
-    return () => clearTimeout(timer);
+    return () => {
+      clearTimeout(timer);
+    };
   }, [draft, value, onApply]);
 
   return (
@@ -35,7 +39,9 @@ export function SearchInput({
       placeholder={label}
       className="max-w-xs"
       value={draft}
-      onChange={(event) => setDraft(event.target.value)}
+      onChange={(event) => {
+        setDraft(event.target.value);
+      }}
     />
   );
 }

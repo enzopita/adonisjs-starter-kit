@@ -19,7 +19,9 @@ export default class EmailVerificationsController {
 
     await new ResendEmailVerification().handle({ user, locale: i18n.locale });
 
-    return serialize({ message: i18n.t('auth.email_verification_requested') });
+    return await serialize({
+      message: i18n.t('auth.email_verification_requested'),
+    });
   }
 
   /**
@@ -35,6 +37,6 @@ export default class EmailVerificationsController {
 
     await new VerifyEmail().handle({ token });
 
-    return serialize({ message: i18n.t('auth.email_verified') });
+    return await serialize({ message: i18n.t('auth.email_verified') });
   }
 }

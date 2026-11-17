@@ -28,8 +28,9 @@ export function createPersistedStore<State extends object>(
 
   window.addEventListener('storage', (event) => {
     // A null key is localStorage.clear(), from another tab or the devtools.
-    if (persists && (event.key === name || event.key === null))
+    if (persists && (event.key === name || event.key === null)) {
       void store.persist.rehydrate();
+    }
   });
 
   return Object.assign(store, { persists });

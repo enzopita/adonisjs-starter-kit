@@ -16,9 +16,10 @@ export default class RevokeInvitation {
     const invitation = await Invitation.findOrFail(id);
 
     await db.transaction(async (trx) => {
-      const role = invitation.roleId
-        ? await Role.findOrFail(invitation.roleId, { client: trx })
-        : null;
+      const role =
+        invitation.roleId === null
+          ? null
+          : await Role.findOrFail(invitation.roleId, { client: trx });
 
       await invitation.useTransaction(trx).delete();
 

@@ -27,13 +27,18 @@ export default class AuditEventsController {
     );
 
     const subjectPermission =
-      filters.subjectType && SUBJECT_PERMISSIONS.get(filters.subjectType);
+      filters.subjectType === undefined
+        ? undefined
+        : SUBJECT_PERMISSIONS.get(filters.subjectType);
 
     const allowed =
       (await bouncer.allows(can, PERMISSIONS.auditView)) ||
-      (!!subjectPermission && (await bouncer.allows(can, subjectPermission)));
+      (subjectPermission !== undefined &&
+        (await bouncer.allows(can, subjectPermission)));
 
-    if (!allowed) await bouncer.authorize(can, PERMISSIONS.auditView);
+    if (!allowed) {
+      await bouncer.authorize(can, PERMISSIONS.auditView);
+    }
 
     const { rows, meta } = await new ListAuditEvents().handle({
       trail: { tenantId: tenant.id },
@@ -41,6 +46,6 @@ export default class AuditEventsController {
       ...filters,
     });
 
-    return serialize(AuditEventTransformer.paginate(rows, meta));
+    return await serialize(AuditEventTransformer.paginate(rows, meta));
   }
 }

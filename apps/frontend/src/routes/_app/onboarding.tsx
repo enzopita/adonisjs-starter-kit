@@ -7,7 +7,9 @@ export const Route = createFileRoute('/_app/onboarding')({
   beforeLoad: async ({ context: { queryClient } }) => {
     const tenants = await queryClient.query(tenantsQuery());
 
-    if (tenants.data.length > 0) throw redirect({ to: '/' });
+    if (tenants.data.length > 0) {
+      throw redirect({ to: '/' });
+    }
   },
   component: OnboardingPage,
 });

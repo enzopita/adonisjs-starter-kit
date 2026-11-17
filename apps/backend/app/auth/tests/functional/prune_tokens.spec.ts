@@ -23,9 +23,11 @@ test.group('Auth | prune tokens', (group) => {
       .update({ expires_at: new Date(Date.now() - 1000) });
 
     const ada = await db
+      .query<{ id: string }>()
       .from('users')
       .where('email', 'ada@example.com')
-      .first();
+      .firstOrFail();
+
     await db.table('user_tokens').insert({
       user_id: ada.id,
       purpose: 'password_reset',

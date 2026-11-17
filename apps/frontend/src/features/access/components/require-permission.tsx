@@ -6,7 +6,7 @@ import {
   EmptyTitle,
 } from '@monorepo/ui/components/empty';
 import { LockIcon } from 'lucide-react';
-import type { ReactNode } from 'react';
+import type { ReactElement } from 'react';
 
 import {
   can,
@@ -21,11 +21,13 @@ export function RequirePermission({
   children,
 }: {
   permission: Permission;
-  children: ReactNode;
+  children: ReactElement;
 }) {
   const permissions = usePermissions();
 
-  if (can(permissions, permission)) return children;
+  if (can(permissions, permission)) {
+    return children;
+  }
 
   return (
     <div className="rounded-xl border border-dashed">

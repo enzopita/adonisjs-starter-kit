@@ -52,8 +52,11 @@ export const PERMISSION_GROUPS: PermissionGroupEntry[] = (() => {
     const key = permission.split('.')[0] as PermissionGroup;
     const group = byGroup.get(key);
 
-    if (group) group.push(permission);
-    else byGroup.set(key, [permission]);
+    if (group) {
+      group.push(permission);
+    } else {
+      byGroup.set(key, [permission]);
+    }
   }
 
   return [...byGroup].map(([key, permissions]) => ({ key, permissions }));

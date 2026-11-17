@@ -9,9 +9,11 @@ import {
 import { useMutation } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-import { PermissionPicker } from '@/features/access/components/permission-picker';
+import {
+  assignable,
+  PermissionPicker,
+} from '@/features/access/components/permission-picker';
 import type {
-  AssignablePermission,
   Permission,
   PermissionGroup,
 } from '@/features/access/permissions';
@@ -39,9 +41,8 @@ export function MemberGrantsDialog({
   );
 
   const form = useAppForm({
-    // SAFETY: a member's direct grants are always assignable; platform.admin never comes from one.
     defaultValues: {
-      permissions: member.permissions as AssignablePermission[],
+      permissions: assignable(member.permissions),
     },
     onSubmit: async ({ value, formApi }) => {
       const updated = await withFormErrors(
@@ -53,7 +54,9 @@ export function MemberGrantsDialog({
         })
       );
 
-      if (!updated) return;
+      if (!updated) {
+        return;
+      }
 
       onOpenChange(false);
       toast.success(
@@ -79,7 +82,9 @@ export function MemberGrantsDialog({
                 <PermissionPicker
                   groups={groups}
                   value={new Set(field.state.value)}
-                  onChange={(next) => field.handleChange([...next])}
+                  onChange={(next) => {
+                    field.handleChange([...next]);
+                  }}
                 />
               )}
             </form.AppField>

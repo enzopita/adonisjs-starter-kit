@@ -1,7 +1,7 @@
 import { Button, buttonVariants } from '@monorepo/ui/components/button';
 import { useMutation } from '@tanstack/react-query';
 import { Link } from '@tanstack/react-router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useRef } from 'react';
 import { toast } from 'sonner';
 
 import { queries } from '@/features/core/api';
@@ -21,15 +21,21 @@ export function VerifyEmailPage({ token, isAuthenticated, verifiedAt }: Props) {
   const verify = useMutation(
     queries.auth.emailVerifications.update.mutationOptions()
   );
+
   // React strict mode mounts effects twice; a second real request on the same token would 400.
   const fired = useRef(false);
 
-  useEffect(() => {
-    if (fired.current) return;
+  const fire = useEffectEvent(() => {
+    if (fired.current) {
+      return;
+    }
 
     fired.current = true;
     verify.mutate({ body: { token } });
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires exactly once, by `fired`.
+  });
+
+  useEffect(() => {
+    fire();
   }, []);
 
   const resend = useMutation(
@@ -93,7 +99,9 @@ export function VerifyEmailPage({ token, isAuthenticated, verifiedAt }: Props) {
             size="lg"
             className="w-full"
             pending={resend.isPending}
-            onClick={() => resend.mutate({})}
+            onClick={() => {
+              resend.mutate({});
+            }}
           >
             {t('auth.verifyEmailPage.resend')}
           </PendingButton>
@@ -111,7 +119,9 @@ export function VerifyEmailPage({ token, isAuthenticated, verifiedAt }: Props) {
         <Button
           size="lg"
           className="w-full"
-          onClick={() => verify.mutate({ body: { token } })}
+          onClick={() => {
+            verify.mutate({ body: { token } });
+          }}
         >
           {t('auth.verifyEmailPage.tryAgain')}
         </Button>

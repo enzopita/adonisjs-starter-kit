@@ -32,6 +32,7 @@ async function pruneTable(table: string) {
   let deleted = 0;
 
   while (true) {
+    // oxlint-disable-next-line no-await-in-loop -- each batch starts after the previous one ends: a short batch stops the loop.
     const { rowCount } = await db.rawQuery<{ rowCount: number }>(
       `
       DELETE FROM ${table} WHERE id IN (
@@ -44,7 +45,9 @@ async function pruneTable(table: string) {
 
     deleted += rowCount;
 
-    if (rowCount < BATCH_SIZE) break;
+    if (rowCount < BATCH_SIZE) {
+      break;
+    }
   }
 
   return deleted;

@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import type { Browser } from '@e2e-dev/web';
 import { expect } from 'e2e';
 import * as OTPAuth from 'otpauth';
+import { z } from 'zod';
 
 /** Arrange steps go straight to the API; only the behavior under test goes through the UI. */
 const API_URL = 'http://localhost:3333/api/v1';
@@ -48,11 +49,17 @@ export async function api<T>(
 ): Promise<T> {
   const headers = new Headers({ Accept: 'application/json' });
 
-  if (options.body) headers.set('Content-Type', 'application/json');
+  if (options.body) {
+    headers.set('Content-Type', 'application/json');
+  }
 
-  if (options.token) headers.set('Authorization', `Bearer ${options.token}`);
+  if (options.token) {
+    headers.set('Authorization', `Bearer ${options.token}`);
+  }
 
-  if (options.tenantId) headers.set('X-Tenant-Id', options.tenantId);
+  if (options.tenantId) {
+    headers.set('X-Tenant-Id', options.tenantId);
+  }
 
   const response = await fetch(`${API_URL}${path}`, {
     method: options.method ?? (options.body ? 'POST' : 'GET'),
@@ -103,14 +110,21 @@ export async function login(
 }
 
 /** A workspace owned by `account`, which holds every permission in it. */
-export function createTenant(account: Account, name = unique('Workspace')) {
-  return api<Tenant>('/tenants', { token: account.token, body: { name } });
+export async function createTenant(
+  account: Account,
+  name = unique('Workspace')
+) {
+  return await api<Tenant>('/tenants', {
+    token: account.token,
+    body: { name },
+  });
 }
 
 const BACKEND_DIR = new URL('../../apps/backend/', import.meta.url);
 
 /** Makes `account` a platform admin the way an operator makes the first one, from the command line. */
 export async function grantPlatformAdmin(account: Account) {
+  // oxlint-disable-next-line typescript/strict-void-return -- promisify uses execFile's util.promisify.custom variant, so the ChildProcess return is not discarded.
   await promisify(execFile)('node', ['ace', 'admin:grant', account.email], {
     cwd: BACKEND_DIR,
   });
@@ -145,13 +159,13 @@ export async function enableTwoFactor(account: Account) {
 
 export type Role = { id: string; name: string; permissions: string[] };
 
-export function createRole(
+export async function createRole(
   owner: Account,
   tenant: Tenant,
   name = unique('Role'),
   permissions: string[] = []
 ) {
-  return api<Role>('/roles', {
+  return await api<Role>('/roles', {
     method: 'POST',
     token: owner.token,
     tenantId: tenant.id,
@@ -159,14 +173,14 @@ export function createRole(
   });
 }
 
-export function updateRole(
+export async function updateRole(
   owner: Account,
   tenant: Tenant,
   roleId: string,
   name: string,
   permissions: string[] = []
 ) {
-  return api<Role>(`/roles/${roleId}`, {
+  return await api<Role>(`/roles/${roleId}`, {
     method: 'PUT',
     token: owner.token,
     tenantId: tenant.id,
@@ -174,13 +188,13 @@ export function updateRole(
   });
 }
 
-export function assignRole(
+export async function assignRole(
   owner: Account,
   tenant: Tenant,
   userId: string,
   roleId: string | null
 ) {
-  return api(`/members/${userId}/role`, {
+  return await api(`/members/${userId}/role`, {
     method: 'PUT',
     token: owner.token,
     tenantId: tenant.id,
@@ -188,13 +202,13 @@ export function assignRole(
   });
 }
 
-export function invite(
+export async function invite(
   owner: Account,
   tenant: Tenant,
   email: string,
   roleId: string | null = null
 ) {
-  return api('/invitations', {
+  return await api('/invitations', {
     method: 'POST',
     token: owner.token,
     tenantId: tenant.id,
@@ -245,12 +259,19 @@ export async function signInAs(
 ) {
   const seeds = [[SESSION_KEY, persisted({ token: account.token })]];
 
-  if (tenant) seeds.push([WORKSPACE_KEY, persisted({ tenantId: tenant.id })]);
+  if (tenant) {
+    seeds.push([WORKSPACE_KEY, persisted({ tenantId: tenant.id })]);
+  }
 
   await browser.addInitScript((entries) => {
-    if (sessionStorage.getItem('e2e:seeded')) return null;
+    if (sessionStorage.getItem('e2e:seeded')) {
+      return null;
+    }
 
-    for (const [key, value] of entries) localStorage.setItem(key, value);
+    for (const [key, value] of entries) {
+      localStorage.setItem(key, value);
+    }
+
     sessionStorage.setItem('e2e:seeded', '1');
 
     return null;
@@ -286,6 +307,12 @@ export async function signOut(browser: Browser) {
   }, SESSION_KEY);
 }
 
+const mailpitSearch = z.object({
+  messages: z.array(z.object({ ID: z.string() })),
+});
+
+const mailpitMessage = z.object({ Text: z.string(), HTML: z.string() });
+
 /**
  * Reads `email`'s mail for a `/<path>/<token>` link. A signup's verification mail and a forgot-
  * password's reset mail can land in the same millisecond, so this scans every recent message
@@ -295,24 +322,28 @@ async function readMailedToken(email: string, path: string) {
   const search = await fetch(
     `${MAILPIT_URL}/search?query=${encodeURIComponent(`to:"${email}"`)}`
   );
-  // SAFETY: Mailpit's search answers { messages: [{ ID }] }.
-  const { messages } = (await search.json()) as { messages: { ID: string }[] };
 
-  if (messages.length === 0)
+  const { messages } = mailpitSearch.parse(await search.json());
+
+  if (messages.length === 0) {
     throw new Error(`No mail to ${email} in Mailpit yet`);
+  }
 
-  for (const { ID } of messages) {
-    const response = await fetch(`${MAILPIT_URL}/message/${ID}`);
-    // SAFETY: Mailpit's message endpoint answers the plain-text and HTML bodies.
-    const { Text, HTML } = (await response.json()) as {
-      Text: string;
-      HTML: string;
-    };
-    const token = new RegExp(`/${path}/([^\\s"'<>]+)`).exec(
-      `${Text}\n${HTML}`
-    )?.[1];
+  const bodies = await Promise.all(
+    messages.map(async ({ ID }) => {
+      const response = await fetch(`${MAILPIT_URL}/message/${ID}`);
+      const { Text, HTML } = mailpitMessage.parse(await response.json());
 
-    if (token) return token;
+      return `${Text}\n${HTML}`;
+    })
+  );
+
+  for (const body of bodies) {
+    const token = new RegExp(`/${path}/([^\\s"'<>]+)`, 'u').exec(body)?.[1];
+
+    if (token) {
+      return token;
+    }
   }
 
   throw new Error(`None of the mail to ${email} has a /${path}/<token> link`);
@@ -338,14 +369,14 @@ async function pollMailedToken(email: string, path: string) {
   return token;
 }
 
-export function invitationToken(email: string) {
-  return pollMailedToken(email, 'invitations');
+export async function invitationToken(email: string) {
+  return await pollMailedToken(email, 'invitations');
 }
 
-export function resetPasswordToken(email: string) {
-  return pollMailedToken(email, 'reset-password');
+export async function resetPasswordToken(email: string) {
+  return await pollMailedToken(email, 'reset-password');
 }
 
-export function verifyEmailToken(email: string) {
-  return pollMailedToken(email, 'verify-email');
+export async function verifyEmailToken(email: string) {
+  return await pollMailedToken(email, 'verify-email');
 }

@@ -1,4 +1,5 @@
-import type { TuyauError } from '@tuyau/core/client';
+import { TuyauError } from '@tuyau/core/client';
+import { z } from 'zod';
 
 import { t } from '@/features/core/i18n';
 
@@ -31,11 +32,15 @@ const KNOWN_CODES = new Set<string>(API_ERROR_CODES);
  * Every error body the backend sends, merged: `{ code, message }` and the validation `errors`.
  * Its messages are already in the locale the request's Accept-Language asked for.
  */
-type ApiErrorBody = {
-  message?: string;
-  code?: string;
-  errors?: { field?: string; message: string }[];
-};
+const apiErrorBody = z.object({
+  message: z.string().optional(),
+  code: z.string().optional(),
+  errors: z
+    .array(z.object({ field: z.string().optional(), message: z.string() }))
+    .optional(),
+});
+
+type ApiErrorBody = z.infer<typeof apiErrorBody>;
 
 /** What a form shows for a failed submit, in the shape TanStack Form's error map takes. */
 export type FormErrors = {
@@ -45,9 +50,13 @@ export type FormErrors = {
   form?: string;
 };
 
+/** Narrows to `TuyauError`, where a bare `instanceof` narrows to `TuyauError<any>`. */
+export function isTuyauError(error: unknown): error is TuyauError {
+  return error instanceof TuyauError;
+}
+
 function errorBody(error: TuyauError): ApiErrorBody {
-  // SAFETY: every non-2xx body this API sends is one of the shapes ApiErrorBody merges.
-  return (error.response ?? {}) as ApiErrorBody;
+  return apiErrorBody.safeParse(error.response).data ?? {};
 }
 
 function isKnownCode(code: string): code is ApiErrorCode {
@@ -61,7 +70,9 @@ export function apiErrorCode(error: TuyauError): ApiErrorCode | null {
 }
 
 export function errorMessage(error: TuyauError): string {
-  if (error.kind === 'network') return t('core.errors.network');
+  if (error.kind === 'network') {
+    return t('core.errors.network');
+  }
 
   const body = errorBody(error);
 
@@ -73,7 +84,9 @@ export function formErrors(error: TuyauError): FormErrors {
 
   if (error.status === 422) {
     for (const { field, message } of errorBody(error).errors ?? []) {
-      if (field !== undefined && !(field in fields)) fields[field] = message;
+      if (field !== undefined && !(field in fields)) {
+        fields[field] = message;
+      }
     }
   }
 

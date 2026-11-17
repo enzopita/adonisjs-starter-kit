@@ -73,7 +73,6 @@ const AVATAR_TYPES = 'image/png,image/jpeg,image/webp';
 function AvatarCard() {
   const user = useSuspenseQuery(profileQuery()).data.data;
   const fileInput = useRef<HTMLInputElement>(null);
-  const showError = (error: TuyauError) => toast.error(errorMessage(error));
 
   const uploadFile = useMutation(
     queries.attachments.attachments.store.mutationOptions({
@@ -85,15 +84,16 @@ function AvatarCard() {
     queries.profile.avatar.update.mutationOptions({
       onSuccess: (_, { body }) =>
         toast.success(
-          body.attachmentId
-            ? t('users.profilePage.photoUpdated')
-            : t('users.profilePage.photoRemoved')
+          body.attachmentId === null
+            ? t('users.profilePage.photoRemoved')
+            : t('users.profilePage.photoUpdated')
         ),
       onError: showError,
     })
   );
 
   const pending = uploadFile.isPending || setAvatar.isPending;
+
   const removing =
     setAvatar.isPending && setAvatar.variables.body.attachmentId === null;
 
@@ -101,13 +101,16 @@ function AvatarCard() {
     const input = event.currentTarget;
     const file = input.files?.[0];
 
-    if (!file) return;
+    if (!file) {
+      return;
+    }
 
     uploadFile.mutate(
       { body: { file } },
       {
-        onSuccess: (attachment) =>
-          setAvatar.mutate({ body: { attachmentId: attachment.data.id } }),
+        onSuccess: (attachment) => {
+          setAvatar.mutate({ body: { attachmentId: attachment.data.id } });
+        },
         onSettled: () => {
           input.value = '';
         },
@@ -157,9 +160,9 @@ function AvatarCard() {
                 variant="ghost"
                 pending={removing}
                 disabled={pending}
-                onClick={() =>
-                  setAvatar.mutate({ body: { attachmentId: null } })
-                }
+                onClick={() => {
+                  setAvatar.mutate({ body: { attachmentId: null } });
+                }}
               >
                 {t('users.profilePage.removePhoto')}
               </PendingButton>
@@ -169,4 +172,8 @@ function AvatarCard() {
       </CardContent>
     </Card>
   );
+}
+
+function showError(error: TuyauError) {
+  toast.error(errorMessage(error));
 }

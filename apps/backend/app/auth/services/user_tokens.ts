@@ -1,7 +1,9 @@
 import type { TransactionClientContract } from '@adonisjs/lucid/types/database';
-import { DateTime, type DurationLikeObject } from 'luxon';
+import { DateTime } from 'luxon';
+import type { DurationLikeObject } from 'luxon';
 
-import UserToken, { type UserTokenPurpose } from '#auth/models/user_token';
+import UserToken from '#auth/models/user_token';
+import type { UserTokenPurpose } from '#auth/models/user_token';
 import { hashToken, newToken } from '#core/tokens';
 import User from '#users/models/user';
 
@@ -57,9 +59,11 @@ export async function consumeUserToken(
     .forUpdate()
     .first();
 
-  if (!row || row.expiresAt < DateTime.now()) return null;
+  if (!row || row.expiresAt < DateTime.now()) {
+    return null;
+  }
 
   await row.delete();
 
-  return User.findOrFail(row.userId, { client: trx });
+  return await User.findOrFail(row.userId, { client: trx });
 }

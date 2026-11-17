@@ -36,8 +36,9 @@ export default class AcceptInvitation {
       throw new InvitationNotFoundException();
     }
 
-    if (invitation.email !== userEmail)
+    if (invitation.email !== userEmail) {
       throw new InvitationEmailMismatchException();
+    }
 
     const { tenantId, roleId } = invitation;
 
@@ -49,7 +50,9 @@ export default class AcceptInvitation {
           .first();
 
         const role = roleSnapshot(
-          roleId ? await Role.findOrFail(roleId, { client: trx }) : null
+          roleId === null
+            ? null
+            : await Role.findOrFail(roleId, { client: trx })
         );
 
         // Already a member: the invitation is spent and nothing else changes. Makes a retry
@@ -57,11 +60,12 @@ export default class AcceptInvitation {
         if (!membership) {
           await TenantMembership.create({ tenantId, userId }, { client: trx });
 
-          if (roleId)
+          if (roleId) {
             await RoleAssignment.create(
               { tenantId, userId, roleId },
               { client: trx }
             );
+          }
 
           await audit.record(trx, 'member.joined', {
             tenantId,

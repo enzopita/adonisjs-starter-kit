@@ -79,7 +79,9 @@ export function WorkspaceSwitcher() {
               {tenants.data.map((tenant) => (
                 <DropdownMenuItem
                   key={tenant.id}
-                  onClick={() => open(tenant.id)}
+                  onClick={() => {
+                    void open(tenant.id);
+                  }}
                 >
                   <WorkspaceInitial name={tenant.name} />
                   <span className="truncate">{tenant.name}</span>
@@ -91,7 +93,11 @@ export function WorkspaceSwitcher() {
             </DropdownMenuGroup>
           )}
           {tenants.data.length > 0 && <DropdownMenuSeparator />}
-          <DropdownMenuItem onClick={() => setCreating(true)}>
+          <DropdownMenuItem
+            onClick={() => {
+              setCreating(true);
+            }}
+          >
             <PlusIcon />
             {t('tenancy.workspaceSwitcher.newWorkspace')}
           </DropdownMenuItem>
@@ -108,7 +114,11 @@ export function WorkspaceSwitcher() {
               {t('tenancy.workspaceSwitcher.newWorkspaceDescription')}
             </DialogDescription>
           </DialogHeader>
-          <CreateWorkspaceForm onCreated={() => setCreating(false)} />
+          <CreateWorkspaceForm
+            onCreated={() => {
+              setCreating(false);
+            }}
+          />
         </DialogContent>
       </Dialog>
     </>

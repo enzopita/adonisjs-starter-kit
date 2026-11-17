@@ -19,6 +19,7 @@ export default class MemberPermissionsController {
    */
   async update({ bouncer, request, tenant, serialize }: HttpContext) {
     await bouncer.authorize(can, PERMISSIONS.membersManage);
+
     const { params, permissions } = await request.validateUsing(
       replaceGrantsValidator
     );
@@ -29,6 +30,6 @@ export default class MemberPermissionsController {
       permissions,
     });
 
-    return serialize({ permissions });
+    return await serialize({ permissions });
   }
 }

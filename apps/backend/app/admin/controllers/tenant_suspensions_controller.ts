@@ -21,7 +21,7 @@ export default class TenantSuspensionsController {
    * @response {404} Tenant not found
    */
   async store(ctx: HttpContext) {
-    return this.set(ctx, true);
+    return await this.set(ctx, true);
   }
 
   /**
@@ -33,7 +33,7 @@ export default class TenantSuspensionsController {
    * @response {404} Tenant not found
    */
   async destroy(ctx: HttpContext) {
-    return this.set(ctx, false);
+    return await this.set(ctx, false);
   }
 
   private async set(
@@ -48,6 +48,6 @@ export default class TenantSuspensionsController {
       suspended,
     });
 
-    return serialize(TenantTransformer.transform(tenant));
+    return await serialize(TenantTransformer.transform(tenant));
   }
 }

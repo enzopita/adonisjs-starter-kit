@@ -7,7 +7,9 @@ export const Route = createFileRoute('/_app/admin/')({
   validateSearch: adminSearchSchema,
   loaderDeps: ({ search }) => search,
   loader: async ({ context: { queryClient, canUseArea }, deps }) => {
-    if (canUseArea) await queryClient.query(adminTenantsQuery(deps));
+    if (canUseArea) {
+      await queryClient.query(adminTenantsQuery(deps));
+    }
   },
   component: TenantsRoute,
 });
@@ -19,7 +21,9 @@ function TenantsRoute() {
   return (
     <TenantsPage
       search={search}
-      onSearchChange={(next) => void navigate({ search: next })}
+      onSearchChange={(next) => {
+        void navigate({ search: next });
+      }}
     />
   );
 }

@@ -55,7 +55,9 @@ export function TenantsPage({
         key={search.search}
         label={t('admin.tenantsPage.search')}
         value={search.search}
-        onApply={(next) => onSearchChange({ search: next })}
+        onApply={(next) => {
+          onSearchChange({ search: next });
+        }}
       />
 
       {tenants.data.length === 0 ? (
@@ -99,8 +101,12 @@ export function TenantsPage({
                 <TableCell>
                   <TenantRowActions
                     tenant={tenant}
-                    onRename={() => setRenaming(tenant)}
-                    onSuspend={() => setSuspending(tenant)}
+                    onRename={() => {
+                      setRenaming(tenant);
+                    }}
+                    onSuspend={() => {
+                      setSuspending(tenant);
+                    }}
                   />
                 </TableCell>
               </TableRow>
@@ -111,7 +117,9 @@ export function TenantsPage({
 
       <Pagination
         metadata={tenants.metadata}
-        onPageChange={(page) => onSearchChange({ ...search, page })}
+        onPageChange={(page) => {
+          onSearchChange({ ...search, page });
+        }}
       />
 
       {renaming && (
@@ -119,7 +127,11 @@ export function TenantsPage({
           key={renaming.id}
           tenant={renaming}
           open
-          onOpenChange={(open) => !open && setRenaming(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setRenaming(null);
+            }
+          }}
         />
       )}
 
@@ -128,7 +140,11 @@ export function TenantsPage({
           key={suspending.id}
           tenant={suspending}
           open
-          onOpenChange={(open) => !open && setSuspending(null)}
+          onOpenChange={(open) => {
+            if (!open) {
+              setSuspending(null);
+            }
+          }}
         />
       )}
     </>
@@ -136,10 +152,10 @@ export function TenantsPage({
 }
 
 export function TenantStatus({ suspendedAt }: { suspendedAt: string | null }) {
-  return suspendedAt ? (
-    <Badge variant="destructive">{t('admin.tenantsPage.suspended')}</Badge>
-  ) : (
+  return suspendedAt === null ? (
     <Badge variant="outline">{t('admin.tenantsPage.active')}</Badge>
+  ) : (
+    <Badge variant="destructive">{t('admin.tenantsPage.suspended')}</Badge>
   );
 }
 
@@ -170,20 +186,22 @@ function TenantRowActions({
       icon: PencilIcon,
       onSelect: onRename,
     },
-    tenant.suspendedAt
+    tenant.suspendedAt === null
       ? {
-          key: 'reactivate',
-          label: t('admin.tenantsPage.reactivate'),
-          icon: CirclePlayIcon,
-          disabled: reactivate.isPending,
-          onSelect: () => reactivate.mutate({ params: { id: tenant.id } }),
-        }
-      : {
           key: 'suspend',
           label: t('admin.tenantsPage.suspend'),
           icon: CirclePauseIcon,
           destructive: true,
           onSelect: onSuspend,
+        }
+      : {
+          key: 'reactivate',
+          label: t('admin.tenantsPage.reactivate'),
+          icon: CirclePlayIcon,
+          disabled: reactivate.isPending,
+          onSelect: () => {
+            reactivate.mutate({ params: { id: tenant.id } });
+          },
         },
   ];
 
@@ -226,7 +244,9 @@ function SuspendTenantDialog({
       description={t('admin.tenantsPage.suspendDescription')}
       confirmLabel={t('admin.tenantsPage.suspend')}
       pending={suspend.isPending}
-      onConfirm={() => suspend.mutate({ params: { id: tenant.id } })}
+      onConfirm={() => {
+        suspend.mutate({ params: { id: tenant.id } });
+      }}
     />
   );
 }
