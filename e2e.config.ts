@@ -1,18 +1,15 @@
 import type { E2EConfig } from 'e2e'
 import { web } from '@e2e-dev/web'
-import { openrouter } from '@openrouter/ai-sdk-provider'
-import { existsSync } from 'node:fs'
-
-// Local secrets such as OPENROUTER_API_KEY; CI sets them in the environment instead.
-if (existsSync('.env')) process.loadEnvFile('.env')
+import { claudeCode } from '@e2e-dev/acp'
 
 export default {
-  // agent.* steps need OPENROUTER_API_KEY: put it in a root .env or the environment.
-  // Without it, tests/auth.e2e.ts fails at its logout step with MODEL_PROVIDER_FAILED.
+  // agent.* steps run on Claude Code over ACP with its own login (`claude`), or ANTHROPIC_API_KEY when set.
   agents: {
     default: {
-      model: openrouter('openai/gpt-6-luna'),
-      system: 'You are a thorough QA agent. Verify every outcome.',
+      executor: claudeCode({
+        model: 'sonnet',
+        system: 'You are a thorough QA agent. Verify every outcome.',
+      }),
     },
   },
   targets: [

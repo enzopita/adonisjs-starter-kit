@@ -20,6 +20,13 @@ Each layer up keeps the **happy path** of the layer below and spends its asserti
 
 Done when every added test names its regression and owner, and no two tests assert the same behavior.
 
+## Agent steps in e2e tests
+
+`agent.act` and `agent.assert` run on Claude Code over ACP (`claudeCode()` in `e2e.config.ts`), with its own login, so the suite needs no API key. `agent.waitFor` and `agent.extract` never reach an executor: the runner judges them with the agents entry's `model`, which this config doesn't set, so they fail with `MODEL_UNAVAILABLE`. Don't use them:
+
+- Instead of `agent.waitFor`, wait deterministically (`expect(...).toBeVisible()`, `expect(browser).toHaveURL()`, `locator.waitFor()`), then `agent.assert` if the check needs judgment.
+- Instead of `agent.extract`, read the value through a locator or fetch it from the API helpers in `tests/support/api.ts`.
+
 ## Out of scope
 
 Framework and library behavior (VineJS, Lucid, TanStack Router, the e2e runner), facts the type checker already enforces, static copy, and getters with no logic. Tests target this project's code.
